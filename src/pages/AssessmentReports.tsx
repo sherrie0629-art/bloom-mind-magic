@@ -14,7 +14,8 @@ const typeConfig: Record<string, { icon: typeof Brain; label: string; gradient: 
 
 interface Report {
   id: string;
-  type: string;
+  assessment_type: string;
+  type?: string;
   result_data: any;
   created_at: string;
 }

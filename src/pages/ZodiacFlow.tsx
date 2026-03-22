@@ -92,7 +92,7 @@ const ZodiacFlow = () => {
         fetchResultImage(data.data);
         if (user) {
           const { data: inserted } = await supabase.from("assessment_results").insert({
-            user_id: user.id, type: "zodiac", result_data: data.data,
+            user_id: user.id, assessment_type: "zodiac", result_data: data.data,
           }).select("id").single();
           if (inserted) resultIdRef.current = inserted.id;
           generateSoulFragment(user.id, "assessment", "zodiac", `星座分析：${data.data.zodiacSign} ${data.data.title}。${data.data.description}`);

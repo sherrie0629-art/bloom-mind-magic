@@ -76,7 +76,7 @@ const EmotionFlow = () => {
         fetchResultImage(data.data);
         if (user) {
           const { data: inserted } = await supabase.from("assessment_results").insert({
-            user_id: user.id, type: "emotion", result_data: data.data,
+            user_id: user.id, assessment_type: "emotion", result_data: data.data,
           }).select("id").single();
           if (inserted) resultIdRef.current = inserted.id;
           generateSoulFragment(user.id, "assessment", "emotion", `情绪状态：${data.data.emotionLevel} ${data.data.title}。${data.data.description}`);
