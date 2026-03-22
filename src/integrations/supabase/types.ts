@@ -14,16 +14,517 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      achievements: {
+        Row: {
+          achievement_id: string
+          agent_id: string | null
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          agent_id?: string | null
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          agent_id?: string | null
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      agent_bonds: {
+        Row: {
+          agent_id: string
+          bond_level: number
+          created_at: string
+          easter_eggs_found: Json
+          energy_bits: number
+          id: string
+          total_turns: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          bond_level?: number
+          created_at?: string
+          easter_eggs_found?: Json
+          energy_bits?: number
+          id?: string
+          total_turns?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          bond_level?: number
+          created_at?: string
+          easter_eggs_found?: Json
+          energy_bits?: number
+          id?: string
+          total_turns?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      assessment_results: {
+        Row: {
+          assessment_type: string
+          created_at: string
+          id: string
+          result_data: Json
+          user_id: string
+        }
+        Insert: {
+          assessment_type: string
+          created_at?: string
+          id?: string
+          result_data?: Json
+          user_id: string
+        }
+        Update: {
+          assessment_type?: string
+          created_at?: string
+          id?: string
+          result_data?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      chat_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          role: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          role: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compatibility_reports: {
+        Row: {
+          created_at: string
+          id: string
+          partner_info: Json
+          result_data: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          partner_info?: Json
+          result_data?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          partner_info?: Json
+          result_data?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      conversation_summaries: {
+        Row: {
+          agent_id: string
+          conversation_id: string | null
+          created_at: string
+          id: string
+          key_topics: Json | null
+          summary: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          key_topics?: Json | null
+          summary: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          key_topics?: Json | null
+          summary?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_summaries_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      daily_whispers: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          image_url: string | null
+          input_text: string | null
+          mood: string | null
+          mood_emoji: string | null
+          mood_score: number | null
+          mood_word: string | null
+          user_id: string
+          whisper: string | null
+          whisper_date: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          input_text?: string | null
+          mood?: string | null
+          mood_emoji?: string | null
+          mood_score?: number | null
+          mood_word?: string | null
+          user_id: string
+          whisper?: string | null
+          whisper_date?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          input_text?: string | null
+          mood?: string | null
+          mood_emoji?: string | null
+          mood_score?: number | null
+          mood_word?: string | null
+          user_id?: string
+          whisper?: string | null
+          whisper_date?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      purchase_records: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          product_id: string | null
+          product_type: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          product_type: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          product_type?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      soul_fragments: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          icon: string | null
+          id: string
+          name: string
+          source_agent: string | null
+          source_type: string | null
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name: string
+          source_agent?: string | null
+          source_type?: string | null
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          icon?: string | null
+          id?: string
+          name?: string
+          source_agent?: string | null
+          source_type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      story_vault: {
+        Row: {
+          agent_id: string | null
+          content: string | null
+          created_at: string
+          icon: string | null
+          id: string
+          title: string
+          type: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          agent_id?: string | null
+          content?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          title: string
+          type: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          agent_id?: string | null
+          content?: string | null
+          created_at?: string
+          icon?: string | null
+          id?: string
+          title?: string
+          type?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      usage_tracking: {
+        Row: {
+          assessment_count: number
+          chat_count: number
+          id: string
+          track_date: string
+          user_id: string
+        }
+        Insert: {
+          assessment_count?: number
+          chat_count?: number
+          id?: string
+          track_date?: string
+          user_id: string
+        }
+        Update: {
+          assessment_count?: number
+          chat_count?: number
+          id?: string
+          track_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_memories: {
+        Row: {
+          agent_id: string
+          category: string | null
+          content: string
+          created_at: string
+          emotion_tag: string | null
+          id: string
+          importance: number
+          user_id: string
+        }
+        Insert: {
+          agent_id: string
+          category?: string | null
+          content: string
+          created_at?: string
+          emotion_tag?: string | null
+          id?: string
+          importance?: number
+          user_id: string
+        }
+        Update: {
+          agent_id?: string
+          category?: string | null
+          content?: string
+          created_at?: string
+          emotion_tag?: string | null
+          id?: string
+          importance?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_subscriptions: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          plan: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          plan?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +651,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const

@@ -98,7 +98,7 @@ const AssessmentFlow = () => {
         fetchParallelUniverse(data.data.mbtiType);
         if (user) {
           const { data: inserted } = await supabase.from("assessment_results").insert({
-            user_id: user.id, type: "mbti", result_data: data.data,
+            user_id: user.id, assessment_type: "mbti", result_data: data.data,
           }).select("id").single();
           if (inserted) resultIdRef.current = inserted.id;
           generateSoulFragment(user.id, "assessment", "mbti", `MBTI结果：${data.data.mbtiType} ${data.data.title}。${data.data.description}`);

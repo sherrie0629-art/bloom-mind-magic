@@ -14,7 +14,8 @@ const typeConfig: Record<string, { icon: typeof Brain; label: string; gradient: 
 
 interface Report {
   id: string;
-  type: string;
+  assessment_type: string;
+  type?: string;
   result_data: any;
   created_at: string;
 }
@@ -33,18 +34,19 @@ const AssessmentReports = () => {
       .eq("user_id", user.id)
       .order("created_at", { ascending: false })
       .then(({ data }) => {
-        setReports(data || []);
+        setReports((data || []).map((d: any) => ({ ...d, type: d.assessment_type })));
         setLoading(false);
       });
   }, [user]);
 
   const getTitle = (r: Report) => {
     const d = r.result_data as any;
-    if (r.type === "mbti") return `${d.mbtiType} — ${d.title}`;
-    if (r.type === "bazi") return `${d.dayMaster} · ${d.title}`;
-    if (r.type === "zodiac") return `${d.zodiacSign} · ${d.title}`;
-    if (r.type === "emotion") return `${d.emoji || "🎭"} ${d.title}`;
-    return d.title || r.type;
+    const t = r.assessment_type || r.type;
+    if (t === "mbti") return `${d.mbtiType} — ${d.title}`;
+    if (t === "bazi") return `${d.dayMaster} · ${d.title}`;
+    if (t === "zodiac") return `${d.zodiacSign} · ${d.title}`;
+    if (t === "emotion") return `${d.emoji || "🎭"} ${d.title}`;
+    return d.title || t;
   };
 
   const getDesc = (r: Report) => {
@@ -84,7 +86,7 @@ const AssessmentReports = () => {
           </div>
         ) : (
           reports.map((r, i) => {
-            const cfg = typeConfig[r.type] || typeConfig.mbti;
+            const cfg = typeConfig[r.assessment_type || r.type || "mbti"] || typeConfig.mbti;
             const Icon = cfg.icon;
             return (
               <motion.div
