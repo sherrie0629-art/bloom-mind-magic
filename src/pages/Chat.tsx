@@ -165,7 +165,7 @@ const Chat = () => {
         }
         if (summaries && summaries.length > 0) {
           summaries.forEach((s) => {
-            memCtx.push(`[摘要] ${s.summary}（话题：${(s.key_topics || []).join("、")}）`);
+            memCtx.push(`[摘要] ${s.summary}（话题：${(s.key_topics as string[] || []).join("、")}）`);
           });
         }
         setMemoryContext(memCtx);
