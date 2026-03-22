@@ -86,7 +86,7 @@ const AssessmentReports = () => {
           </div>
         ) : (
           reports.map((r, i) => {
-            const cfg = typeConfig[r.type] || typeConfig.mbti;
+            const cfg = typeConfig[r.assessment_type || r.type || "mbti"] || typeConfig.mbti;
             const Icon = cfg.icon;
             return (
               <motion.div
