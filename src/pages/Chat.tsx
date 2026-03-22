@@ -389,21 +389,21 @@ const Chat = () => {
           if (parsedOptions && parsedOptions.length > 0) {
             finalBranchOptions = parsedOptions;
           } else {
-            // Count assistant messages since last message that had branch options
-            const allMsgs = [...prev_messages, { role: "assistant" as const, content: cleanContent }];
-            const assistantMsgs = allMsgs.filter(m => m.role === "assistant");
-            let turnsSinceLastOptions = 0;
-            for (let i = assistantMsgs.length - 1; i >= 0; i--) {
-              // Check if this message had options (stored in messages state)
-              const original = messages.find(m => m.content === assistantMsgs[i].content && m.branchOptions && m.branchOptions.length > 0);
-              if (original) break;
-              turnsSinceLastOptions++;
-            }
-            if (turnsSinceLastOptions >= 3) {
+            // Count assistant messages since last one that had branch options
+            const assistantMsgsWithOptions = messages.filter(
+              m => m.role === "assistant" && m.branchOptions && m.branchOptions.length > 0
+            );
+            const lastOptionsIdx = assistantMsgsWithOptions.length > 0
+              ? messages.indexOf(assistantMsgsWithOptions[assistantMsgsWithOptions.length - 1])
+              : -1;
+            const assistantsSinceLast = messages
+              .slice(lastOptionsIdx + 1)
+              .filter(m => m.role === "assistant").length;
+            // +1 for the current response being processed
+            if (assistantsSinceLast + 1 >= 3) {
               finalBranchOptions = generateFallbackOptions(agentId, [...apiMessages, { role: "assistant", content: cleanContent }]);
             }
           }
-          const prev_messages = apiMessages;
           
           console.log("[Chat] parsed markers:", { branchOptions: finalBranchOptions?.length, fromAI: !!(parsedOptions && parsedOptions.length > 0), energyGain, atmosphere: newAtmosphere });
 
