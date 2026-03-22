@@ -384,10 +384,26 @@ const Chat = () => {
           console.log("[Chat] raw AI response:", assistantContent.slice(-200));
           const { cleanContent, energyGain, branchOptions: parsedOptions, truthShard, atmosphere: newAtmosphere } = parseGameMarkers(assistantContent);
           
-          // Use AI-generated options, or generate contextual fallback options
-          const finalBranchOptions = (parsedOptions && parsedOptions.length > 0)
-            ? parsedOptions
-            : generateFallbackOptions(agentId, [...apiMessages, { role: "assistant", content: cleanContent }]);
+          // Use AI-generated options, or generate contextual fallback options (only every ~3 turns)
+          let finalBranchOptions: BranchOption[] | null = null;
+          if (parsedOptions && parsedOptions.length > 0) {
+            finalBranchOptions = parsedOptions;
+          } else {
+            // Count assistant messages since last message that had branch options
+            const allMsgs = [...prev_messages, { role: "assistant" as const, content: cleanContent }];
+            const assistantMsgs = allMsgs.filter(m => m.role === "assistant");
+            let turnsSinceLastOptions = 0;
+            for (let i = assistantMsgs.length - 1; i >= 0; i--) {
+              // Check if this message had options (stored in messages state)
+              const original = messages.find(m => m.content === assistantMsgs[i].content && m.branchOptions && m.branchOptions.length > 0);
+              if (original) break;
+              turnsSinceLastOptions++;
+            }
+            if (turnsSinceLastOptions >= 3) {
+              finalBranchOptions = generateFallbackOptions(agentId, [...apiMessages, { role: "assistant", content: cleanContent }]);
+            }
+          }
+          const prev_messages = apiMessages;
           
           console.log("[Chat] parsed markers:", { branchOptions: finalBranchOptions?.length, fromAI: !!(parsedOptions && parsedOptions.length > 0), energyGain, atmosphere: newAtmosphere });
 
