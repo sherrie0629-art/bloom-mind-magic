@@ -148,6 +148,30 @@ export type Database = {
           },
         ]
       }
+      compatibility_reports: {
+        Row: {
+          created_at: string
+          id: string
+          partner_info: Json
+          result_data: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          partner_info?: Json
+          result_data?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          partner_info?: Json
+          result_data?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
       conversation_summaries: {
         Row: {
           agent_id: string
@@ -218,24 +242,42 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          image_url: string | null
+          input_text: string | null
           mood: string | null
+          mood_emoji: string | null
+          mood_score: number | null
+          mood_word: string | null
           user_id: string
+          whisper: string | null
           whisper_date: string
         }
         Insert: {
           content: string
           created_at?: string
           id?: string
+          image_url?: string | null
+          input_text?: string | null
           mood?: string | null
+          mood_emoji?: string | null
+          mood_score?: number | null
+          mood_word?: string | null
           user_id: string
+          whisper?: string | null
           whisper_date?: string
         }
         Update: {
           content?: string
           created_at?: string
           id?: string
+          image_url?: string | null
+          input_text?: string | null
           mood?: string | null
+          mood_emoji?: string | null
+          mood_score?: number | null
+          mood_word?: string | null
           user_id?: string
+          whisper?: string | null
           whisper_date?: string
         }
         Relationships: []
@@ -339,6 +381,7 @@ export type Database = {
           id: string
           title: string
           type: string
+          unlocked_at: string
           user_id: string
         }
         Insert: {
@@ -349,6 +392,7 @@ export type Database = {
           id?: string
           title: string
           type: string
+          unlocked_at?: string
           user_id: string
         }
         Update: {
@@ -359,6 +403,7 @@ export type Database = {
           id?: string
           title?: string
           type?: string
+          unlocked_at?: string
           user_id?: string
         }
         Relationships: []
