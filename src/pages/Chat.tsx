@@ -20,6 +20,7 @@ import { streamChat, type Msg } from "@/lib/streamChat";
 import { useBond } from "@/hooks/useBond";
 import { useSubscription } from "@/hooks/useSubscription";
 import { parseGameMarkers, type BranchOption, type Atmosphere } from "@/lib/parseGameMarkers";
+import { generateFallbackOptions } from "@/lib/generateFallbackOptions";
 import { toast } from "sonner";
 import { generateSoulFragment } from "@/hooks/useSoulFragment";
 
@@ -381,15 +382,21 @@ const Chat = () => {
         onDone: async () => {
           // Parse game markers from completed content
           console.log("[Chat] raw AI response:", assistantContent.slice(-200));
-          const { cleanContent, energyGain, branchOptions, truthShard, atmosphere: newAtmosphere } = parseGameMarkers(assistantContent);
-          console.log("[Chat] parsed markers:", { branchOptions, energyGain, atmosphere: newAtmosphere });
+          const { cleanContent, energyGain, branchOptions: parsedOptions, truthShard, atmosphere: newAtmosphere } = parseGameMarkers(assistantContent);
+          
+          // Use AI-generated options, or generate contextual fallback options
+          const finalBranchOptions = (parsedOptions && parsedOptions.length > 0)
+            ? parsedOptions
+            : generateFallbackOptions(agentId, [...apiMessages, { role: "assistant", content: cleanContent }]);
+          
+          console.log("[Chat] parsed markers:", { branchOptions: finalBranchOptions?.length, fromAI: !!(parsedOptions && parsedOptions.length > 0), energyGain, atmosphere: newAtmosphere });
 
           if (newAtmosphere) setAtmosphere(newAtmosphere);
           setIsStreaming(false);
           setMessages((prev) =>
             prev.map((m) =>
               m.id === "streaming"
-                ? { ...m, id: Date.now().toString(), content: cleanContent, branchOptions }
+                ? { ...m, id: Date.now().toString(), content: cleanContent, branchOptions: finalBranchOptions }
                 : m
             )
           );
