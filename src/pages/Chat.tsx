@@ -20,6 +20,7 @@ import { streamChat, type Msg } from "@/lib/streamChat";
 import { useBond } from "@/hooks/useBond";
 import { useSubscription } from "@/hooks/useSubscription";
 import { parseGameMarkers, type BranchOption, type Atmosphere } from "@/lib/parseGameMarkers";
+import { generateFallbackOptions } from "@/lib/generateFallbackOptions";
 import { toast } from "sonner";
 import { generateSoulFragment } from "@/hooks/useSoulFragment";
 
