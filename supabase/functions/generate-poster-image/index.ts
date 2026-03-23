@@ -25,7 +25,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model,
         prompt,
-        size: "1024x1024",
+        size: "1920x1920",
         response_format: "b64_json",
       }),
     });
