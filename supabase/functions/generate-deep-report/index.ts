@@ -6,7 +6,48 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const DOUBAO_URL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
+interface AIConfig { url: string; apiKey: string; model: string; }
+
+async function getAIConfig(defaultModel: string, isStream = false): Promise<AIConfig> {
+  const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const { data } = await sb.from("app_settings").select("value").eq("key", "ai_provider").single();
+  const provider = data?.value || "lovable";
+  if (provider === "doubao") {
+    return {
+      url: "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+      apiKey: Deno.env.get("DOUBAO_API_KEY")!,
+      model: isStream ? Deno.env.get("DOUBAO_STREAM_ENDPOINT_ID")! : Deno.env.get("DOUBAO_ENDPOINT_ID")!,
+    };
+  }
+  return { url: "https://ai.gateway.lovable.dev/v1/chat/completions", apiKey: Deno.env.get("LOVABLE_API_KEY")!, model: defaultModel };
+}
+
+function getLovableFallback(defaultModel: string): AIConfig {
+  return { url: "https://ai.gateway.lovable.dev/v1/chat/completions", apiKey: Deno.env.get("LOVABLE_API_KEY")!, model: defaultModel };
+}
+
+async function fetchAI(aiConfig: AIConfig, defaultModel: string, requestBody: Record<string, unknown>): Promise<Response> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    const resp = await fetch(aiConfig.url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${aiConfig.apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ ...requestBody, model: aiConfig.model }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    return resp;
+  } catch (e) {
+    console.error("Primary AI failed, falling back to Lovable:", e);
+    const fallback = getLovableFallback(defaultModel);
+    return fetch(fallback.url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${fallback.apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ ...requestBody, model: fallback.model }),
+    });
+  }
+}
 
 const typeLabels: Record<string, string> = {
   mbti: "MBTI人格",
@@ -90,10 +131,10 @@ serve(async (req) => {
       }
     }
 
-    const apiKey = Deno.env.get("DOUBAO_API_KEY")!;
-    const model = Deno.env.get("DOUBAO_ENDPOINT_ID")!;
+    const aiConfig = await getAIConfig("google/gemini-2.5-pro");
+    const defaultModel = "google/gemini-2.5-pro";
 
-    const typeLabel = typeLabels[assessment.assessment_type] || assessment.assessment_type;
+    const typeLabel = typeLabels[assessment.type] || assessment.type;
     const resultSummary = JSON.stringify(resultData, null, 2);
 
     const systemPrompt = `你是一位拥有20年经验的资深心理咨询师和人格分析专家。你需要基于用户的${typeLabel}测评结果，生成一份3000-5000字的深度心理分析报告。
@@ -131,17 +172,12 @@ serve(async (req) => {
 - 适当使用emoji增加可读性
 - 中文输出`;
 
-    const response = await fetch(DOUBAO_URL, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model,
-        max_tokens: 8000,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `以下是用户的${typeLabel}测评结果数据：\n\n${resultSummary}\n\n请生成深度分析报告。` },
-        ],
-      }),
+    const response = await fetchAI(aiConfig, defaultModel, {
+      max_tokens: 8000,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `以下是用户的${typeLabel}测评结果数据：\n\n${resultSummary}\n\n请生成深度分析报告。` },
+      ],
     });
 
     if (!response.ok) {
@@ -156,7 +192,7 @@ serve(async (req) => {
         });
       }
       const t = await response.text();
-      console.error("AI error:", response.status, t);
+      console.error("AI gateway error:", response.status, t);
       throw new Error("AI 服务暂时不可用");
     }
 

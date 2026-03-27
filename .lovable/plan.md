@@ -1,50 +1,46 @@
+## 计划：优化分支选项 — 基于语境触发，约每3轮出现，提升文案质感
 
+### 问题
 
-## 计划：全面切换到豆包 API（文本推理 + 图片生成），无降级回退
-
-### 概述
-将所有 AI 模型服务从 Lovable AI Gateway 完全切换到火山引擎豆包 API：
-- **文本推理**：豆包 2.0 Pro
-- **图片生成**：Seedream 模型
-- **无降级回退**：任何场景下都不回退到 Lovable AI，失败时直接返回错误
-
-### 需要配置的密钥（5 个）
-1. **DOUBAO_API_KEY** — 文本推理 API Key
-2. **DOUBAO_ENDPOINT_ID** — 豆包 2.0 Pro 非流式接入点 ID
-3. **DOUBAO_STREAM_ENDPOINT_ID** — 豆包 2.0 Pro 流式接入点 ID
-4. **DOUBAO_IMAGE_API_KEY** — Seedream 图片生成 API Key（若与文本同一个 key 请告知）
-5. **DOUBAO_IMAGE_ENDPOINT_ID** — Seedream 图片生成接入点 ID
+当前系统提示词强制 AI 在**每次回复**都附带分支选项，导致选项重复、文案空洞。用户希望选项至少大约每3轮出现一次，由对话语境驱动，文案更有质感和深度。
 
 ### 改动内容
 
-#### 1. 配置密钥
-使用密钥管理工具添加上述 5 个密钥。
+#### 1. 修改 AI 系统提示词
 
-#### 2. 重写所有 Edge Function 的 AI 调用逻辑
-**涉及 10 个文件：**
-`chat`、`assessment`、`assessment-bazi`、`assessment-emotion`、`assessment-zodiac`、`assessment-compatibility`、`daily-whisper`、`generate-deep-report`、`generate-soul-fragment`、`summarize-conversation`
+**文件：** `supabase/functions/chat/index.ts` — 重写 `RPG_INSTRUCTION` 中的分支选项规则
 
-改动：
-- 移除 `getAIConfig()` 中的 provider 查询和 lovable 分支，直接硬编码豆包配置
-- **移除 `getLovableFallback()` 函数**
-- **移除 `fetchAI()` 中的 try-catch 降级逻辑**，失败时直接抛错
-- 简化为直接调用豆包 API，错误透传给客户端
+- 从"每次必须附上"改为**语境驱动**：
+  - 仅在对话出现**转折点、情感十字路口、需要做选择**的时刻给出选项
+  - 大约每3轮给一次，不是每轮都给
+  - 用户正在宣泄情绪或直接提问时，不要给选项，专心回应
+- 提升选项文案质量要求：
+  - 选项应该像**内心不同的声音**，不是随便的聊天气泡
+  - 每个选项体现一种独特的情感立场或态度
+  - 禁止"继续聊聊"、"你能给我建议吗"这类口水话
+  - 好例子："也许我该承认，我其实在害怕{勇敢}" / 差例子："我想聊聊这个{好奇}"
 
-#### 3. 改造图片生成函数
-**文件：** `generate-poster-image/index.ts`
+#### 2. 更新客户端回退逻辑
 
-切换到火山引擎 Seedream 的 `/api/v3/images/generations` 接口：
+**文件：** `src/pages/Chat.tsx`
 
-```text
-API: POST https://ark.cn-beijing.volces.com/api/v3/images/generations
-请求体: { model: ENDPOINT_ID, prompt: "...", size: "1024x1024", response_format: "b64_json" }
-响应体: { data: [{ b64_json: "..." }] }
-```
+- 仅在 AI 未提供选项 **且** 距离上次出现选项已过 ≥3 条助手消息时，才触发 `generateFallbackOptions()`
+- 通过消息历史计数来判断是否需要触发回退
 
-#### 4. 部署所有更新的 Edge Function
+#### 3. 提升回退选项池质量
+
+**文件：** `src/lib/generateFallbackOptions.ts`
+
+- 重写选项文案，更有情感张力和角色个性
+- 用"也许我在逃避什么"替代"继续聊聊这个话题"
+- 强化关键词匹配路径，减少通用选项的使用
+
+#### 4. 重新部署 Edge Function
+
+将更新后的 `chat` 函数部署到 Lovable Cloud。
 
 ### 技术说明
-- 完全移除对 Lovable AI Gateway 的所有引用
-- 失败时直接返回错误信息给用户，不做任何降级
-- 无需数据库改动
 
+- `parseGameMarkers` 解析器无需修改 — 已支持可选的 `【💫选项】` 标记
+- `BranchSelector` 组件无需修改 — 仅在有选项时才渲染
+- 无需数据库改动

@@ -1,11 +1,26 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const DOUBAO_URL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
+interface AIConfig { url: string; apiKey: string; model: string; }
+
+async function getAIConfig(defaultModel: string, isStream = false): Promise<AIConfig> {
+  const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const { data } = await sb.from("app_settings").select("value").eq("key", "ai_provider").single();
+  const provider = data?.value || "lovable";
+  if (provider === "doubao") {
+    return {
+      url: "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+      apiKey: Deno.env.get("DOUBAO_API_KEY")!,
+      model: isStream ? Deno.env.get("DOUBAO_STREAM_ENDPOINT_ID")! : Deno.env.get("DOUBAO_ENDPOINT_ID")!,
+    };
+  }
+  return { url: "https://ai.gateway.lovable.dev/v1/chat/completions", apiKey: Deno.env.get("LOVABLE_API_KEY")!, model: defaultModel };
+}
 
 const RPG_INSTRUCTION = `
 
@@ -177,9 +192,7 @@ serve(async (req) => {
   try {
     const { messages, agentId, memoryContext, bondLevel } = await req.json();
 
-    const apiKey = Deno.env.get("DOUBAO_API_KEY");
-    const model = Deno.env.get("DOUBAO_STREAM_ENDPOINT_ID");
-    if (!apiKey || !model) throw new Error("豆包 API 未配置");
+    const aiConfig = await getAIConfig("google/gemini-2.5-flash", true);
 
     const basePrompt = agentBasePrompts[agentId] || agentBasePrompts.healer;
     const level = bondLevel || 1;
@@ -217,22 +230,42 @@ serve(async (req) => {
       fullSystemPrompt += `\n\n【长期记忆】以下是你记住的关于这位用户的具体记忆和对话摘要。请在对话中自然地、主动地引用这些记忆，让用户感受到你真的"记得"他们。例如："上次你提到工作压力很大，最近好些了吗？"。不要生硬罗列，要自然融入对话，在合适的时机主动提起。\n${memoryContext.join("\n")}`;
     }
 
-    const response = await fetch(DOUBAO_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: 300,
-        messages: [
-          { role: "system", content: fullSystemPrompt },
-          ...messages,
-        ],
-        stream: true,
-      }),
+    const requestBody = JSON.stringify({
+      model: aiConfig.model,
+      max_tokens: 300,
+      messages: [
+        { role: "system", content: fullSystemPrompt },
+        ...messages,
+      ],
+      stream: true,
     });
+
+    let response: Response;
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
+      response = await fetch(aiConfig.url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${aiConfig.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: requestBody,
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+    } catch (e) {
+      console.error("Primary AI failed, falling back to Lovable:", e);
+      const fallback = { url: "https://ai.gateway.lovable.dev/v1/chat/completions", apiKey: Deno.env.get("LOVABLE_API_KEY")!, model: "google/gemini-2.5-flash" };
+      response = await fetch(fallback.url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${fallback.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ...JSON.parse(requestBody), model: fallback.model }),
+      });
+    }
 
     if (!response.ok) {
       if (response.status === 429) {
@@ -246,7 +279,7 @@ serve(async (req) => {
         });
       }
       const t = await response.text();
-      console.error("豆包 API 错误:", response.status, t);
+      console.error("AI gateway error:", response.status, t);
       return new Response(JSON.stringify({ error: "AI 服务暂时不可用" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

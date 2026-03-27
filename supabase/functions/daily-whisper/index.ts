@@ -6,17 +6,47 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const DOUBAO_URL = "https://ark.cn-beijing.volces.com/api/v3/chat/completions";
-const SEEDREAM_URL = "https://ark.cn-beijing.volces.com/api/v3/images/generations";
+interface AIConfig { url: string; apiKey: string; model: string; }
 
-async function callDoubao(body: Record<string, unknown>, isStream = false): Promise<Response> {
-  const apiKey = Deno.env.get("DOUBAO_API_KEY")!;
-  const model = isStream ? Deno.env.get("DOUBAO_STREAM_ENDPOINT_ID")! : Deno.env.get("DOUBAO_ENDPOINT_ID")!;
-  return fetch(DOUBAO_URL, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ ...body, model }),
-  });
+async function getAIConfig(defaultModel: string, isStream = false): Promise<AIConfig> {
+  const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+  const { data } = await sb.from("app_settings").select("value").eq("key", "ai_provider").single();
+  const provider = data?.value || "lovable";
+  if (provider === "doubao") {
+    return {
+      url: "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+      apiKey: Deno.env.get("DOUBAO_API_KEY")!,
+      model: isStream ? Deno.env.get("DOUBAO_STREAM_ENDPOINT_ID")! : Deno.env.get("DOUBAO_ENDPOINT_ID")!,
+    };
+  }
+  return { url: "https://ai.gateway.lovable.dev/v1/chat/completions", apiKey: Deno.env.get("LOVABLE_API_KEY")!, model: defaultModel };
+}
+
+function getLovableFallback(defaultModel: string): AIConfig {
+  return { url: "https://ai.gateway.lovable.dev/v1/chat/completions", apiKey: Deno.env.get("LOVABLE_API_KEY")!, model: defaultModel };
+}
+
+async function fetchAI(aiConfig: AIConfig, defaultModel: string, requestBody: Record<string, unknown>): Promise<Response> {
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const resp = await fetch(aiConfig.url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${aiConfig.apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ ...requestBody, model: aiConfig.model }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    return resp;
+  } catch (e) {
+    console.error("Primary AI failed, falling back to Lovable:", e);
+    const fallback = getLovableFallback(defaultModel);
+    return fetch(fallback.url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${fallback.apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ ...requestBody, model: fallback.model }),
+    });
+  }
 }
 
 serve(async (req) => {
@@ -62,6 +92,8 @@ serve(async (req) => {
 
     // ===== Default: generate whisper =====
     const { inputText, inputImageBase64, moodEmoji, moodWord, moodScore } = body;
+    const aiConfig = await getAIConfig("google/gemini-3-flash-preview");
+    const defaultModel = "google/gemini-3-flash-preview";
 
     const whisperContent: any[] = [];
     const moodContext = moodEmoji ? `用户选择的情绪表情是${moodEmoji}，情绪关键词是「${moodWord || ""}」，情绪指数${moodScore}/5。` : "";
@@ -82,8 +114,8 @@ serve(async (req) => {
       });
     }
 
-    // Step 1: Generate whisper text
-    const whisperResp = await callDoubao({
+    // Step 1: Generate whisper text FIRST (fast, ~2-3s)
+    const whisperResp = await fetchAI(aiConfig, defaultModel, {
       messages: [
         { role: "system", content: "你是一位充满智慧和温度的心灵导师，擅长用简短而深刻的语言触动人心。你的风格融合了东方禅意与现代治愈感。" },
         { role: "user", content: whisperContent },
@@ -115,7 +147,8 @@ serve(async (req) => {
 
     const whisperId = insertedRow?.id || null;
 
-    // Step 3: Generate image in background using Seedream
+    // Step 3: Return whisper text immediately to user
+    // Then generate image in background (non-blocking) — always use Lovable for image gen
     const moodDesc = moodWord || inputText || (moodEmoji ? `feeling ${moodEmoji}` : "peaceful contemplation");
     const scoreDesc = moodScore
       ? moodScore <= 2 ? "melancholic, tender, with gentle comfort"
@@ -124,12 +157,14 @@ serve(async (req) => {
       : "peaceful and contemplative";
     const imagePrompt = `Create an elegant, healing illustration for someone feeling "${moodDesc}". Mood: ${scoreDesc}. Style: soft dreamy watercolor with gentle light, ethereal atmosphere, warm muted palette of ivory, soft gold, pale lavender, and dusty rose. Abstract and poetic — like a visual lullaby. NO TEXT. Square format, high quality.`;
 
+    // Image gen always uses Lovable gateway (doubao doesn't support image generation)
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
     const imagePromise = generateAndSaveImage(
-      supabaseUser, user.id, whisperId, imagePrompt
+      LOVABLE_API_KEY, supabaseUser, user.id, whisperId, imagePrompt
     );
 
     try {
-      // @ts-ignore
+      // @ts-ignore - EdgeRuntime may not be typed
       if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
         // @ts-ignore
         EdgeRuntime.waitUntil(imagePromise);
@@ -151,33 +186,32 @@ serve(async (req) => {
 });
 
 async function generateAndSaveImage(
-  supabase: any, userId: string, whisperId: string | null, imagePrompt: string
+  apiKey: string, supabase: any, userId: string, whisperId: string | null, imagePrompt: string
 ) {
   try {
-    const imageApiKey = Deno.env.get("DOUBAO_IMAGE_API_KEY")!;
-    const imageModel = Deno.env.get("DOUBAO_IMAGE_ENDPOINT_ID")!;
-
-    const imageResp = await fetch(SEEDREAM_URL, {
+    const imageResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${imageApiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: imageModel,
-        prompt: imagePrompt,
-        size: "1024x1024",
-        response_format: "b64_json",
+        model: "google/gemini-3.1-flash-image-preview",
+        messages: [{ role: "user", content: imagePrompt }],
+        modalities: ["image", "text"],
       }),
     });
 
     if (!imageResp.ok) {
-      console.error("Seedream image generation failed:", imageResp.status);
+      console.error("Image generation failed:", imageResp.status);
       return;
     }
 
     const imageData = await imageResp.json();
-    const base64Data = imageData.data?.[0]?.b64_json;
+    const base64Url = imageData.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    if (!base64Url) return;
+
+    const base64Data = base64Url.split(",")[1];
     if (!base64Data) return;
 
     const binaryData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
@@ -229,7 +263,10 @@ async function handleMonthlyReport(supabaseUser: any, userId: string) {
     return `${d}: ${r.mood_emoji || ""} ${r.mood_word || ""} (情绪指数${r.mood_score || "未知"}/5) ${r.input_text ? `备注:${r.input_text}` : ""}`;
   }).join("\n");
 
-  const reportResp = await callDoubao({
+  const aiConfig = await getAIConfig("google/gemini-3-flash-preview", true);
+  const defaultModel = "google/gemini-3-flash-preview";
+
+  const reportResp = await fetchAI(aiConfig, defaultModel, {
     messages: [
       {
         role: "system",
@@ -247,7 +284,7 @@ async function handleMonthlyReport(supabaseUser: any, userId: string) {
       },
     ],
     stream: true,
-  }, true);
+  });
 
   if (!reportResp.ok) {
     const status = reportResp.status;
