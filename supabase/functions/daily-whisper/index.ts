@@ -1,52 +1,19 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
+const AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-interface AIConfig { url: string; apiKey: string; model: string; }
-
-async function getAIConfig(defaultModel: string, isStream = false): Promise<AIConfig> {
-  const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  const { data } = await sb.from("app_settings").select("value").eq("key", "ai_provider").single();
-  const provider = data?.value || "lovable";
-  if (provider === "doubao") {
-    return {
-      url: "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
-      apiKey: Deno.env.get("DOUBAO_API_KEY")!,
-      model: isStream ? Deno.env.get("DOUBAO_STREAM_ENDPOINT_ID")! : Deno.env.get("DOUBAO_ENDPOINT_ID")!,
-    };
-  }
-  return { url: "https://ai.gateway.lovable.dev/v1/chat/completions", apiKey: Deno.env.get("LOVABLE_API_KEY")!, model: defaultModel };
-}
-
-function getLovableFallback(defaultModel: string): AIConfig {
-  return { url: "https://ai.gateway.lovable.dev/v1/chat/completions", apiKey: Deno.env.get("LOVABLE_API_KEY")!, model: defaultModel };
-}
-
-async function fetchAI(aiConfig: AIConfig, defaultModel: string, requestBody: Record<string, unknown>): Promise<Response> {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    const resp = await fetch(aiConfig.url, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${aiConfig.apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ ...requestBody, model: aiConfig.model }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-    return resp;
-  } catch (e) {
-    console.error("Primary AI failed, falling back to Lovable:", e);
-    const fallback = getLovableFallback(defaultModel);
-    return fetch(fallback.url, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${fallback.apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ ...requestBody, model: fallback.model }),
-    });
-  }
+function fetchAI(model: string, requestBody: Record<string, unknown>): Promise<Response> {
+  return fetch(AI_URL, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")!}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ ...requestBody, model }),
+  });
 }
 
 serve(async (req) => {
@@ -92,8 +59,6 @@ serve(async (req) => {
 
     // ===== Default: generate whisper =====
     const { inputText, inputImageBase64, moodEmoji, moodWord, moodScore } = body;
-    const aiConfig = await getAIConfig("google/gemini-3-flash-preview");
-    const defaultModel = "google/gemini-3-flash-preview";
 
     const whisperContent: any[] = [];
     const moodContext = moodEmoji ? `用户选择的情绪表情是${moodEmoji}，情绪关键词是「${moodWord || ""}」，情绪指数${moodScore}/5。` : "";
@@ -114,8 +79,8 @@ serve(async (req) => {
       });
     }
 
-    // Step 1: Generate whisper text FIRST (fast, ~2-3s)
-    const whisperResp = await fetchAI(aiConfig, defaultModel, {
+    // Step 1: Generate whisper text
+    const whisperResp = await fetchAI("google/gemini-3-flash-preview", {
       messages: [
         { role: "system", content: "你是一位充满智慧和温度的心灵导师，擅长用简短而深刻的语言触动人心。你的风格融合了东方禅意与现代治愈感。" },
         { role: "user", content: whisperContent },
@@ -147,8 +112,7 @@ serve(async (req) => {
 
     const whisperId = insertedRow?.id || null;
 
-    // Step 3: Return whisper text immediately to user
-    // Then generate image in background (non-blocking) — always use Lovable for image gen
+    // Step 3: Return whisper text immediately to user, generate image in background
     const moodDesc = moodWord || inputText || (moodEmoji ? `feeling ${moodEmoji}` : "peaceful contemplation");
     const scoreDesc = moodScore
       ? moodScore <= 2 ? "melancholic, tender, with gentle comfort"
@@ -157,7 +121,6 @@ serve(async (req) => {
       : "peaceful and contemplative";
     const imagePrompt = `Create an elegant, healing illustration for someone feeling "${moodDesc}". Mood: ${scoreDesc}. Style: soft dreamy watercolor with gentle light, ethereal atmosphere, warm muted palette of ivory, soft gold, pale lavender, and dusty rose. Abstract and poetic — like a visual lullaby. NO TEXT. Square format, high quality.`;
 
-    // Image gen always uses Lovable gateway (doubao doesn't support image generation)
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
     const imagePromise = generateAndSaveImage(
       LOVABLE_API_KEY, supabaseUser, user.id, whisperId, imagePrompt
@@ -189,7 +152,7 @@ async function generateAndSaveImage(
   apiKey: string, supabase: any, userId: string, whisperId: string | null, imagePrompt: string
 ) {
   try {
-    const imageResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const imageResp = await fetch(AI_URL, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -263,10 +226,7 @@ async function handleMonthlyReport(supabaseUser: any, userId: string) {
     return `${d}: ${r.mood_emoji || ""} ${r.mood_word || ""} (情绪指数${r.mood_score || "未知"}/5) ${r.input_text ? `备注:${r.input_text}` : ""}`;
   }).join("\n");
 
-  const aiConfig = await getAIConfig("google/gemini-3-flash-preview", true);
-  const defaultModel = "google/gemini-3-flash-preview";
-
-  const reportResp = await fetchAI(aiConfig, defaultModel, {
+  const reportResp = await fetchAI("google/gemini-3-flash-preview", {
     messages: [
       {
         role: "system",
