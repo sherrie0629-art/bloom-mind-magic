@@ -241,6 +241,17 @@ serve(async (req) => {
     });
 
     let response: Response;
+    const fallback = { url: "https://ai.gateway.lovable.dev/v1/chat/completions", apiKey: Deno.env.get("LOVABLE_API_KEY")!, model: "google/gemini-2.5-flash" };
+    const doFallback = async () => {
+      return await fetch(fallback.url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${fallback.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ ...JSON.parse(requestBody), model: fallback.model }),
+      });
+    };
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 15000);
@@ -254,17 +265,13 @@ serve(async (req) => {
         signal: controller.signal,
       });
       clearTimeout(timeout);
+      if (!response.ok && (response.status === 429 || response.status >= 500)) {
+        console.error(`Primary AI returned ${response.status}, falling back to Lovable`);
+        response = await doFallback();
+      }
     } catch (e) {
       console.error("Primary AI failed, falling back to Lovable:", e);
-      const fallback = { url: "https://ai.gateway.lovable.dev/v1/chat/completions", apiKey: Deno.env.get("LOVABLE_API_KEY")!, model: "google/gemini-2.5-flash" };
-      response = await fetch(fallback.url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${fallback.apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...JSON.parse(requestBody), model: fallback.model }),
-      });
+      response = await doFallback();
     }
 
     if (!response.ok) {
