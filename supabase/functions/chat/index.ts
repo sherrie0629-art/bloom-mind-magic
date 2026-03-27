@@ -1,26 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
+
+const AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
-
-interface AIConfig { url: string; apiKey: string; model: string; }
-
-async function getAIConfig(defaultModel: string, isStream = false): Promise<AIConfig> {
-  const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-  const { data } = await sb.from("app_settings").select("value").eq("key", "ai_provider").single();
-  const provider = data?.value || "lovable";
-  if (provider === "doubao") {
-    return {
-      url: "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
-      apiKey: Deno.env.get("DOUBAO_API_KEY")!,
-      model: isStream ? Deno.env.get("DOUBAO_STREAM_ENDPOINT_ID")! : Deno.env.get("DOUBAO_ENDPOINT_ID")!,
-    };
-  }
-  return { url: "https://ai.gateway.lovable.dev/v1/chat/completions", apiKey: Deno.env.get("LOVABLE_API_KEY")!, model: defaultModel };
-}
 
 const RPG_INSTRUCTION = `
 
@@ -192,7 +177,8 @@ serve(async (req) => {
   try {
     const { messages, agentId, memoryContext, bondLevel } = await req.json();
 
-    const aiConfig = await getAIConfig("google/gemini-2.5-flash", true);
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
+    const MODEL = "google/gemini-2.5-flash";
 
     const basePrompt = agentBasePrompts[agentId] || agentBasePrompts.healer;
     const level = bondLevel || 1;
@@ -231,7 +217,7 @@ serve(async (req) => {
     }
 
     const requestBody = JSON.stringify({
-      model: aiConfig.model,
+      model: MODEL,
       max_tokens: 300,
       messages: [
         { role: "system", content: fullSystemPrompt },
@@ -240,39 +226,14 @@ serve(async (req) => {
       stream: true,
     });
 
-    let response: Response;
-    const fallback = { url: "https://ai.gateway.lovable.dev/v1/chat/completions", apiKey: Deno.env.get("LOVABLE_API_KEY")!, model: "google/gemini-2.5-flash" };
-    const doFallback = async () => {
-      return await fetch(fallback.url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${fallback.apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ...JSON.parse(requestBody), model: fallback.model }),
-      });
-    };
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000);
-      response = await fetch(aiConfig.url, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${aiConfig.apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: requestBody,
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-      if (!response.ok && (response.status === 429 || response.status >= 500)) {
-        console.error(`Primary AI returned ${response.status}, falling back to Lovable`);
-        response = await doFallback();
-      }
-    } catch (e) {
-      console.error("Primary AI failed, falling back to Lovable:", e);
-      response = await doFallback();
-    }
+    const response = await fetch(AI_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: requestBody,
+    });
 
     if (!response.ok) {
       if (response.status === 429) {
