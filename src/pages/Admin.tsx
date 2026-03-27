@@ -44,8 +44,6 @@ const Admin = () => {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   // Settings state (AI provider is now always Lovable)
-  const [providerLoading] = useState(false);
-  const [providerLoading, setProviderLoading] = useState(false);
 
   // Check admin role
   useEffect(() => {
