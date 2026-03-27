@@ -1,46 +1,54 @@
-## 计划：优化分支选项 — 基于语境触发，约每3轮出现，提升文案质感
 
-### 问题
 
-当前系统提示词强制 AI 在**每次回复**都附带分支选项，导致选项重复、文案空洞。用户希望选项至少大约每3轮出现一次，由对话语境驱动，文案更有质感和深度。
+## 检查结果：豆包 API 残留代码清理
 
-### 改动内容
+### 当前状态
+版本回退后，所有 edge function **实际运行时**确实走的是 Lovable AI 路径（因为 `app_settings` 默认值是 `"lovable"`），但 **10 个文件中仍保留着豆包的分支代码和降级逻辑**。`generate-poster-image` 已经是纯 Lovable AI，无需修改。
 
-#### 1. 修改 AI 系统提示词
+### 需要清理的文件
 
-**文件：** `supabase/functions/chat/index.ts` — 重写 `RPG_INSTRUCTION` 中的分支选项规则
+| 文件 | 残留内容 |
+|------|----------|
+| `supabase/functions/chat/index.ts` | `getAIConfig` 中的豆包分支 + `getLovableFallback` |
+| `supabase/functions/assessment/index.ts` | 同上 |
+| `supabase/functions/assessment-bazi/index.ts` | 同上 |
+| `supabase/functions/assessment-compatibility/index.ts` | 同上 |
+| `supabase/functions/assessment-emotion/index.ts` | 同上 |
+| `supabase/functions/assessment-zodiac/index.ts` | 同上 |
+| `supabase/functions/daily-whisper/index.ts` | 同上 + 注释提到 doubao |
+| `supabase/functions/generate-deep-report/index.ts` | 同上 |
+| `supabase/functions/generate-soul-fragment/index.ts` | 同上 |
+| `supabase/functions/summarize-conversation/index.ts` | 同上 |
+| `src/pages/Admin.tsx` | 豆包切换卡片 UI + 切换逻辑 |
 
-- 从"每次必须附上"改为**语境驱动**：
-  - 仅在对话出现**转折点、情感十字路口、需要做选择**的时刻给出选项
-  - 大约每3轮给一次，不是每轮都给
-  - 用户正在宣泄情绪或直接提问时，不要给选项，专心回应
-- 提升选项文案质量要求：
-  - 选项应该像**内心不同的声音**，不是随便的聊天气泡
-  - 每个选项体现一种独特的情感立场或态度
-  - 禁止"继续聊聊"、"你能给我建议吗"这类口水话
-  - 好例子："也许我该承认，我其实在害怕{勇敢}" / 差例子："我想聊聊这个{好奇}"
+### 改动方案
 
-#### 2. 更新客户端回退逻辑
+#### 1. 简化所有 Edge Function 的 AI 调用
+将每个函数中的 `getAIConfig` / `getLovableFallback` / `fetchAI` 三件套替换为直接调用 Lovable AI Gateway：
 
-**文件：** `src/pages/Chat.tsx`
+```typescript
+// 替换前：~30行的 getAIConfig + getLovableFallback + fetchAI
+// 替换后：直接构建请求
+const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
+const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+  method: "POST",
+  headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+  body: JSON.stringify({ model: "google/gemini-3-flash-preview", ...requestBody }),
+});
+```
 
-- 仅在 AI 未提供选项 **且** 距离上次出现选项已过 ≥3 条助手消息时，才触发 `generateFallbackOptions()`
-- 通过消息历史计数来判断是否需要触发回退
+- `chat/index.ts` 保留已有的 429/500 降级逻辑（用备用模型重试），但移除豆包相关代码
+- 其他 9 个函数直接调用，无需降级
 
-#### 3. 提升回退选项池质量
+#### 2. 清理 Admin.tsx
+- 移除豆包切换卡片 UI
+- 移除 `switchProvider` 中的豆包相关逻辑
+- 保留 Lovable AI 卡片作为唯一选项（或完全移除 AI 切换区域）
 
-**文件：** `src/lib/generateFallbackOptions.ts`
+#### 3. 重新部署所有 Edge Function
+清理后统一部署全部 10 个函数。
 
-- 重写选项文案，更有情感张力和角色个性
-- 用"也许我在逃避什么"替代"继续聊聊这个话题"
-- 强化关键词匹配路径，减少通用选项的使用
+### 不需要修改的文件
+- `generate-poster-image/index.ts` — 已是纯 Lovable AI
+- 数据库 `app_settings` 表 — 保持原样即可，`ai_provider` 字段不再被读取
 
-#### 4. 重新部署 Edge Function
-
-将更新后的 `chat` 函数部署到 Lovable Cloud。
-
-### 技术说明
-
-- `parseGameMarkers` 解析器无需修改 — 已支持可选的 `【💫选项】` 标记
-- `BranchSelector` 组件无需修改 — 仅在有选项时才渲染
-- 无需数据库改动
