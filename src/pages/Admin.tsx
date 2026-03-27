@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Crown, Search, UserCheck, ShoppingBag, RefreshCw, BarChart3, Users, MessageSquare, FileText, Settings, Check, Globe, Zap } from "lucide-react";
+import { ArrowLeft, Crown, Search, UserCheck, ShoppingBag, RefreshCw, BarChart3, Users, MessageSquare, FileText, Settings, Check, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -43,8 +43,8 @@ const Admin = () => {
   const [search, setSearch] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  // Settings state
-  const [aiProvider, setAiProvider] = useState<string>("lovable");
+  // Settings state (AI provider is now always Lovable)
+  const [providerLoading] = useState(false);
   const [providerLoading, setProviderLoading] = useState(false);
 
   // Check admin role
@@ -108,17 +108,11 @@ const Admin = () => {
     });
   }, [users.length]);
 
-  const loadAIProvider = useCallback(async () => {
-    const { data } = await supabase.from("app_settings").select("value").eq("key", "ai_provider").single();
-    if (data) setAiProvider(data.value);
-  }, []);
-
   useEffect(() => {
     if (!isAdmin) return;
     loadUsers();
     loadPurchases();
-    loadAIProvider();
-  }, [isAdmin, loadUsers, loadPurchases, loadAIProvider]);
+  }, [isAdmin, loadUsers, loadPurchases]);
 
   useEffect(() => {
     if (!isAdmin || users.length === 0) return;
@@ -161,18 +155,6 @@ const Admin = () => {
     await loadPurchases();
   };
 
-  const switchProvider = async (provider: string) => {
-    if (provider === aiProvider) return;
-    setProviderLoading(true);
-    const { error } = await supabase.from("app_settings").update({ value: provider, updated_at: new Date().toISOString() }).eq("key", "ai_provider");
-    if (error) {
-      toast({ title: "切换失败", description: error.message, variant: "destructive" });
-    } else {
-      setAiProvider(provider);
-      toast({ title: "已切换", description: `AI 服务已切换为${provider === "doubao" ? "豆包 2.0 Pro" : "Lovable AI"}` });
-    }
-    setProviderLoading(false);
-  };
 
   const filteredUsers = users.filter(u =>
     !search || (u.display_name || "").includes(search) || u.user_id.includes(search)
@@ -383,59 +365,17 @@ const Admin = () => {
         <div className="p-4 space-y-4">
           <div className="rounded-2xl bg-card shadow-card p-4">
             <h3 className="text-sm font-semibold text-foreground mb-1">AI 模型服务</h3>
-            <p className="text-[10px] text-muted-foreground mb-4">选择后端 AI 推理服务商，切换后立即生效</p>
+            <p className="text-[10px] text-muted-foreground mb-4">当前使用 Lovable AI（Google Gemini）</p>
 
-            <div className="grid grid-cols-2 gap-3">
-              {/* Lovable AI Card */}
-              <button
-                disabled={providerLoading}
-                onClick={() => switchProvider("lovable")}
-                className={`relative rounded-xl border-2 p-4 text-left transition-all ${
-                  aiProvider === "lovable"
-                    ? "border-secondary bg-secondary/5 shadow-glow"
-                    : "border-border bg-card hover:border-muted-foreground/30"
-                } disabled:opacity-60`}
-              >
-                {aiProvider === "lovable" && (
-                  <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-secondary flex items-center justify-center">
-                    <Check className="h-3 w-3 text-secondary-foreground" />
-                  </div>
-                )}
-                <Globe className={`h-6 w-6 mb-2 ${aiProvider === "lovable" ? "text-secondary" : "text-muted-foreground"}`} />
-                <p className="text-xs font-semibold text-foreground">Lovable AI</p>
-                <p className="text-[10px] text-muted-foreground mt-1">Google Gemini</p>
-                <p className="text-[9px] text-muted-foreground mt-0.5">适合海外用户</p>
-              </button>
-
-              {/* Doubao Card */}
-              <button
-                disabled={providerLoading}
-                onClick={() => switchProvider("doubao")}
-                className={`relative rounded-xl border-2 p-4 text-left transition-all ${
-                  aiProvider === "doubao"
-                    ? "border-secondary bg-secondary/5 shadow-glow"
-                    : "border-border bg-card hover:border-muted-foreground/30"
-                } disabled:opacity-60`}
-              >
-                {aiProvider === "doubao" && (
-                  <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-secondary flex items-center justify-center">
-                    <Check className="h-3 w-3 text-secondary-foreground" />
-                  </div>
-                )}
-                <Zap className={`h-6 w-6 mb-2 ${aiProvider === "doubao" ? "text-secondary" : "text-muted-foreground"}`} />
-                <p className="text-xs font-semibold text-foreground">豆包 2.0 Pro</p>
-                <p className="text-[10px] text-muted-foreground mt-1">字节跳动·火山引擎</p>
-                <p className="text-[9px] text-muted-foreground mt-0.5">适合中国大陆用户</p>
-              </button>
-            </div>
-
-            {aiProvider === "doubao" && (
-              <div className="mt-3 rounded-lg bg-muted/50 p-3">
-                <p className="text-[10px] text-muted-foreground">
-                  ⚡ 当前使用豆包 2.0 Pro。图片生成功能仍使用 Lovable AI（豆包暂不支持图片生成）。
-                </p>
+            <div className="relative rounded-xl border-2 border-secondary bg-secondary/5 shadow-glow p-4">
+              <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-secondary flex items-center justify-center">
+                <Check className="h-3 w-3 text-secondary-foreground" />
               </div>
-            )}
+              <Globe className="h-6 w-6 mb-2 text-secondary" />
+              <p className="text-xs font-semibold text-foreground">Lovable AI</p>
+              <p className="text-[10px] text-muted-foreground mt-1">Google Gemini 系列模型</p>
+              <p className="text-[9px] text-muted-foreground mt-0.5">已启用 · 全球可用</p>
+            </div>
           </div>
         </div>
       )}
