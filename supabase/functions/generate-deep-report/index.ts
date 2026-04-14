@@ -65,29 +65,35 @@ serve(async (req) => {
       });
     }
 
+    // Check Plus subscription
     const { data: sub } = await supabase
       .from("user_subscriptions")
       .select("plan, expires_at")
       .eq("user_id", userId)
       .single();
 
-    const isPremium = sub?.plan === "premium" && sub?.expires_at && new Date(sub.expires_at) > new Date();
+    const isPlus = sub?.plan === "plus" && sub?.expires_at && new Date(sub.expires_at) > new Date();
 
-    if (!isPremium) {
-      const { data: purchase } = await supabase
-        .from("purchase_records")
-        .select("id, status")
-        .eq("user_id", userId)
-        .eq("product_type", "deep_report")
-        .eq("product_id", assessmentId)
-        .eq("status", "completed")
-        .single();
+    if (!isPlus) {
+      return new Response(JSON.stringify({ error: "Plus membership required", needUpgrade: true }), {
+        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-      if (!purchase) {
-        return new Response(JSON.stringify({ error: "Payment required", needPayment: true }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
+    // Check daily deep report limit
+    const today = new Date().toISOString().split("T")[0];
+    const { data: usage } = await supabase
+      .from("usage_tracking")
+      .select("id, deep_report_count")
+      .eq("user_id", userId)
+      .eq("track_date", today)
+      .single();
+
+    const currentCount = usage?.deep_report_count || 0;
+    if (currentCount >= 1) {
+      return new Response(JSON.stringify({ error: "Daily deep report limit reached (1/day). Come back tomorrow! 🌙", dailyLimitReached: true }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const typeLabel = typeLabels[assessment.assessment_type] || assessment.assessment_type;
@@ -160,10 +166,23 @@ Requirements:
     const aiData = await response.json();
     const deepReport = aiData.choices?.[0]?.message?.content || "";
 
+    // Save report and increment usage
     await supabase
       .from("assessment_results")
       .update({ result_data: { ...resultData, deepReport } })
       .eq("id", assessmentId);
+
+    // Increment deep_report_count
+    if (usage) {
+      await supabase
+        .from("usage_tracking")
+        .update({ deep_report_count: currentCount + 1 })
+        .eq("id", usage.id);
+    } else {
+      await supabase
+        .from("usage_tracking")
+        .insert({ user_id: userId, track_date: today, chat_count: 0, assessment_count: 0, deep_report_count: 1 });
+    }
 
     return new Response(JSON.stringify({ deepReport }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
