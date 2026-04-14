@@ -25,9 +25,9 @@ interface PurchaseRow {
 }
 
 const PRODUCT_LABELS: Record<string, string> = {
-  deep_report: "深度报告",
-  compatibility: "合盘测试",
-  subscription: "会员订阅",
+  deep_report: "Deep Report",
+  compatibility: "Compatibility Test",
+  subscription: "Membership",
 };
 
 const Admin = () => {
@@ -43,13 +43,10 @@ const Admin = () => {
   const [search, setSearch] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  // Settings state (AI provider is now always Lovable)
-
-  // Check admin role
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
     supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => {
-      if (!data) { navigate("/"); toast({ title: "无权限", description: "你不是管理员" }); return; }
+      if (!data) { navigate("/"); toast({ title: "Access Denied", description: "You are not an admin" }); return; }
       setIsAdmin(true);
       setLoading(false);
     });
@@ -134,7 +131,7 @@ const Admin = () => {
         user_id: userId, plan: "premium", expires_at: expiresAt.toISOString(),
       });
     }
-    toast({ title: "已设置", description: `会员有效期至 ${expiresAt.toLocaleDateString("zh-CN")}` });
+    toast({ title: "Updated", description: `Membership valid until ${expiresAt.toLocaleDateString("en-US")}` });
     await loadUsers();
     setUpdatingId(null);
   };
@@ -142,39 +139,36 @@ const Admin = () => {
   const removePremium = async (userId: string) => {
     setUpdatingId(userId);
     await supabase.from("user_subscriptions").update({ plan: "free", expires_at: null }).eq("user_id", userId);
-    toast({ title: "已取消", description: "已恢复为免费用户" });
+    toast({ title: "Removed", description: "Reverted to free user" });
     await loadUsers();
     setUpdatingId(null);
   };
 
   const updatePurchaseStatus = async (id: string, status: string) => {
     await supabase.from("purchase_records").update({ status }).eq("id", id);
-    toast({ title: "已更新", description: `状态已设为${status === "completed" ? "已完成" : status}` });
+    toast({ title: "Updated", description: `Status set to ${status === "completed" ? "Completed" : status}` });
     await loadPurchases();
   };
 
-
   const filteredUsers = users.filter(u =>
-    !search || (u.display_name || "").includes(search) || u.user_id.includes(search)
+    !search || (u.display_name || "").toLowerCase().includes(search.toLowerCase()) || u.user_id.includes(search)
   );
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border px-4 py-3 flex items-center gap-3">
         <button onClick={() => navigate(-1)}><ArrowLeft className="h-5 w-5 text-foreground" /></button>
-        <h1 className="font-display text-base font-semibold text-foreground">管理后台</h1>
+        <h1 className="font-display text-base font-semibold text-foreground">Admin Dashboard</h1>
       </div>
 
-      {/* Tabs */}
       <div className="flex border-b border-border">
         {[
-          { key: "dashboard" as const, label: "数据看板", icon: BarChart3 },
-          { key: "users" as const, label: "用户管理", icon: UserCheck },
-          { key: "purchases" as const, label: "购买记录", icon: ShoppingBag },
-          { key: "settings" as const, label: "设置", icon: Settings },
+          { key: "dashboard" as const, label: "Overview", icon: BarChart3 },
+          { key: "users" as const, label: "Users", icon: UserCheck },
+          { key: "purchases" as const, label: "Purchases", icon: ShoppingBag },
+          { key: "settings" as const, label: "Settings", icon: Settings },
         ].map(t => (
           <button
             key={t.key}
@@ -193,10 +187,10 @@ const Admin = () => {
         <div className="p-4 space-y-3">
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: "总用户", value: String(dashStats.total), icon: Users, color: "text-secondary" },
-              { label: "活跃会员", value: String(dashStats.premium), icon: Crown, color: "text-yellow-500" },
-              { label: "今日活跃", value: String(dashStats.todayActive), icon: UserCheck, color: "text-accent" },
-              { label: "总测评数", value: String(dashStats.totalAssessments), icon: FileText, color: "text-primary" },
+              { label: "Total Users", value: String(dashStats.total), icon: Users, color: "text-secondary" },
+              { label: "Premium", value: String(dashStats.premium), icon: Crown, color: "text-yellow-500" },
+              { label: "Active Today", value: String(dashStats.todayActive), icon: UserCheck, color: "text-accent" },
+              { label: "Assessments", value: String(dashStats.totalAssessments), icon: FileText, color: "text-primary" },
             ].map(s => (
               <div key={s.label} className="rounded-2xl bg-card shadow-card p-4">
                 <div className="flex items-center gap-2 mb-2">
@@ -209,11 +203,11 @@ const Admin = () => {
           </div>
 
           <div className="rounded-2xl bg-card shadow-card p-4">
-            <h4 className="text-xs font-semibold text-foreground mb-3">今日概览</h4>
+            <h4 className="text-xs font-semibold text-foreground mb-3">Today's Overview</h4>
             <div className="space-y-3">
               <div>
                 <div className="flex justify-between text-[11px] text-muted-foreground mb-1">
-                  <span>对话次数</span>
+                  <span>Conversations</span>
                   <span>{dashStats.todayChats}</span>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -222,7 +216,7 @@ const Admin = () => {
               </div>
               <div>
                 <div className="flex justify-between text-[11px] text-muted-foreground mb-1">
-                  <span>测评次数</span>
+                  <span>Assessments</span>
                   <span>{dashStats.todayAssessments}</span>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -233,29 +227,27 @@ const Admin = () => {
           </div>
 
           <div className="rounded-2xl bg-card shadow-card p-4">
-            <h4 className="text-xs font-semibold text-foreground mb-1">累计收入</h4>
-            <p className="font-display text-3xl font-bold text-foreground">¥{(dashStats.totalRevenue / 100).toFixed(2)}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">仅统计已完成订单</p>
+            <h4 className="text-xs font-semibold text-foreground mb-1">Total Revenue</h4>
+            <p className="font-display text-3xl font-bold text-foreground">${(dashStats.totalRevenue / 100).toFixed(2)}</p>
+            <p className="text-[10px] text-muted-foreground mt-1">Completed orders only</p>
           </div>
         </div>
       )}
 
       {tab === "users" && (
         <div className="p-4 space-y-3">
-          {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="搜索用户名或ID..."
+              placeholder="Search by name or ID..."
               className="w-full rounded-xl bg-card border border-border pl-9 pr-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-secondary"
             />
           </div>
 
-          <p className="text-[10px] text-muted-foreground">共 {filteredUsers.length} 位用户</p>
+          <p className="text-[10px] text-muted-foreground">{filteredUsers.length} users total</p>
 
-          {/* User list */}
           <div className="space-y-2">
             {filteredUsers.map(u => {
               const isPremium = u.subscription?.plan === "premium" && u.subscription.expires_at && new Date(u.subscription.expires_at) > new Date();
@@ -266,21 +258,21 @@ const Admin = () => {
                       {isPremium ? "👑" : "🌙"}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-foreground truncate">{u.display_name || "旅行者"}</p>
+                      <p className="text-xs font-medium text-foreground truncate">{u.display_name || "Traveler"}</p>
                       <p className="text-[9px] text-muted-foreground truncate">{u.user_id}</p>
                     </div>
                     {isPremium && (
                       <span className="rounded-full bg-secondary/20 px-2 py-0.5 text-[10px] font-medium text-secondary">
-                        会员
+                        Member
                       </span>
                     )}
                   </div>
 
                   <div className="flex items-center gap-2 text-[10px] text-muted-foreground mb-2">
-                    <span>注册: {new Date(u.created_at).toLocaleDateString("zh-CN")}</span>
-                    {u.usage && <span>· 今日对话{u.usage.chat_count} 测评{u.usage.assessment_count}</span>}
+                    <span>Joined: {new Date(u.created_at).toLocaleDateString("en-US")}</span>
+                    {u.usage && <span>· Today: {u.usage.chat_count} chats, {u.usage.assessment_count} assessments</span>}
                     {isPremium && u.subscription?.expires_at && (
-                      <span>· 到期: {new Date(u.subscription.expires_at).toLocaleDateString("zh-CN")}</span>
+                      <span>· Expires: {new Date(u.subscription.expires_at).toLocaleDateString("en-US")}</span>
                     )}
                   </div>
 
@@ -292,14 +284,14 @@ const Admin = () => {
                           onClick={() => setPremium(u.user_id, 1)}
                           className="flex-1 rounded-lg bg-gradient-golden py-1.5 text-[10px] font-semibold text-primary-foreground disabled:opacity-50"
                         >
-                          <Crown className="inline h-3 w-3 mr-0.5" />开通1月
+                          <Crown className="inline h-3 w-3 mr-0.5" />1 Month
                         </button>
                         <button
                           disabled={updatingId === u.user_id}
                           onClick={() => setPremium(u.user_id, 12)}
                           className="flex-1 rounded-lg bg-secondary/20 py-1.5 text-[10px] font-semibold text-secondary disabled:opacity-50"
                         >
-                          开通1年
+                          1 Year
                         </button>
                       </>
                     ) : (
@@ -308,7 +300,7 @@ const Admin = () => {
                         onClick={() => removePremium(u.user_id)}
                         className="flex-1 rounded-lg bg-destructive/10 py-1.5 text-[10px] font-medium text-destructive disabled:opacity-50"
                       >
-                        取消会员
+                        Remove Membership
                       </button>
                     )}
                   </div>
@@ -321,7 +313,7 @@ const Admin = () => {
 
       {tab === "purchases" && (
         <div className="p-4 space-y-2">
-          <p className="text-[10px] text-muted-foreground">最近 {purchases.length} 条记录</p>
+          <p className="text-[10px] text-muted-foreground">Latest {purchases.length} records</p>
           {purchases.map(p => (
             <div key={p.id} className="rounded-2xl bg-card shadow-card p-3">
               <div className="flex items-center justify-between mb-1.5">
@@ -329,32 +321,32 @@ const Admin = () => {
                   <p className="text-xs font-medium text-foreground">
                     {PRODUCT_LABELS[p.product_type] || p.product_type}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">{p.profile_name || "旅行者"}</p>
+                  <p className="text-[10px] text-muted-foreground">{p.profile_name || "Traveler"}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs font-semibold text-foreground">¥{(p.amount / 100).toFixed(2)}</p>
+                  <p className="text-xs font-semibold text-foreground">${(p.amount / 100).toFixed(2)}</p>
                   <p className={`text-[10px] ${p.status === "completed" ? "text-green-500" : "text-yellow-500"}`}>
-                    {p.status === "completed" ? "已完成" : p.status === "pending" ? "待支付" : p.status}
+                    {p.status === "completed" ? "Completed" : p.status === "pending" ? "Pending" : p.status}
                   </p>
                 </div>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[9px] text-muted-foreground">
-                  {new Date(p.created_at).toLocaleString("zh-CN")}
+                  {new Date(p.created_at).toLocaleString("en-US")}
                 </span>
                 {p.status === "pending" && (
                   <button
                     onClick={() => updatePurchaseStatus(p.id, "completed")}
                     className="rounded-lg bg-green-500/10 px-3 py-1 text-[10px] font-medium text-green-600"
                   >
-                    标记完成
+                    Mark Complete
                   </button>
                 )}
               </div>
             </div>
           ))}
           {purchases.length === 0 && (
-            <p className="text-center text-xs text-muted-foreground py-8">暂无购买记录</p>
+            <p className="text-center text-xs text-muted-foreground py-8">No purchase records yet</p>
           )}
         </div>
       )}
@@ -362,8 +354,8 @@ const Admin = () => {
       {tab === "settings" && (
         <div className="p-4 space-y-4">
           <div className="rounded-2xl bg-card shadow-card p-4">
-            <h3 className="text-sm font-semibold text-foreground mb-1">AI 模型服务</h3>
-            <p className="text-[10px] text-muted-foreground mb-4">当前使用 Lovable AI（Google Gemini）</p>
+            <h3 className="text-sm font-semibold text-foreground mb-1">AI Model Service</h3>
+            <p className="text-[10px] text-muted-foreground mb-4">Currently using Lovable AI (Google Gemini)</p>
 
             <div className="relative rounded-xl border-2 border-secondary bg-secondary/5 shadow-glow p-4">
               <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-secondary flex items-center justify-center">
@@ -371,8 +363,8 @@ const Admin = () => {
               </div>
               <Globe className="h-6 w-6 mb-2 text-secondary" />
               <p className="text-xs font-semibold text-foreground">Lovable AI</p>
-              <p className="text-[10px] text-muted-foreground mt-1">Google Gemini 系列模型</p>
-              <p className="text-[9px] text-muted-foreground mt-0.5">已启用 · 全球可用</p>
+              <p className="text-[10px] text-muted-foreground mt-1">Google Gemini models</p>
+              <p className="text-[9px] text-muted-foreground mt-0.5">Active · Available globally</p>
             </div>
           </div>
         </div>

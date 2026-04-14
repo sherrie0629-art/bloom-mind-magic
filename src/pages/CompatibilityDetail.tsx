@@ -7,11 +7,11 @@ import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
 
 const DIM_LABELS: Record<string, string> = {
-  emotional: "情感共鸣",
-  communication: "沟通默契",
-  values: "价值观契合",
-  growth: "成长互助",
-  chemistry: "化学反应",
+  emotional: "Emotional Resonance",
+  communication: "Communication",
+  values: "Shared Values",
+  growth: "Growth Synergy",
+  chemistry: "Chemistry",
 };
 
 const CompatibilityDetail = () => {
@@ -46,8 +46,8 @@ const CompatibilityDetail = () => {
   if (!report) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-calm gap-3">
-        <p className="text-muted-foreground">报告不存在</p>
-        <button onClick={() => navigate(-1)} className="text-sm text-secondary underline">返回</button>
+        <p className="text-muted-foreground">Report not found</p>
+        <button onClick={() => navigate(-1)} className="text-sm text-secondary underline">Go back</button>
       </div>
     );
   }
@@ -57,7 +57,8 @@ const CompatibilityDetail = () => {
 
   const formatDate = (s: string) => {
     const dt = new Date(s);
-    return `${dt.getFullYear()}年${dt.getMonth() + 1}月${dt.getDate()}日 ${dt.getHours().toString().padStart(2, "0")}:${dt.getMinutes().toString().padStart(2, "0")}`;
+    return dt.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) + " " +
+      dt.getHours().toString().padStart(2, "0") + ":" + dt.getMinutes().toString().padStart(2, "0");
   };
 
   const getScoreColor = (score: number) => {
@@ -72,7 +73,7 @@ const CompatibilityDetail = () => {
         <button onClick={() => navigate("/compatibility-reports")} className="text-muted-foreground">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <h2 className="font-display text-sm font-semibold text-foreground">💕 合盘详情</h2>
+        <h2 className="font-display text-sm font-semibold text-foreground">💕 Compatibility Details</h2>
       </div>
 
       <div className="px-6 mt-2 space-y-4">
@@ -86,9 +87,9 @@ const CompatibilityDetail = () => {
           <p className={`font-display text-4xl font-bold ${getScoreColor(d?.overallScore || 0)}`}>
             {d?.overallScore || 0}%
           </p>
-          <h3 className="font-display text-lg font-bold text-foreground mt-1">{d?.title || "合盘分析"}</h3>
+          <h3 className="font-display text-lg font-bold text-foreground mt-1">{d?.title || "Compatibility Analysis"}</h3>
           <p className="text-[11px] text-muted-foreground/60 mt-1">
-            与 {partner?.name || "对方"} · {formatDate(report.created_at)}
+            with {partner?.name || "Partner"} · {formatDate(report.created_at)}
           </p>
           <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{d?.summary}</p>
         </motion.div>
@@ -101,7 +102,7 @@ const CompatibilityDetail = () => {
             transition={{ delay: 0.1 }}
             className="rounded-2xl bg-card p-5 shadow-card space-y-3"
           >
-            <h4 className="font-display text-sm font-semibold text-foreground mb-2">五维契合度</h4>
+            <h4 className="font-display text-sm font-semibold text-foreground mb-2">Five Dimensions</h4>
             {Object.entries(d.dimensions).map(([key, value]) => (
               <div key={key} className="space-y-1">
                 <div className="flex justify-between text-[11px] text-muted-foreground">
@@ -129,7 +130,7 @@ const CompatibilityDetail = () => {
             transition={{ delay: 0.15 }}
             className="rounded-2xl bg-card p-5 shadow-card"
           >
-            <h4 className="font-display text-sm font-semibold text-foreground mb-3">✨ 关系优势</h4>
+            <h4 className="font-display text-sm font-semibold text-foreground mb-3">✨ Strengths</h4>
             <ul className="space-y-2">
               {d.strengths.map((s: string, i: number) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-foreground">
@@ -149,7 +150,7 @@ const CompatibilityDetail = () => {
             transition={{ delay: 0.2 }}
             className="rounded-2xl bg-card p-5 shadow-card"
           >
-            <h4 className="font-display text-sm font-semibold text-foreground mb-3">⚡ 潜在冲突与化解</h4>
+            <h4 className="font-display text-sm font-semibold text-foreground mb-3">⚡ Potential Conflicts & Solutions</h4>
             <div className="space-y-3">
               {d.conflicts.map((c: any, i: number) => (
                 <div key={i} className="rounded-xl bg-muted/30 p-3">
@@ -169,14 +170,14 @@ const CompatibilityDetail = () => {
             transition={{ delay: 0.25 }}
             className="rounded-2xl bg-card p-5 shadow-card"
           >
-            <h4 className="font-display text-sm font-semibold text-foreground mb-3">💗 爱的语言</h4>
+            <h4 className="font-display text-sm font-semibold text-foreground mb-3">💗 Love Languages</h4>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div className="rounded-xl bg-muted/30 p-3 text-center">
-                <p className="text-[10px] text-muted-foreground">我</p>
+                <p className="text-[10px] text-muted-foreground">You</p>
                 <p className="text-sm font-semibold text-foreground mt-1">{d.loveLanguage.mine}</p>
               </div>
               <div className="rounded-xl bg-muted/30 p-3 text-center">
-                <p className="text-[10px] text-muted-foreground">{partner?.name || "TA"}</p>
+                <p className="text-[10px] text-muted-foreground">{partner?.name || "Partner"}</p>
                 <p className="text-sm font-semibold text-foreground mt-1">{d.loveLanguage.partner}</p>
               </div>
             </div>
@@ -192,7 +193,7 @@ const CompatibilityDetail = () => {
             transition={{ delay: 0.3 }}
             className="rounded-2xl bg-card p-5 shadow-card"
           >
-            <h4 className="font-display text-sm font-semibold text-foreground mb-3">📖 深度分析</h4>
+            <h4 className="font-display text-sm font-semibold text-foreground mb-3">📖 Deep Analysis</h4>
             <div className="prose prose-sm max-w-none text-foreground prose-p:text-sm prose-p:leading-relaxed">
               <ReactMarkdown>{d.deepAnalysis}</ReactMarkdown>
             </div>

@@ -21,11 +21,11 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `你是一个诗意的心灵碎片命名师。根据用户的${type === "assessment" ? "心理测评结果" : "对话内容"}，提炼出一个代表其当前心灵状态的"灵魂碎片"。
-碎片名称应简短（4-6个字）、诗意且有画面感，如"勇敢的火花"、"温柔的水滴"、"沉默的月光"、"绽放的星辰"。
-描述应1-2句话，解释这枚碎片代表的含义。
-emoji应选择最能代表碎片本质的单个emoji。
-颜色应是与碎片情感匹配的hex色值。`,
+            content: `You are a poetic soul fragment naming specialist. Based on the user's ${type === "assessment" ? "psychological assessment results" : "conversation"}, distill a "Soul Fragment" that represents their current inner state.
+The fragment name should be short (2-4 words), poetic and evocative, like "Spark of Courage", "Gentle Raindrop", "Silent Moonlight", "Blooming Stardust".
+The description should be 1-2 sentences explaining what this fragment represents.
+The emoji should be a single emoji that best represents the fragment's essence.
+The color should be a hex color value matching the fragment's emotional tone.`,
           },
           { role: "user", content: context },
         ],
@@ -33,14 +33,14 @@ emoji应选择最能代表碎片本质的单个emoji。
           type: "function",
           function: {
             name: "create_soul_fragment",
-            description: "创建一枚灵魂碎片",
+            description: "Create a soul fragment",
             parameters: {
               type: "object",
               properties: {
-                name: { type: "string", description: "碎片名称，4-6个字，诗意简短" },
-                description: { type: "string", description: "1-2句话描述碎片含义" },
-                icon: { type: "string", description: "代表碎片的单个emoji" },
-                color: { type: "string", description: "碎片色调hex值，如#f59e0b" },
+                name: { type: "string", description: "Fragment name, 2-4 words, poetic and concise" },
+                description: { type: "string", description: "1-2 sentence description of the fragment's meaning" },
+                icon: { type: "string", description: "A single emoji representing the fragment" },
+                color: { type: "string", description: "Fragment color hex value, e.g. #f59e0b" },
               },
               required: ["name", "description", "icon", "color"],
             },

@@ -24,9 +24,9 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `你是一个对话摘要与记忆提取助手。请完成两个任务：
-1. 用2-3句话总结对话的核心内容和用户的情绪状态，提取3-5个关键话题标签。
-2. 从对话中提取用户提到的具体记忆条目（事件、情绪、人物、偏好、洞察等），每条记忆要具体到可以在未来对话中引用。`,
+            content: `You are a conversation summarizer and memory extraction assistant. Complete two tasks:
+1. Summarize the conversation in 2-3 sentences, capturing the core content and the user's emotional state. Extract 3-5 key topic tags.
+2. Extract specific memory entries from the conversation (events, emotions, people, preferences, insights). Each memory should be specific enough to reference naturally in future conversations.`,
           },
           { role: "user", content: conversation },
         ],
@@ -34,22 +34,22 @@ serve(async (req) => {
           type: "function",
           function: {
             name: "save_summary_and_memories",
-            description: "保存对话摘要、关键话题和结构化记忆条目",
+            description: "Save conversation summary, key topics, and structured memory entries",
             parameters: {
               type: "object",
               properties: {
-                summary: { type: "string", description: "2-3句话的对话摘要" },
-                key_topics: { type: "array", items: { type: "string" }, description: "3-5个关键话题标签" },
+                summary: { type: "string", description: "2-3 sentence conversation summary" },
+                key_topics: { type: "array", items: { type: "string" }, description: "3-5 key topic tags" },
                 memories: {
                   type: "array",
-                  description: "从对话中提取的具体记忆条目，每条应该具体到能在未来对话中自然引用",
+                  description: "Specific memory entries extracted from the conversation, each specific enough to reference in future conversations",
                   items: {
                     type: "object",
                     properties: {
-                      category: { type: "string", enum: ["emotion", "event", "person", "preference", "insight"], description: "记忆类别" },
-                      content: { type: "string", description: "具体记忆内容，如'用户和男友因为家务分工吵了一架'" },
-                      emotion_tag: { type: "string", description: "相关情绪标签，如 愤怒、焦虑、开心、悲伤" },
-                      importance: { type: "number", description: "重要程度 1-3，3为最重要" },
+                      category: { type: "string", enum: ["emotion", "event", "person", "preference", "insight"], description: "Memory category" },
+                      content: { type: "string", description: "Specific memory content, e.g. 'User argued with their partner about household chores'" },
+                      emotion_tag: { type: "string", description: "Related emotion tag, e.g. anger, anxiety, happiness, sadness" },
+                      importance: { type: "number", description: "Importance level 1-3, 3 being most important" },
                     },
                     required: ["category", "content", "importance"],
                   },
@@ -73,7 +73,6 @@ serve(async (req) => {
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     const args = JSON.parse(toolCall.function.arguments);
 
-    // Write memories to user_memories table using service role
     if (userId && args.memories && args.memories.length > 0) {
       const supabaseAdmin = createClient(
         Deno.env.get("SUPABASE_URL")!,

@@ -73,15 +73,15 @@ const SoulUniverse = ({ fragments, unlockedIds }: Props) => {
 
         {/* Text */}
         <div className="flex-1 min-w-0">
-          <h4 className="font-display text-sm font-semibold text-foreground">灵魂星图</h4>
+          <h4 className="font-display text-sm font-semibold text-foreground">Soul Map</h4>
           <p className="text-[11px] text-muted-foreground mt-0.5">
             {starCount > 0
-              ? `${starCount} 颗星 · ${constellationCount} 个星座`
-              : "开启探索，收集你的第一颗星"}
+              ? `${starCount} stars · ${constellationCount} constellations`
+              : "Start exploring to collect your first star"}
           </p>
           {nextGoal && starCount > 0 && (
             <p className="text-[10px] text-secondary mt-0.5 truncate">
-              下一个星座：{nextGoal.constellation.name}
+              Next constellation: {nextGoal.constellation.name}
             </p>
           )}
         </div>

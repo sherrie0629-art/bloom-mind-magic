@@ -21,7 +21,6 @@ interface PosterConfig {
   preloadedImageUrl?: string;
 }
 
-// Simple in-memory cache for AI images
 const imageCache = new Map<string, string>();
 
 export function useSharePoster() {
@@ -31,7 +30,6 @@ export function useSharePoster() {
 
   const fetchAIImage = useCallback(async (prompt: string): Promise<HTMLImageElement | null> => {
     try {
-      // Check cache first
       const cached = imageCache.get(prompt);
       if (cached) {
         return new Promise((resolve) => {
@@ -47,7 +45,6 @@ export function useSharePoster() {
       });
       if (error || !data?.imageUrl) return null;
 
-      // Cache the result
       imageCache.set(prompt, data.imageUrl);
 
       return new Promise((resolve) => {
@@ -63,7 +60,6 @@ export function useSharePoster() {
   }, []);
 
   const generatePoster = useCallback(async (config: PosterConfig) => {
-    // Use preloaded image if available, otherwise fetch
     const aiImagePromise = config.preloadedImageUrl
       ? new Promise<HTMLImageElement | null>((resolve) => {
           const img = new Image();
@@ -74,13 +70,11 @@ export function useSharePoster() {
         })
       : config.imagePrompt ? fetchAIImage(config.imagePrompt) : Promise.resolve(null);
 
-    // Pre-calculate text heights using an offscreen canvas
     const measureCanvas = document.createElement("canvas");
     measureCanvas.width = POSTER_WIDTH;
     measureCanvas.height = 100;
     const mCtx = measureCanvas.getContext("2d")!;
 
-    // Measure description text height
     mCtx.font = "24px sans-serif";
     const descLineHeight = 38;
     const descMaxWidth = CONTENT_WIDTH - 60;
@@ -119,7 +113,7 @@ export function useSharePoster() {
     const ctx = canvas.getContext("2d")!;
     canvasRef.current = canvas;
 
-    // ======= Background =======
+    // Background
     const bgGrad = ctx.createLinearGradient(0, 0, 0, POSTER_HEIGHT);
     bgGrad.addColorStop(0, "#1a1625");
     bgGrad.addColorStop(0.5, "#1e1a2e");
@@ -137,24 +131,24 @@ export function useSharePoster() {
 
     let y = 100;
 
-    // ======= Icon =======
+    // Icon
     ctx.font = "64px serif";
     ctx.textAlign = "center";
     ctx.fillStyle = "#ffffff";
     ctx.fillText(config.icon, POSTER_WIDTH / 2, y + 60);
     y += 90;
 
-    // ======= Title =======
+    // Title
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 48px 'Noto Serif SC', serif";
+    ctx.font = "bold 48px 'DM Serif Display', serif";
     ctx.textAlign = "center";
     const titleText = config.title.length > 12 ? config.title.slice(0, 12) + "…" : config.title;
     ctx.fillText(titleText, POSTER_WIDTH / 2, y + 50);
     y += 70;
 
-    // ======= Subtitle =======
+    // Subtitle
     ctx.fillStyle = config.accentColor;
-    ctx.font = "26px 'Noto Sans SC', sans-serif";
+    ctx.font = "26px 'Inter', sans-serif";
     ctx.fillText(config.subtitle, POSTER_WIDTH / 2, y + 30);
     y += 50;
 
@@ -166,7 +160,7 @@ export function useSharePoster() {
     ctx.globalAlpha = 1;
     y += 20;
 
-    // ======= AI Image =======
+    // AI Image
     const aiImage = await aiImagePromise;
     if (aiImage) {
       const imgX = (POSTER_WIDTH - imageSize) / 2;
@@ -185,7 +179,7 @@ export function useSharePoster() {
       y += imageSize + 30;
     }
 
-    // ======= Description Card =======
+    // Description Card
     const cardX = 60;
     const cardWidth = POSTER_WIDTH - 120;
     ctx.fillStyle = "rgba(255,255,255,0.05)";
@@ -197,7 +191,7 @@ export function useSharePoster() {
     ctx.stroke();
 
     ctx.fillStyle = "rgba(255,255,255,0.85)";
-    ctx.font = "24px 'Noto Sans SC', sans-serif";
+    ctx.font = "24px 'Inter', sans-serif";
     ctx.textAlign = "left";
     let textY = y + 35;
     for (const line of descLines) {
@@ -206,16 +200,16 @@ export function useSharePoster() {
     }
     y += descCardHeight + sectionGap;
 
-    // ======= Bars Section =======
+    // Bars Section
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 26px 'Noto Serif SC', serif";
+    ctx.font = "bold 26px 'DM Serif Display', serif";
     ctx.textAlign = "left";
-    ctx.fillText("维度分析", POSTER_PADDING, y + 20);
+    ctx.fillText("Dimensions", POSTER_PADDING, y + 20);
     y += 40;
 
     for (const bar of config.bars) {
       ctx.fillStyle = "rgba(255,255,255,0.6)";
-      ctx.font = "20px 'Noto Sans SC', sans-serif";
+      ctx.font = "20px 'Inter', sans-serif";
       ctx.textAlign = "left";
       ctx.fillText(bar.label1, POSTER_PADDING, y + 16);
       if (bar.label2) {
@@ -224,7 +218,7 @@ export function useSharePoster() {
       }
       ctx.textAlign = "right";
       ctx.fillStyle = "rgba(255,255,255,0.5)";
-      ctx.font = "18px 'Noto Sans SC', sans-serif";
+      ctx.font = "18px 'Inter', sans-serif";
       ctx.fillText(`${bar.value}%`, POSTER_WIDTH - POSTER_PADDING, y + 16);
       y += 26;
 
@@ -245,7 +239,7 @@ export function useSharePoster() {
       y += 14 + 30;
     }
 
-    // ======= Extra Lines =======
+    // Extra Lines
     if (config.extraLines && config.extraLines.length > 0) {
       y += 10;
       const extraCardH = config.extraLines.length * 40 + 30;
@@ -254,7 +248,7 @@ export function useSharePoster() {
       ctx.fill();
 
       ctx.fillStyle = "rgba(255,255,255,0.8)";
-      ctx.font = "22px 'Noto Sans SC', sans-serif";
+      ctx.font = "22px 'Inter', sans-serif";
       ctx.textAlign = "left";
       for (let i = 0; i < config.extraLines.length; i++) {
         const lineText = config.extraLines[i];
@@ -271,22 +265,22 @@ export function useSharePoster() {
       y += extraCardH + sectionGap;
     }
 
-    // ======= Caption =======
+    // Caption
     const captionY = Math.max(y + 20, POSTER_HEIGHT - 130);
     ctx.fillStyle = config.accentColor;
-    ctx.font = "italic 22px 'Noto Serif SC', serif";
+    ctx.font = "italic 22px 'DM Serif Display', serif";
     ctx.textAlign = "center";
-    const captionText = `「${config.caption}」`;
+    const captionText = `"${config.caption}"`;
     let displayCaption = captionText;
     if (ctx.measureText(displayCaption).width > CONTENT_WIDTH) {
       const inner = config.caption.slice(0, 25) + "…";
-      displayCaption = `「${inner}」`;
+      displayCaption = `"${inner}"`;
     }
     ctx.fillText(displayCaption, POSTER_WIDTH / 2, captionY);
 
     ctx.fillStyle = "rgba(255,255,255,0.3)";
-    ctx.font = "18px 'Noto Sans SC', sans-serif";
-    ctx.fillText(config.appName || "心灵密语 · AI 心理测评", POSTER_WIDTH / 2, captionY + 45);
+    ctx.font = "18px 'Inter', sans-serif";
+    ctx.fillText(config.appName || "MindGarden AI", POSTER_WIDTH / 2, captionY + 45);
 
     drawGradientLine(ctx, config.accentColor, POSTER_PADDING, 675, POSTER_HEIGHT - 40);
 
@@ -295,13 +289,11 @@ export function useSharePoster() {
 
   const sharePoster = useCallback(async (config: PosterConfig) => {
     try {
-      toast.info("正在生成精美海报…", { duration: 3000 });
+      toast.info("Generating your poster…", { duration: 3000 });
       const canvas = await generatePoster(config);
 
-      // Convert to data URL for universal compatibility
       const dataUrl = canvas.toDataURL("image/png");
 
-      // Try Web Share API with file support first
       try {
         if (navigator.share && navigator.canShare) {
           const blob = await new Promise<Blob>((resolve) =>
@@ -318,16 +310,14 @@ export function useSharePoster() {
           }
         }
       } catch (shareErr) {
-        // Share cancelled or failed, fall through to preview
         if ((shareErr as Error).name === "AbortError") return;
       }
 
-      // Fallback: show poster preview overlay for long-press save (mobile) or right-click save (desktop)
       setPosterDataUrl(dataUrl);
       setShowPosterPreview(true);
     } catch (e) {
       if ((e as Error).name !== "AbortError") {
-        toast.error("保存失败，请重试");
+        toast.error("Save failed, please try again");
       }
     }
   }, [generatePoster]);
@@ -339,14 +329,13 @@ export function useSharePoster() {
 
   const downloadPoster = useCallback(() => {
     if (!posterDataUrl) return;
-    // Use data URL link for better compatibility
     const a = document.createElement("a");
     a.href = posterDataUrl;
     a.download = "assessment-result.png";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    toast.success("海报已保存 ✨");
+    toast.success("Poster saved ✨");
   }, [posterDataUrl]);
 
   return {
@@ -360,7 +349,7 @@ export function useSharePoster() {
   };
 }
 
-// ======= Helpers =======
+// Helpers
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   ctx.beginPath();

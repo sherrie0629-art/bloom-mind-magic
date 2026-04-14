@@ -4,17 +4,17 @@ import { Flame, Heart, Brain, Zap, Sparkles, CloudRain, Sun, Angry } from "lucid
 import type { BranchOption } from "@/lib/parseGameMarkers";
 
 const emotionMap: Record<string, { icon: typeof Flame; bg: string; border: string; text: string; glow: string }> = {
-  勇敢: { icon: Flame,    bg: "hsl(25 90% 96%)",  border: "hsl(25 80% 70%)",  text: "hsl(25 70% 40%)",  glow: "hsl(25 80% 70% / 0.3)" },
-  温柔: { icon: Heart,    bg: "hsl(340 60% 96%)", border: "hsl(340 50% 72%)", text: "hsl(340 45% 42%)", glow: "hsl(340 50% 72% / 0.3)" },
-  理性: { icon: Brain,    bg: "hsl(210 60% 96%)", border: "hsl(210 50% 65%)", text: "hsl(210 45% 38%)", glow: "hsl(210 50% 65% / 0.3)" },
-  叛逆: { icon: Zap,      bg: "hsl(270 55% 96%)", border: "hsl(270 45% 65%)", text: "hsl(270 40% 38%)", glow: "hsl(270 45% 65% / 0.3)" },
-  好奇: { icon: Sparkles, bg: "hsl(38 75% 96%)",  border: "hsl(38 65% 60%)",  text: "hsl(38 55% 35%)",  glow: "hsl(38 65% 60% / 0.3)" },
-  悲伤: { icon: CloudRain, bg: "hsl(200 40% 96%)", border: "hsl(200 35% 65%)", text: "hsl(200 30% 40%)", glow: "hsl(200 35% 65% / 0.3)" },
-  希望: { icon: Sun,      bg: "hsl(45 80% 96%)",  border: "hsl(45 70% 58%)",  text: "hsl(45 60% 32%)",  glow: "hsl(45 70% 58% / 0.3)" },
-  愤怒: { icon: Angry,    bg: "hsl(0 65% 96%)",   border: "hsl(0 55% 60%)",   text: "hsl(0 50% 38%)",   glow: "hsl(0 55% 60% / 0.3)" },
+  brave:     { icon: Flame,     bg: "hsl(25 90% 96%)",  border: "hsl(25 80% 70%)",  text: "hsl(25 70% 40%)",  glow: "hsl(25 80% 70% / 0.3)" },
+  gentle:    { icon: Heart,     bg: "hsl(340 60% 96%)", border: "hsl(340 50% 72%)", text: "hsl(340 45% 42%)", glow: "hsl(340 50% 72% / 0.3)" },
+  rational:  { icon: Brain,     bg: "hsl(210 60% 96%)", border: "hsl(210 50% 65%)", text: "hsl(210 45% 38%)", glow: "hsl(210 50% 65% / 0.3)" },
+  rebellious:{ icon: Zap,       bg: "hsl(270 55% 96%)", border: "hsl(270 45% 65%)", text: "hsl(270 40% 38%)", glow: "hsl(270 45% 65% / 0.3)" },
+  curious:   { icon: Sparkles,  bg: "hsl(38 75% 96%)",  border: "hsl(38 65% 60%)",  text: "hsl(38 55% 35%)",  glow: "hsl(38 65% 60% / 0.3)" },
+  sad:       { icon: CloudRain, bg: "hsl(200 40% 96%)", border: "hsl(200 35% 65%)", text: "hsl(200 30% 40%)", glow: "hsl(200 35% 65% / 0.3)" },
+  hopeful:   { icon: Sun,       bg: "hsl(45 80% 96%)",  border: "hsl(45 70% 58%)",  text: "hsl(45 60% 32%)",  glow: "hsl(45 70% 58% / 0.3)" },
+  angry:     { icon: Angry,     bg: "hsl(0 65% 96%)",   border: "hsl(0 55% 60%)",   text: "hsl(0 50% 38%)",   glow: "hsl(0 55% 60% / 0.3)" },
 };
 
-const fallback = emotionMap["好奇"];
+const fallback = emotionMap["curious"];
 
 interface BranchSelectorProps {
   options: BranchOption[];

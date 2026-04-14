@@ -21,7 +21,7 @@ const PosterPreviewDialog = ({ open, dataUrl, onClose, onDownload }: PosterPrevi
         onClick={onClose}
       >
         <div className="flex w-full items-center justify-between px-4 py-3">
-          <p className="text-xs text-white/60">长按图片保存到相册</p>
+          <p className="text-xs text-white/60">Long-press image to save</p>
           <button onClick={onClose} className="rounded-full bg-white/10 p-2">
             <X className="h-5 w-5 text-white" />
           </button>
@@ -33,7 +33,7 @@ const PosterPreviewDialog = ({ open, dataUrl, onClose, onDownload }: PosterPrevi
         >
           <img
             src={dataUrl}
-            alt="测评海报"
+            alt="Assessment poster"
             className="w-full max-w-[340px] rounded-xl shadow-2xl"
             style={{ WebkitTouchCallout: "default" }}
           />
@@ -44,7 +44,7 @@ const PosterPreviewDialog = ({ open, dataUrl, onClose, onDownload }: PosterPrevi
             onClick={(e) => { e.stopPropagation(); onDownload(); }}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-golden py-3 text-sm font-semibold text-primary-foreground"
           >
-            <Download className="h-4 w-4" /> 保存到本地
+            <Download className="h-4 w-4" /> Save to Device
           </button>
         </div>
       </motion.div>

@@ -6,10 +6,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
 const typeConfig: Record<string, { icon: typeof Brain; label: string; gradient: string }> = {
-  mbti: { icon: Brain, label: "MBTI 人格测评", gradient: "bg-gradient-to-br from-indigo to-indigo-light" },
-  bazi: { icon: Compass, label: "八字命理分析", gradient: "bg-gradient-to-br from-secondary to-gold" },
-  zodiac: { icon: Stars, label: "星座运势解读", gradient: "bg-gradient-to-br from-lavender to-rose-warm" },
-  emotion: { icon: Flame, label: "情绪状态评估", gradient: "bg-gradient-to-br from-rose-warm to-gold" },
+  mbti: { icon: Brain, label: "MBTI Personality", gradient: "bg-gradient-to-br from-indigo to-indigo-light" },
+  enneagram: { icon: Compass, label: "Enneagram Analysis", gradient: "bg-gradient-to-br from-secondary to-gold" },
+  zodiac: { icon: Stars, label: "Zodiac Reading", gradient: "bg-gradient-to-br from-lavender to-rose-warm" },
+  emotion: { icon: Flame, label: "Emotional Wellness", gradient: "bg-gradient-to-br from-rose-warm to-gold" },
 };
 
 interface Report {
@@ -43,7 +43,7 @@ const AssessmentReports = () => {
     const d = r.result_data as any;
     const t = r.assessment_type || r.type;
     if (t === "mbti") return `${d.mbtiType} — ${d.title}`;
-    if (t === "bazi") return `${d.dayMaster} · ${d.title}`;
+    if (t === "enneagram") return `Type ${d.enneagramType} · ${d.title}`;
     if (t === "zodiac") return `${d.zodiacSign} · ${d.title}`;
     if (t === "emotion") return `${d.emoji || "🎭"} ${d.title}`;
     return d.title || t;
@@ -56,7 +56,8 @@ const AssessmentReports = () => {
 
   const formatDate = (s: string) => {
     const d = new Date(s);
-    return `${d.getMonth() + 1}月${d.getDate()}日 ${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " " +
+      d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0");
   };
 
   return (
@@ -65,7 +66,7 @@ const AssessmentReports = () => {
         <button onClick={() => navigate("/profile")} className="text-muted-foreground">
           <ArrowLeft className="h-5 w-5" />
         </button>
-        <h2 className="font-display text-lg font-semibold text-foreground">测评报告</h2>
+        <h2 className="font-display text-lg font-semibold text-foreground">Assessment Reports</h2>
       </div>
 
       <div className="mt-2 space-y-3 px-6">
@@ -76,12 +77,12 @@ const AssessmentReports = () => {
         ) : reports.length === 0 ? (
           <div className="py-16 text-center">
             <p className="text-4xl">📋</p>
-            <p className="mt-3 text-sm text-muted-foreground">还没有测评记录</p>
+            <p className="mt-3 text-sm text-muted-foreground">No assessment results yet</p>
             <button
               onClick={() => navigate("/assessment")}
               className="mt-4 rounded-xl bg-gradient-golden px-6 py-2.5 text-sm font-semibold text-primary-foreground"
             >
-              去做测评
+              Take an Assessment
             </button>
           </div>
         ) : (

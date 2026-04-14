@@ -9,10 +9,10 @@ const corsHeaders = {
 };
 
 const typeLabels: Record<string, string> = {
-  mbti: "MBTI人格",
-  bazi: "八字命理",
-  zodiac: "星座运势",
-  emotion: "情绪状态",
+  mbti: "MBTI Personality",
+  enneagram: "Enneagram",
+  zodiac: "Zodiac",
+  emotion: "Emotional Wellness",
 };
 
 serve(async (req) => {
@@ -21,7 +21,7 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "请先登录" }), {
+      return new Response(JSON.stringify({ error: "Please sign in first" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -35,14 +35,14 @@ serve(async (req) => {
     const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "认证失败" }), {
+      return new Response(JSON.stringify({ error: "Authentication failed" }), {
         status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     const userId = claimsData.claims.sub;
 
     const { assessmentId } = await req.json();
-    if (!assessmentId) throw new Error("缺少 assessmentId");
+    if (!assessmentId) throw new Error("Missing assessmentId");
 
     const { data: assessment, error: fetchErr } = await supabase
       .from("assessment_results")
@@ -52,7 +52,7 @@ serve(async (req) => {
       .single();
 
     if (fetchErr || !assessment) {
-      return new Response(JSON.stringify({ error: "报告不存在" }), {
+      return new Response(JSON.stringify({ error: "Report not found" }), {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -84,7 +84,7 @@ serve(async (req) => {
         .single();
 
       if (!purchase) {
-        return new Response(JSON.stringify({ error: "需要付费解锁", needPayment: true }), {
+        return new Response(JSON.stringify({ error: "Payment required", needPayment: true }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
@@ -93,40 +93,40 @@ serve(async (req) => {
     const typeLabel = typeLabels[assessment.assessment_type] || assessment.assessment_type;
     const resultSummary = JSON.stringify(resultData, null, 2);
 
-    const systemPrompt = `你是一位拥有20年经验的资深心理咨询师和人格分析专家。你需要基于用户的${typeLabel}测评结果，生成一份3000-5000字的深度心理分析报告。
+    const systemPrompt = `You are a senior psychologist and personality analysis expert with 20 years of experience. Based on the user's ${typeLabel} assessment results, generate a 3,000–5,000 word deep psychological analysis report.
 
-报告必须包含以下章节（用markdown格式）：
+The report must include the following sections (in markdown format):
 
-## 📋 核心性格画像
-深入分析用户的核心性格特质，包括显性特征和隐性特征。
+## 📋 Core Personality Profile
+In-depth analysis of the user's core personality traits, including both overt and covert characteristics.
 
-## 🧒 童年依恋模式分析
-基于人格特质推断可能的童年依恋风格（安全型、焦虑型、回避型或混乱型），分析其对当前人际关系的影响。
+## 🧒 Childhood Attachment Pattern Analysis
+Based on personality traits, infer likely childhood attachment style (secure, anxious, avoidant, or disorganized) and analyze its impact on current relationships.
 
-## 💕 亲密关系避坑指南
-分析在恋爱中容易踩的雷区，提供具体可操作的建议。包括：
-- 容易吸引的伴侣类型
-- 关系中常见的冲突模式
-- 如何建立健康的边界
+## 💕 Relationship Red Flags Guide
+Analyze common pitfalls in romantic relationships and provide specific, actionable advice. Include:
+- Types of partners they tend to attract
+- Common conflict patterns in relationships
+- How to establish healthy boundaries
 
-## 🛡️ 核心心理防御机制
-分析常用的心理防御机制（如合理化、投射、压抑等），以及这些机制如何影响日常决策。
+## 🛡️ Core Defense Mechanisms
+Analyze commonly used psychological defense mechanisms (rationalization, projection, repression, etc.) and how they affect daily decisions.
 
-## 💼 职业发展深度建议
-基于性格特质分析最适合的职业方向和工作环境。
+## 💼 Career Development Insights
+Based on personality traits, analyze the most suitable career directions and work environments.
 
-## 🌱 个人成长路径
-提供具体的自我提升建议和练习方法。
+## 🌱 Personal Growth Roadmap
+Provide specific self-improvement suggestions and exercises.
 
-## 🔮 总结与展望
-整体总结和对未来的积极展望。
+## 🔮 Summary & Outlook
+Overall summary and positive outlook for the future.
 
-要求：
-- 语言温暖、专业、有深度
-- 多使用具体案例和比喻
-- 避免笼统的建议，给出可执行的具体行动
-- 适当使用emoji增加可读性
-- 中文输出`;
+Requirements:
+- Warm, professional, and insightful tone
+- Use specific examples and metaphors
+- Avoid generic advice; give concrete, actionable steps
+- Use emojis sparingly for readability
+- Write in English`;
 
     const response = await fetch(AI_URL, {
       method: "POST",
@@ -136,25 +136,25 @@ serve(async (req) => {
         max_tokens: 8000,
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `以下是用户的${typeLabel}测评结果数据：\n\n${resultSummary}\n\n请生成深度分析报告。` },
+          { role: "user", content: `Here are the user's ${typeLabel} assessment results:\n\n${resultSummary}\n\nPlease generate the deep analysis report.` },
         ],
       }),
     });
 
     if (!response.ok) {
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "请求太频繁，请稍后再试 🌙" }), {
+        return new Response(JSON.stringify({ error: "Too many requests, please try again later 🌙" }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI 额度已用尽 💫" }), {
+        return new Response(JSON.stringify({ error: "AI credits exhausted 💫" }), {
           status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       const t = await response.text();
       console.error("AI gateway error:", response.status, t);
-      throw new Error("AI 服务暂时不可用");
+      throw new Error("AI service temporarily unavailable");
     }
 
     const aiData = await response.json();

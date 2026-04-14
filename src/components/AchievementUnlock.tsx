@@ -40,7 +40,7 @@ const AchievementUnlock = ({ achievement, onClose }: Props) => (
             transition={{ delay: 0.25 }}
             className="text-xs font-medium text-secondary"
           >
-            🏆 成就解锁
+            🏆 Achievement Unlocked
           </motion.p>
 
           <motion.h2
@@ -68,7 +68,7 @@ const AchievementUnlock = ({ achievement, onClose }: Props) => (
             onClick={onClose}
             className="mt-5 rounded-xl bg-gradient-golden px-6 py-2.5 text-sm font-medium text-primary-foreground active:scale-[0.97]"
           >
-            太棒了！
+            Amazing!
           </motion.button>
         </motion.div>
       </motion.div>
