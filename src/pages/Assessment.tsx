@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Brain, Stars, Compass, Flame } from "lucide-react";
+import { Brain, Stars, Target, Flame } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
 
@@ -7,36 +7,36 @@ const tests = [
   {
     id: "mbti",
     icon: Brain,
-    title: "MBTI 人格测评",
-    desc: "AI 动态出题，精准解读你的性格密码",
-    tag: "热门",
+    title: "Personality (MBTI)",
+    desc: "AI-powered dynamic quiz to decode your personality type",
+    tag: "Hot",
     gradient: "bg-gradient-to-br from-indigo to-indigo-light",
     path: "/assessment/mbti",
   },
   {
-    id: "bazi",
-    icon: Compass,
-    title: "八字命理分析",
-    desc: "输入出生时辰，解锁你的先天命盘",
-    tag: "经典",
+    id: "enneagram",
+    icon: Target,
+    title: "Enneagram",
+    desc: "Discover your core fears, desires, and motivations",
+    tag: "Classic",
     gradient: "bg-gradient-to-br from-secondary to-gold",
-    path: "/assessment/bazi",
+    path: "/assessment/enneagram",
   },
   {
     id: "zodiac",
     icon: Stars,
-    title: "星座运势解读",
-    desc: "今日/本周/本月运势全方位解读",
-    tag: "每日更新",
+    title: "Horoscope Reading",
+    desc: "Daily / weekly / monthly cosmic guidance",
+    tag: "Daily Sync",
     gradient: "bg-gradient-to-br from-lavender to-rose-warm",
     path: "/assessment/zodiac",
   },
   {
     id: "emotion",
     icon: Flame,
-    title: "情绪状态评估",
-    desc: "快速了解当前情绪健康度",
-    tag: "推荐",
+    title: "Wellness Check",
+    desc: "Assess your burnout, energy, and boundary health",
+    tag: "Recommended",
     gradient: "bg-gradient-to-br from-rose-warm to-gold",
     path: "/assessment/emotion",
   },
@@ -53,7 +53,7 @@ const Assessment = () => {
           animate={{ opacity: 1, y: 0 }}
           className="font-display text-2xl font-bold text-foreground"
         >
-          心理测评
+          Self-Discovery
         </motion.h1>
         <motion.p
           initial={{ opacity: 0, y: 16 }}
@@ -61,7 +61,7 @@ const Assessment = () => {
           transition={{ delay: 0.05 }}
           className="mt-1 text-sm text-muted-foreground"
         >
-          AI 驱动的智能测评，探索更真实的自己
+          AI-powered quizzes to explore the real you
         </motion.p>
       </div>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Sparkles, Moon, Heart, Brain, Lock, Unlock, Stars, Compass, Flame, ChevronRight, Users } from "lucide-react";
+import { Sparkles, Moon, Heart, Brain, Lock, Unlock, Stars, Flame, ChevronRight, Users, Target } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroBg from "@/assets/hero-bg.jpg";
 import AgentCard from "@/components/AgentCard";
@@ -14,31 +14,31 @@ const assessments = [
     id: "mbti",
     icon: Brain,
     label: "MBTI",
-    desc: "人格测评",
+    desc: "Personality",
     gradient: "from-indigo to-indigo-light",
     path: "/assessment/mbti",
   },
   {
-    id: "bazi",
-    icon: Compass,
-    label: "八字",
-    desc: "命理分析",
+    id: "enneagram",
+    icon: Target,
+    label: "Enneagram",
+    desc: "Core Motives",
     gradient: "from-secondary to-gold",
-    path: "/assessment/bazi",
+    path: "/assessment/enneagram",
   },
   {
     id: "zodiac",
     icon: Stars,
-    label: "星座",
-    desc: "运势解读",
+    label: "Horoscope",
+    desc: "Cosmic Vibes",
     gradient: "from-lavender to-rose-warm",
     path: "/assessment/zodiac",
   },
   {
     id: "emotion",
     icon: Flame,
-    label: "情绪",
-    desc: "状态评估",
+    label: "Wellness",
+    desc: "Burnout Check",
     gradient: "from-rose-warm to-gold",
     path: "/assessment/emotion",
   },
@@ -55,9 +55,7 @@ const Index = () => {
       const { data } = await supabase.from("agent_bonds").select("agent_id, bond_level").eq("user_id", user.id);
       if (data) {
         const levels: Record<string, number> = {};
-        data.forEach((b) => {
-          levels[b.agent_id] = b.bond_level;
-        });
+        data.forEach((b) => { levels[b.agent_id] = b.bond_level; });
         setBondLevels(levels);
       }
     };
@@ -75,7 +73,7 @@ const Index = () => {
             animate={{ opacity: 1, y: 0 }}
             className="font-display text-2xl font-bold text-foreground"
           >
-            心灵密语
+            MindGarden AI
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -83,12 +81,12 @@ const Index = () => {
             transition={{ delay: 0.1 }}
             className="mt-2 text-sm text-muted-foreground"
           >
-            喧嚣的世界里，找寻懂你的灵魂，随时倾听你的心声
+            In a noisy world, find the soul that gets you
           </motion.p>
         </div>
       </div>
 
-      {/* Daily whisper + Compatibility CTA row */}
+      {/* Daily Check-in + Compatibility CTA row */}
       <div className="px-6 mt-3">
         <div className="grid grid-cols-2 gap-2.5">
           <motion.div
@@ -103,8 +101,8 @@ const Index = () => {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-mystic">
                 <Sparkles className="h-5 w-5 text-primary-foreground" />
               </div>
-              <p className="text-[11px] font-semibold text-foreground">每日情绪签到</p>
-              <p className="text-[9px] text-muted-foreground leading-tight">记录心情 · AI 密语 ✨</p>
+              <p className="text-[11px] font-semibold text-foreground">Daily Check-in</p>
+              <p className="text-[9px] text-muted-foreground leading-tight">Log mood · AI whisper ✨</p>
             </div>
           </motion.div>
           <motion.div
@@ -119,8 +117,8 @@ const Index = () => {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-rose-warm to-secondary">
                 <Heart className="h-5 w-5 text-primary-foreground" />
               </div>
-              <p className="text-[11px] font-semibold text-foreground">关系合盘测试</p>
-              <p className="text-[9px] text-muted-foreground leading-tight">灵魂契合度报告 💕</p>
+              <p className="text-[11px] font-semibold text-foreground">Relationship Chemistry</p>
+              <p className="text-[9px] text-muted-foreground leading-tight">Compatibility report 💕</p>
             </div>
           </motion.div>
         </div>
@@ -128,9 +126,9 @@ const Index = () => {
 
       <div className="mt-6 px-6">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-base font-semibold text-foreground">心理测评</h2>
+          <h2 className="font-display text-base font-semibold text-foreground">Self-Discovery</h2>
           <button onClick={() => navigate("/assessment")} className="text-xs text-secondary">
-            全部测评 →
+            All quizzes →
           </button>
         </div>
         <div className="grid grid-cols-4 gap-2.5">
@@ -144,9 +142,7 @@ const Index = () => {
               onClick={() => navigate(item.path)}
               className="flex flex-col items-center gap-1.5 rounded-2xl bg-card p-3 shadow-card"
             >
-              <div
-                className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${item.gradient}`}
-              >
+              <div className={`flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${item.gradient}`}>
                 <item.icon className="h-5 w-5 text-primary-foreground" />
               </div>
               <span className="text-[11px] font-semibold text-foreground">{item.label}</span>
@@ -159,19 +155,14 @@ const Index = () => {
       {/* Agent Gallery */}
       <div className="mt-6 px-6">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-display text-base font-semibold text-foreground">角色广场</h2>
+          <h2 className="font-display text-base font-semibold text-foreground">Your Circle</h2>
           <button onClick={() => navigate("/archive")} className="text-xs text-secondary">
-            角色档案 →
+            Archive →
           </button>
         </div>
         <div className="grid grid-cols-2 gap-3">
           {agents.map((agent, i) => (
-            <motion.div
-              key={agent.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + i * 0.08 }}
-            >
+            <motion.div key={agent.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 + i * 0.08 }}>
               <AgentCard {...agent} bondLevel={bondLevels[agent.id]} />
             </motion.div>
           ))}
@@ -191,19 +182,16 @@ const Index = () => {
               <Lock className="h-4 w-4 text-secondary" />
             </div>
             <div>
-              <p className="text-xs font-semibold text-foreground">🔮 每位角色都藏着不为人知的秘密</p>
+              <p className="text-xs font-semibold text-foreground">🔮 Each character holds untold secrets</p>
               <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                真诚地倾诉你的故事，随着对话深入，角色会逐渐向你敞开心扉，解锁专属的背景故事碎片。
+                Share your story sincerely. As conversations deepen, characters will open up and unlock exclusive lore fragments.
               </p>
               {Object.keys(bondLevels).length > 0 && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {agents.map((a) => {
                     const lv = bondLevels[a.id] || 1;
                     return (
-                      <span
-                        key={a.id}
-                        className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground"
-                      >
+                      <span key={a.id} className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
                         {a.name}
                         <span className="text-secondary">{BOND_LABELS[lv - 1]}</span>
                         {lv < 5 ? <Lock className="h-2.5 w-2.5" /> : <Unlock className="h-2.5 w-2.5 text-secondary" />}

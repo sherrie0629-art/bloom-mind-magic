@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -54,8 +54,8 @@
     --shadow-glow: 0 0 30px -5px hsl(38 75% 55% / 0.25);
     --shadow-card: 0 2px 12px -2px hsl(220 25% 15% / 0.06);
 
-    --font-display: 'Noto Serif SC', serif;
-    --font-body: 'Noto Sans SC', sans-serif;
+    --font-display: 'DM Serif Display', serif;
+    --font-body: 'Inter', sans-serif;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -120,24 +120,24 @@
   }
 
   /* Agent chat themes */
-  .chat-theme-dream {
-    --chat-bg: linear-gradient(180deg, hsl(240 30% 96%), hsl(260 25% 93%));
-    --chat-header-bg: hsl(225 50% 30% / 0.08);
-    --chat-accent: hsl(260 35% 65%);
+  .chat-theme-barista {
+    --chat-bg: linear-gradient(180deg, hsl(30 25% 96%), hsl(25 20% 93%));
+    --chat-header-bg: hsl(30 30% 40% / 0.08);
+    --chat-accent: hsl(30 50% 55%);
   }
-  .chat-theme-astro {
-    --chat-bg: linear-gradient(180deg, hsl(260 25% 96%), hsl(280 20% 93%));
-    --chat-header-bg: hsl(260 35% 65% / 0.08);
-    --chat-accent: hsl(260 35% 65%);
+  .chat-theme-coach {
+    --chat-bg: linear-gradient(180deg, hsl(140 20% 96%), hsl(150 18% 93%));
+    --chat-header-bg: hsl(140 30% 45% / 0.08);
+    --chat-accent: hsl(140 35% 50%);
   }
-  .chat-theme-healer {
-    --chat-bg: linear-gradient(180deg, hsl(350 30% 97%), hsl(340 25% 93%));
-    --chat-header-bg: hsl(350 50% 60% / 0.08);
-    --chat-accent: hsl(350 50% 60%);
+  .chat-theme-mentor {
+    --chat-bg: linear-gradient(180deg, hsl(200 20% 96%), hsl(190 18% 93%));
+    --chat-header-bg: hsl(200 30% 40% / 0.08);
+    --chat-accent: hsl(200 35% 50%);
   }
-  .chat-theme-tree {
-    --chat-bg: linear-gradient(180deg, hsl(175 20% 96%), hsl(180 18% 93%));
-    --chat-header-bg: hsl(175 40% 45% / 0.08);
-    --chat-accent: hsl(175 40% 45%);
+  .chat-theme-bestie {
+    --chat-bg: linear-gradient(180deg, hsl(40 30% 97%), hsl(35 25% 93%));
+    --chat-header-bg: hsl(40 40% 50% / 0.08);
+    --chat-accent: hsl(40 60% 55%);
   }
 }
