@@ -23,7 +23,7 @@ export async function generateSoulFragment(
       source_id: sourceId,
     });
 
-    toast.success(`✨ 获得新的灵魂碎片：${data.name}`);
+    toast.success(`✨ New Soul Fragment: ${data.name}`);
   } catch (e) {
     console.error("Soul fragment generation failed:", e);
   }

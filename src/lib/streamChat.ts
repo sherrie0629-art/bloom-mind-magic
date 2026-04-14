@@ -29,13 +29,13 @@ export async function streamChat({
   });
 
   if (!resp.ok) {
-    const data = await resp.json().catch(() => ({ error: "请求失败" }));
-    onError(data.error || `请求失败 (${resp.status})`);
+    const data = await resp.json().catch(() => ({ error: "Request failed" }));
+    onError(data.error || `Request failed (${resp.status})`);
     return;
   }
 
   if (!resp.body) {
-    onError("无法获取响应流");
+    onError("Unable to get response stream");
     return;
   }
 

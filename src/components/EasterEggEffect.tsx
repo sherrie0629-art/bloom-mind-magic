@@ -116,7 +116,7 @@ export default function EasterEggEffect({ show, onComplete }: EasterEggEffectPro
               className="text-sm font-medium tracking-wide"
               style={{ color: "hsl(280 60% 85%)", textShadow: "0 0 16px hsl(280 60% 70% / 0.5)" }}
             >
-              隐藏记忆已解锁
+              Hidden Memory Unlocked
             </motion.p>
           </motion.div>
 

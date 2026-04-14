@@ -32,14 +32,14 @@ const TruthShardPopup = ({ shard, show, onClose }: TruthShardPopupProps) => (
           >
             <span className="text-3xl">🔮</span>
           </motion.div>
-          <h3 className="font-display text-lg font-bold text-foreground">真相碎片获得！</h3>
+          <h3 className="font-display text-lg font-bold text-foreground">Truth Shard Found!</h3>
           <p className="mt-2 text-base font-semibold text-secondary">{shard.title}</p>
           <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">{shard.description}</p>
           <button
             onClick={onClose}
             className="mt-5 rounded-2xl bg-gradient-golden px-6 py-2.5 text-sm font-medium text-primary-foreground active:scale-95 transition-transform"
           >
-            收入收藏夹 ✨
+            Add to Collection ✨
           </button>
         </motion.div>
       </motion.div>

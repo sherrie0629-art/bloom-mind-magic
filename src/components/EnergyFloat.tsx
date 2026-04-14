@@ -17,7 +17,7 @@ const EnergyFloat = ({ gain, show }: EnergyFloatProps) => (
         className="pointer-events-none fixed top-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1.5 rounded-2xl bg-secondary/90 px-4 py-2 shadow-glow"
       >
         <Zap className="h-4 w-4 text-primary-foreground" />
-        <span className="text-sm font-bold text-primary-foreground">+{gain} 能量</span>
+        <span className="text-sm font-bold text-primary-foreground">+{gain} Vibes</span>
       </motion.div>
     )}
   </AnimatePresence>
