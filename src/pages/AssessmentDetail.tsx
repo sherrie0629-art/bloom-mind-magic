@@ -9,10 +9,10 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 
 const typeConfig: Record<string, { icon: typeof Brain; label: string; gradient: string }> = {
-  mbti: { icon: Brain, label: "MBTI 人格测评", gradient: "bg-gradient-to-br from-indigo to-indigo-light" },
-  bazi: { icon: Compass, label: "八字命理分析", gradient: "bg-gradient-to-br from-secondary to-gold" },
-  zodiac: { icon: Stars, label: "星座运势解读", gradient: "bg-gradient-to-br from-lavender to-rose-warm" },
-  emotion: { icon: Flame, label: "情绪状态评估", gradient: "bg-gradient-to-br from-rose-warm to-gold" },
+  mbti: { icon: Brain, label: "MBTI Personality", gradient: "bg-gradient-to-br from-indigo to-indigo-light" },
+  enneagram: { icon: Compass, label: "Enneagram Analysis", gradient: "bg-gradient-to-br from-secondary to-gold" },
+  zodiac: { icon: Stars, label: "Zodiac Reading", gradient: "bg-gradient-to-br from-lavender to-rose-warm" },
+  emotion: { icon: Flame, label: "Emotional Wellness", gradient: "bg-gradient-to-br from-rose-warm to-gold" },
 };
 
 const AssessmentDetail = () => {
@@ -54,27 +54,26 @@ const AssessmentDetail = () => {
       });
 
       if (error) {
-        // Check if it's a payment required error
         const errorBody = typeof error === "object" && "message" in error ? error.message : String(error);
-        if (errorBody.includes("402") || errorBody.includes("需要付费")) {
-          toast.error("需要付费解锁深度报告（9.9元/次）或成为会员 💫");
+        if (errorBody.includes("402") || errorBody.includes("payment")) {
+          toast.error("Unlock deep report ($4.99) or become a member 💫");
           return;
         }
         throw error;
       }
 
       if (data?.needPayment) {
-        toast.error("需要付费解锁深度报告（9.9元/次）或成为会员 💫");
+        toast.error("Unlock deep report ($4.99) or become a member 💫");
         return;
       }
 
       if (data?.deepReport) {
         setDeepReport(data.deepReport);
         setShowDeepReport(true);
-        toast.success("深度报告生成成功！✨");
+        toast.success("Deep report generated! ✨");
       }
     } catch (e: any) {
-      toast.error(e.message || "生成失败，请重试");
+      toast.error(e.message || "Generation failed, please retry");
     } finally {
       setDeepLoading(false);
     }
@@ -91,8 +90,8 @@ const AssessmentDetail = () => {
   if (!report) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-calm gap-3">
-        <p className="text-muted-foreground">报告不存在</p>
-        <button onClick={() => navigate(-1)} className="text-sm text-secondary underline">返回</button>
+        <p className="text-muted-foreground">Report not found</p>
+        <button onClick={() => navigate(-1)} className="text-sm text-secondary underline">Go back</button>
       </div>
     );
   }
@@ -104,16 +103,17 @@ const AssessmentDetail = () => {
 
   const formatDate = (s: string) => {
     const dt = new Date(s);
-    return `${dt.getFullYear()}年${dt.getMonth() + 1}月${dt.getDate()}日 ${dt.getHours().toString().padStart(2, "0")}:${dt.getMinutes().toString().padStart(2, "0")}`;
+    return dt.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) + " " +
+      dt.getHours().toString().padStart(2, "0") + ":" + dt.getMinutes().toString().padStart(2, "0");
   };
 
   const renderDimensions = () => {
     if (type === "mbti" && d.traits) {
       const dims = [
-        { left: "外向 E", right: "内向 I", value: d.traits.E_I },
-        { left: "实感 S", right: "直觉 N", value: d.traits.S_N },
-        { left: "思考 T", right: "情感 F", value: d.traits.T_F },
-        { left: "判断 J", right: "感知 P", value: d.traits.J_P },
+        { left: "Extrovert E", right: "Introvert I", value: d.traits.E_I },
+        { left: "Sensing S", right: "Intuition N", value: d.traits.S_N },
+        { left: "Thinking T", right: "Feeling F", value: d.traits.T_F },
+        { left: "Judging J", right: "Perceiving P", value: d.traits.J_P },
       ];
       return dims.map((dim) => (
         <div key={dim.left} className="space-y-1">
@@ -126,9 +126,9 @@ const AssessmentDetail = () => {
         </div>
       ));
     }
-    if (type === "bazi" && d.traits) {
+    if (type === "enneagram" && d.traits) {
       return Object.entries(d.traits).map(([k, v]) => {
-        const labels: Record<string, string> = { career: "事业", wealth: "财运", love: "感情", health: "健康" };
+        const labels: Record<string, string> = { thinking: "Thinking", feeling: "Feeling", instinct: "Instinct", growth: "Growth" };
         return (
           <div key={k} className="space-y-1">
             <div className="flex justify-between text-[11px] text-muted-foreground">
@@ -143,7 +143,7 @@ const AssessmentDetail = () => {
     }
     if (type === "zodiac" && d.traits) {
       return Object.entries(d.traits).map(([k, v]) => {
-        const labels: Record<string, string> = { overall: "综合", love: "爱情", career: "事业", fortune: "财运" };
+        const labels: Record<string, string> = { overall: "Overall", love: "Love", career: "Career", fortune: "Fortune" };
         return (
           <div key={k} className="space-y-1">
             <div className="flex justify-between text-[11px] text-muted-foreground">
@@ -158,7 +158,7 @@ const AssessmentDetail = () => {
     }
     if (type === "emotion" && d.traits) {
       return Object.entries(d.traits).map(([k, v]) => {
-        const labels: Record<string, string> = { stress: "压力", energy: "能量", social: "社交", sleep: "睡眠" };
+        const labels: Record<string, string> = { stress: "Stress", energy: "Energy", social: "Social", sleep: "Sleep" };
         return (
           <div key={k} className="space-y-1">
             <div className="flex justify-between text-[11px] text-muted-foreground">
@@ -176,7 +176,7 @@ const AssessmentDetail = () => {
 
   const getTitle = () => {
     if (type === "mbti") return `${d.mbtiType} — ${d.title}`;
-    if (type === "bazi") return `${d.dayMaster} · ${d.title}`;
+    if (type === "enneagram") return `Type ${d.enneagramType} · ${d.title}`;
     if (type === "zodiac") return `${d.zodiacSign} · ${d.title}`;
     if (type === "emotion") return `${d.emoji || "🎭"} ${d.title}`;
     return d.title || type;
@@ -192,7 +192,6 @@ const AssessmentDetail = () => {
       </div>
 
       <div className="px-6 mt-2">
-        {/* AI Generated Image */}
         {d.imageUrl && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -201,7 +200,7 @@ const AssessmentDetail = () => {
           >
             <img
               src={d.imageUrl}
-              alt="AI 生成插画"
+              alt="AI generated artwork"
               className="h-48 w-48 rounded-2xl object-cover shadow-card"
             />
           </motion.div>
@@ -236,7 +235,7 @@ const AssessmentDetail = () => {
           transition={{ delay: 0.1 }}
           className="mt-4 rounded-2xl bg-card p-5 shadow-card space-y-3"
         >
-          <h4 className="font-display text-sm font-semibold text-foreground mb-2">维度分析</h4>
+          <h4 className="font-display text-sm font-semibold text-foreground mb-2">Dimensions</h4>
           {renderDimensions()}
         </motion.div>
 
@@ -248,12 +247,12 @@ const AssessmentDetail = () => {
             transition={{ delay: 0.15 }}
             className="mt-4 rounded-2xl bg-card p-5 shadow-card"
           >
-            <h4 className="font-display text-sm font-semibold text-foreground mb-3">幸运指南</h4>
+            <h4 className="font-display text-sm font-semibold text-foreground mb-3">Lucky Guide</h4>
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: "幸运色", value: d.luckyItems.color },
-                { label: "幸运数字", value: d.luckyItems.number },
-                { label: "幸运方位", value: d.luckyItems.direction },
+                { label: "Lucky Color", value: d.luckyItems.color },
+                { label: "Lucky Number", value: d.luckyItems.number },
+                { label: "Lucky Direction", value: d.luckyItems.direction },
               ].map((item) => (
                 <div key={item.label} className="text-center rounded-xl bg-muted/50 py-3">
                   <p className="text-xs text-muted-foreground">{item.label}</p>
@@ -273,7 +272,7 @@ const AssessmentDetail = () => {
             className="mt-4 rounded-2xl bg-card p-5 shadow-card"
           >
             <h4 className="font-display text-sm font-semibold text-foreground mb-2">
-              {type === "emotion" ? "调节建议" : "建议"}
+              {type === "emotion" ? "Wellness Tips" : "Advice"}
             </h4>
             {d.advice && <p className="text-sm text-foreground leading-relaxed">{d.advice}</p>}
             {type === "emotion" && d.suggestions && (
@@ -300,36 +299,36 @@ const AssessmentDetail = () => {
             <div className="rounded-2xl bg-card p-5 shadow-card border border-secondary/20">
               <div className="flex items-center gap-2 mb-3">
                 <Crown className="h-5 w-5 text-secondary" />
-                <h4 className="font-display text-sm font-semibold text-foreground">深度心理分析报告</h4>
+                <h4 className="font-display text-sm font-semibold text-foreground">Deep Psychological Analysis</h4>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed mb-1">
-                包含 3000-5000 字深度解析：
+                Includes 3,000–5,000 word in-depth report:
               </p>
               <ul className="text-xs text-muted-foreground space-y-1 mb-4">
                 <li className="flex items-center gap-1.5">
-                  <Sparkles className="h-3 w-3 text-secondary" /> 童年依恋模式分析
+                  <Sparkles className="h-3 w-3 text-secondary" /> Attachment style analysis
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <Sparkles className="h-3 w-3 text-secondary" /> 亲密关系避坑指南
+                  <Sparkles className="h-3 w-3 text-secondary" /> Relationship red flags guide
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <Sparkles className="h-3 w-3 text-secondary" /> 核心心理防御机制
+                  <Sparkles className="h-3 w-3 text-secondary" /> Core defense mechanisms
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <Sparkles className="h-3 w-3 text-secondary" /> 职业发展深度建议
+                  <Sparkles className="h-3 w-3 text-secondary" /> Career development insights
                 </li>
                 <li className="flex items-center gap-1.5">
-                  <Sparkles className="h-3 w-3 text-secondary" /> 个人成长路径
+                  <Sparkles className="h-3 w-3 text-secondary" /> Personal growth roadmap
                 </li>
               </ul>
 
               {/* Blurred preview teaser */}
               <div className="relative mb-4 overflow-hidden rounded-xl">
                 <div className="blur-sm select-none pointer-events-none p-3 bg-muted/30 text-xs text-muted-foreground leading-relaxed">
-                  根据你的测评结果，你的核心人格特质呈现出一种独特的内在张力。在外在表现上，你倾向于……然而在内心深处，你对亲密关系有着更深层的渴望。这种矛盾源于童年时期形成的依恋模式……
+                  Based on your assessment results, your core personality traits reveal a unique inner tension. On the surface, you tend to... However, deep down, you carry a deeper longing for intimate connection. This contradiction stems from attachment patterns formed in childhood...
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center bg-card/40">
-                  <span className="text-[11px] text-muted-foreground font-medium">🔒 解锁查看完整报告</span>
+                  <span className="text-[11px] text-muted-foreground font-medium">🔒 Unlock to read full report</span>
                 </div>
               </div>
 
@@ -341,18 +340,18 @@ const AssessmentDetail = () => {
                 {deepLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    AI 正在生成深度报告…
+                    AI is generating your deep report…
                   </>
                 ) : (
                   <>
                     <Crown className="h-4 w-4" />
-                    {plan === "premium" ? "会员免费解锁" : "解锁深度报告（¥9.9）"}
+                    {plan === "premium" ? "Unlock Free (Member)" : "Unlock Deep Report ($4.99)"}
                   </>
                 )}
               </button>
               {plan !== "premium" && (
                 <p className="text-[10px] text-muted-foreground text-center mt-2">
-                  成为会员每月含2份免费深度报告
+                  Members get 2 free deep reports per month
                 </p>
               )}
             </div>
@@ -360,7 +359,7 @@ const AssessmentDetail = () => {
             <div className="rounded-2xl bg-card p-5 shadow-card">
               <div className="flex items-center gap-2 mb-4">
                 <Crown className="h-5 w-5 text-secondary" />
-                <h4 className="font-display text-sm font-semibold text-foreground">深度心理分析报告</h4>
+                <h4 className="font-display text-sm font-semibold text-foreground">Deep Psychological Analysis</h4>
               </div>
               <div className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-headings:font-display prose-h2:text-base prose-h2:mt-6 prose-h2:mb-3 prose-p:text-sm prose-p:leading-relaxed prose-li:text-sm prose-strong:text-foreground">
                 <ReactMarkdown>{deepReport || ""}</ReactMarkdown>

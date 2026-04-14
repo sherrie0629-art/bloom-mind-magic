@@ -33,7 +33,8 @@ const CompatibilityReports = () => {
 
   const formatDate = (s: string) => {
     const d = new Date(s);
-    return `${d.getMonth() + 1}月${d.getDate()}日 ${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric" }) + " " +
+      d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0");
   };
 
   return (
@@ -43,14 +44,14 @@ const CompatibilityReports = () => {
           <button onClick={() => navigate("/profile")} className="text-muted-foreground">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h2 className="font-display text-lg font-semibold text-foreground">💕 合盘报告</h2>
+          <h2 className="font-display text-lg font-semibold text-foreground">💕 Compatibility Reports</h2>
         </div>
         <button
           onClick={() => navigate("/assessment/compatibility")}
           className="flex items-center gap-1 rounded-full bg-gradient-golden px-3 py-1.5 text-xs font-semibold text-primary-foreground"
         >
           <Plus className="h-3.5 w-3.5" />
-          新测试
+          New Test
         </button>
       </div>
 
@@ -62,12 +63,12 @@ const CompatibilityReports = () => {
         ) : reports.length === 0 ? (
           <div className="py-16 text-center">
             <p className="text-4xl">💕</p>
-            <p className="mt-3 text-sm text-muted-foreground">还没有合盘记录</p>
+            <p className="mt-3 text-sm text-muted-foreground">No compatibility reports yet</p>
             <button
               onClick={() => navigate("/assessment/compatibility")}
               className="mt-4 rounded-xl bg-gradient-golden px-6 py-2.5 text-sm font-semibold text-primary-foreground"
             >
-              去做合盘测试
+              Take a Compatibility Test
             </button>
           </div>
         ) : (
@@ -90,7 +91,7 @@ const CompatibilityReports = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <h3 className="font-display text-sm font-semibold text-foreground truncate">
-                        {d?.emoji || "💕"} {d?.title || "合盘分析"}
+                        {d?.emoji || "💕"} {d?.title || "Compatibility Analysis"}
                       </h3>
                       {d?.overallScore && (
                         <span className="shrink-0 rounded-full bg-secondary/15 px-2 py-0.5 text-[10px] font-bold text-secondary">
@@ -99,7 +100,7 @@ const CompatibilityReports = () => {
                       )}
                     </div>
                     <p className="mt-0.5 text-xs text-muted-foreground truncate">
-                      与 {partner?.name || "对方"} · {d?.summary?.slice(0, 30) || ""}
+                      with {partner?.name || "Partner"} · {d?.summary?.slice(0, 30) || ""}
                     </p>
                     <p className="mt-1.5 text-[10px] text-muted-foreground/60">{formatDate(r.created_at)}</p>
                   </div>
