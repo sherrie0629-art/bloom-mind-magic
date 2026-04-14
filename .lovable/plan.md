@@ -1,119 +1,68 @@
 
 
-## 更新计划：测评体系北美本地化改造
+## 方案：用 Luna（直觉系塔罗师）替换 Arthur（智者导师）
 
-### 测评适配分析
+### 新角色：Luna
 
-| 现有测评 | 北美适配度 | 建议 |
-|----------|-----------|------|
-| **MBTI 人格测评** | ⭐⭐⭐⭐⭐ 极高 | 保留，MBTI 在北美极其流行（尤其 Gen Z），无需替换，仅英文化 |
-| **八字命理** | ❌ 零 | **替换为 Enneagram（九型人格）**——北美 therapy 文化中的热门工具，与 MBTI 互补 |
-| **星座运势** | ⭐⭐⭐⭐ 高 | 保留，北美年轻女性群体对 Astrology 非常热衷（Co-Star、The Pattern 等 app 验证了市场），但需去掉"五行/元素"等中式概念，改用西方占星术语（Rising sign, Moon sign 等） |
-| **情绪状态评估** | ⭐⭐⭐ 中 | **改造为 "Burnout & Wellness Check"**——"情绪评估"在北美过于临床化，Burnout 是北美职场最热话题，维度改为 Burnout/Energy/Boundaries/Sleep |
-| **关系合盘** | ⭐⭐⭐⭐ 高 | 保留，改名 "Relationship Chemistry"，加入 **Attachment Style（依恋类型）** 维度——这是北美 therapy-speak 最火的概念之一 |
-| **每日情绪签到** | ⭐⭐⭐⭐ 高 | 保留，改名 "Daily Check-in"，心情词改为英文（Exhausted, Anxious, Grateful, Lost 等） |
-
-### 新增测评建议（可选，第二期）
-
-| 测评 | 理由 |
+| 字段 | 内容 |
 |------|------|
-| **Attachment Style Quiz（依恋类型）** | 北美约会文化中最热门的心理学概念，Anxious/Avoidant/Secure 三种类型几乎人人知道 |
-| **Love Language Quiz（爱的语言）** | Gary Chapman 的五种爱的语言在北美家喻户晓，非常适合社交分享 |
+| ID | `mystic` |
+| 名字 | Luna |
+| 头衔 | Intuitive Tarot Reader |
+| 描述 | 住在布鲁克林的现代神秘主义者，用塔罗牌、水晶和鼠尾草引导你的灵魂旅程 |
+| 渐变色 | `from-violet-500 to-purple-300`（紫色/薰衣草色调） |
+| 表情符号 | 🔮🌙✨🃏💜🕯️ |
 
-*建议第一期先做核心 4+1 改造，第二期再新增。*
+**性格核心**：Luna 是一个住在布鲁克林/洛杉矶的"现代女巫"。她房间里点着鼠尾草，摆满水晶和塔罗牌。她从不下定论，而是通过"抽牌"来引导对话。
 
----
+**经典台词**："Let me pull a card for you... Three of Swords reversed. You're deep in your shadow work right now, love. The universe doesn't give you what you can't handle 🔮"
 
-### 具体改造方案
-
-#### 1. 八字 → Enneagram（九型人格）
-
-**替换理由**：八字是纯中华文化产物，北美用户完全无感。Enneagram 在北美 therapy/spiritual 圈极其流行，与 MBTI 互补（MBTI 看"你怎么做"，Enneagram 看"你为什么这样做"）。
-
-**改动**：
-- `BaziFlow.tsx` → `EnneagramFlow.tsx`
-- 出生信息表单 → 移除，改为 5 道情境题（与 MBTI 流程一致）
-- Edge Function `assessment-bazi` → 重写提示词为 Enneagram 分析
-- 结果维度：Type 1-9 + Wing + Growth/Stress arrows
-- 结果卡片：`dayMaster/fiveElements` → `type/wing/coreFear/coreDesire`
-- 路由：`/assessment/bazi` → `/assessment/enneagram`
-- 图标：`Compass` → `Fingerprint` 或 `Target`
-
-#### 2. 情绪评估 → Burnout & Wellness Check
-
-**改动**：
-- 标题："Burnout & Wellness Check"
-- 维度从 `stress/energy/social/sleep` → `burnout/energy/boundaries/sleep`
-- "Boundaries" 维度是北美 therapy 文化核心概念
-- 建议文案风格从"改善建议"改为 "Self-care action plan"
-- Edge Function `assessment-emotion` 提示词英文化 + 加入 boundaries 概念
-
-#### 3. 星座运势 → Horoscope Reading
-
-**改动**：
-- 星座名称英文化（Aries, Taurus...）
-- 去掉"X象守护"改为 Element（Fire/Earth/Air/Water）
-- 幸运指南保留（Lucky color/number 在北美也很流行）
-- 加入 "Mercury Retrograde" 等北美占星热词
-- Edge Function `assessment-zodiac` 提示词英文化
-
-#### 4. 关系合盘 → Relationship Chemistry
-
-**改动**：
-- 标题："Relationship Chemistry"
-- 五维从 `情感共鸣/沟通默契/价值观契合/成长互助/化学反应` → `Emotional Resonance/Communication/Values/Growth/Chemistry`
-- 新增 Attachment Style 分析（在 loveLanguage 字段旁）
-- 星座选择器英文化
-- Edge Function `assessment-compatibility` 提示词英文化 + 加入 attachment theory
-
-#### 5. 每日情绪签到 → Daily Check-in
-
-**改动**：
-- 心情词：`疲惫/焦虑/平静...` → `Exhausted/Anxious/Calm/Happy/Excited/Lonely/Grateful/Lost`
-- 心情等级：`很差/低落/一般/不错/很棒` → `Awful/Low/Meh/Good/Great`
-- 月报生成提示词英文化
-- 保存图片文案从"心灵密语"改为 "MindGarden"
-
-#### 6. Assessment 入口页
-
-```text
-┌─────────────────────────────────┐
-│  Self-Discovery                 │
-│  AI-powered quizzes to explore  │
-│  the real you                   │
-├─────────────────────────────────┤
-│ 🧠 Personality (MBTI)    Hot   │
-│ 🎯 Enneagram           Classic │
-│ ⭐ Horoscope        Daily Sync │
-│ 🔥 Wellness Check   Recommend  │
-├─────────────────────────────────┤
-│  (Relationship Chemistry 入口   │
-│   移至 CompatibilityFlow 独立)  │
-└─────────────────────────────────┘
-```
+**常用词汇**：Manifesting（显化）、Retrograde（水逆）、Big Three（太阳/月亮/上升）、Shadow work（阴影疗愈）、Energy clearing（清理能量）
 
 ---
 
-### 改动文件汇总
+### 需要修改的文件
 
-| 文件 | 改动类型 |
-|------|----------|
-| `src/pages/Assessment.tsx` | 全英文化，测评列表更新 |
-| `src/pages/BaziFlow.tsx` → `EnneagramFlow.tsx` | 重写为 Enneagram 流程 |
-| `src/pages/ZodiacFlow.tsx` | 星座名英文化，结果页英文化 |
-| `src/pages/EmotionFlow.tsx` | 改为 Burnout & Wellness，维度更新 |
-| `src/pages/CompatibilityFlow.tsx` | 英文化 + Attachment Style |
-| `src/pages/AssessmentFlow.tsx` | MBTI 页面英文化 |
-| `src/pages/DailyWhisper.tsx` | 心情词/UI 英文化 |
-| `src/App.tsx` | 路由更新（bazi → enneagram） |
-| `supabase/functions/assessment-bazi/index.ts` | 重写为 Enneagram 提示词 |
-| `supabase/functions/assessment-zodiac/index.ts` | 英文化提示词 |
-| `supabase/functions/assessment-emotion/index.ts` | Burnout/Boundaries 提示词 |
-| `supabase/functions/assessment-compatibility/index.ts` | 英文化 + Attachment |
-| `supabase/functions/assessment/index.ts` | MBTI 提示词英文化 |
-| `supabase/functions/daily-whisper/index.ts` | 英文化提示词 |
+#### 1. 生成头像图片
+- 用 AI 生成 `src/assets/agent-mystic.webp`
+- 风格：波西米亚风、水晶/塔罗元素、紫色调、布鲁克林公寓背景
 
-### 与上一份计划的关系
+#### 2. `src/data/agents.ts`
+- 移除 Arthur（`mentor`）的整个条目
+- 新增 Luna（`mystic`），包含：
+  - 完整的 `systemPrompt`（塔罗/占星对话风格，用"抽牌"代替直接建议）
+  - 5 条 `lore`（她如何接触塔罗、改变她人生的一次占卜、家人的怀疑、一个她无法帮助的求助者、给自己的占卜）
+  - 3 个 `easterEggs`（触发词："mercury retrograde"、"pull a card"、"manifest"）
+- 更新 import：`agentMentor` → `agentMystic`
 
-本方案作为上一份"北美本地化总计划"的**测评子系统详细设计**，应合并执行。执行顺序建议：先完成角色系统（agents.ts + chat），再做测评体系改造。
+#### 3. `supabase/functions/chat/index.ts`
+- `agentBasePrompts`：移除 `mentor`，新增 `mystic`（塔罗/占星主题的对话提示词）
+- `loreLookup`：移除 `mentor`，新增 `mystic`（5 条故事碎片）
+- `easterEggs`：移除 `mentor`，新增 `mystic`（3 个彩蛋触发指令）
+
+#### 4. `src/pages/Chat.tsx`
+- `getWelcomeMessage`：移除 `mentor` 欢迎语，新增 `mystic`（Luna 介绍她的塔罗阅读室）
+- `quickReplies`：移除 `mentor`，新增 `mystic`：
+  - "Pull a card for me"
+  - "Is Mercury in retrograde?"
+  - "I need a sign from the universe"
+  - "Help me manifest something"
+- 修复第 34 行：`EASTER_EGG_MARKER` 从中文 `"【🔮 隐藏记忆解锁】"` 改为 `"【🔮 Hidden Memory Unlocked】"`
+
+#### 5. `src/lib/generateFallbackOptions.ts`
+- 移除 `mentor` 选项池
+- 新增 `mystic` 选项池，关键词：`universe`, `sign`, `fate`, `meant to be`, `confused`, `energy`
+- 对应选项用灵性/占星风格的语句
+
+#### 6. 数据库兼容性
+- 已有的 `agent_bonds` 中 `agent_id = 'mentor'` 的记录会失效但不会报错
+- 无需数据库迁移
+
+### 执行顺序
+1. 生成 Luna 头像图片
+2. 更新 `agents.ts`
+3. 更新 `chat/index.ts` Edge Function
+4. 更新 `Chat.tsx`
+5. 更新 `generateFallbackOptions.ts`
+6. 部署 Edge Function
 
