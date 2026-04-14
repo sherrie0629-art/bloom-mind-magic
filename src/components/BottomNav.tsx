@@ -3,10 +3,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const navItems = [
-  { icon: Home, label: "首页", path: "/" },
-  { icon: BookOpen, label: "档案", path: "/archive" },
-  { icon: Sparkles, label: "测评", path: "/assessment" },
-  { icon: User, label: "我的", path: "/profile" },
+  { icon: Home, label: "Home", path: "/" },
+  { icon: BookOpen, label: "Archive", path: "/archive" },
+  { icon: Sparkles, label: "Assess", path: "/assessment" },
+  { icon: User, label: "Me", path: "/profile" },
 ];
 
 const BottomNav = () => {
