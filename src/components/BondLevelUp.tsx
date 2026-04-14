@@ -30,7 +30,6 @@ const BondLevelUp = ({ show, level, agentName, loreText, onClose }: BondLevelUpP
             onClick={(e) => e.stopPropagation()}
             className="mx-6 max-w-sm rounded-3xl bg-card p-6 shadow-glow text-center"
           >
-            {/* Stars animation */}
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -46,7 +45,7 @@ const BondLevelUp = ({ show, level, agentName, loreText, onClose }: BondLevelUpP
               transition={{ delay: 0.3 }}
               className="text-xs font-medium text-secondary"
             >
-              羁绊升级
+              Bond Level Up
             </motion.p>
 
             <motion.h2
@@ -64,9 +63,9 @@ const BondLevelUp = ({ show, level, agentName, loreText, onClose }: BondLevelUpP
               transition={{ delay: 0.6 }}
               className="mt-4 rounded-2xl bg-muted/50 p-4"
             >
-              <p className="text-xs text-muted-foreground mb-1">🔓 解锁新故事碎片</p>
+              <p className="text-xs text-muted-foreground mb-1">🔓 New Story Fragment Unlocked</p>
               <p className="text-sm italic leading-relaxed text-foreground">
-                「{loreText}」
+                "{loreText}"
               </p>
             </motion.div>
 
@@ -77,7 +76,7 @@ const BondLevelUp = ({ show, level, agentName, loreText, onClose }: BondLevelUpP
               onClick={onClose}
               className="mt-5 rounded-xl bg-gradient-golden px-6 py-2.5 text-sm font-medium text-primary-foreground"
             >
-              继续对话
+              Continue
             </motion.button>
           </motion.div>
         </motion.div>

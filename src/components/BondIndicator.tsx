@@ -1,5 +1,4 @@
 import { BOND_LABELS, BOND_THRESHOLDS } from "@/data/agents";
-import { Zap } from "lucide-react";
 
 interface BondIndicatorProps {
   level: number;
@@ -7,8 +6,8 @@ interface BondIndicatorProps {
   energyBits?: number;
 }
 
-const BondIndicator = ({ level, totalTurns, energyBits }: BondIndicatorProps) => {
-  const label = BOND_LABELS[level - 1] || "初遇";
+const BondIndicator = ({ level, totalTurns }: BondIndicatorProps) => {
+  const label = BOND_LABELS[level - 1] || "Stranger";
   const nextThreshold = BOND_THRESHOLDS[level] || null;
   const currentThreshold = BOND_THRESHOLDS[level - 1] || 0;
   
