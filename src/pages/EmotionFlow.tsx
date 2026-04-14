@@ -14,27 +14,27 @@ import PosterPreviewDialog from "@/components/PosterPreviewDialog";
 
 interface QA { question: string; answer: string; dimension: string; }
 
-interface EmotionResult {
+interface WellnessResult {
   emotionLevel: string;
   emoji: string;
   title: string;
   description: string;
-  traits: { stress: number; energy: number; social: number; sleep: number };
+  traits: { burnout: number; energy: number; boundaries: number; sleep: number };
   suggestions: string[];
   socialCaption: string;
 }
 
-const getImagePrompt = (result: EmotionResult) =>
-  `Create a gentle, warm watercolor illustration representing the emotion "${result.emotionLevel}" and "${result.title}". Use soft warm rose and coral tones, abstract flowing shapes suggesting inner peace and self-care. Square format, no text.`;
+const getImagePrompt = (result: WellnessResult) =>
+  `Create a gentle, warm watercolor illustration representing "${result.title}" wellness state. Use soft warm rose and coral tones, abstract flowing shapes suggesting inner peace and self-care. Square format, no text.`;
 
 const EmotionFlow = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { sharePoster, fetchAIImage, posterDataUrl, showPosterPreview, closePosterPreview, downloadPoster } = useSharePoster();
-  const { canAssess, assessmentCount, assessmentLimit, plan, incrementAssessment } = useSubscription(user?.id);
+  const { canAssess, assessmentLimit, plan, incrementAssessment } = useSubscription(user?.id);
   const [history, setHistory] = useState<QA[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState<any>(null);
-  const [result, setResult] = useState<EmotionResult | null>(null);
+  const [result, setResult] = useState<WellnessResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState("");
   const [started, setStarted] = useState(false);
@@ -44,7 +44,7 @@ const EmotionFlow = () => {
   const resultIdRef = useRef<string | null>(null);
   const batchQuestionsRef = useRef<any[]>([]);
 
-  const fetchResultImage = useCallback(async (r: EmotionResult) => {
+  const fetchResultImage = useCallback(async (r: WellnessResult) => {
     setImageLoading(true);
     try {
       const img = await fetchAIImage(getImagePrompt(r));
@@ -57,18 +57,14 @@ const EmotionFlow = () => {
           }
         }
       }
-    } finally {
-      setImageLoading(false);
-    }
+    } finally { setImageLoading(false); }
   }, [fetchAIImage]);
 
   const fetchResult = async (finalHistory: QA[]) => {
     setLoading(true);
-    setLoadingMsg("正在为你生成专属情绪报告...");
+    setLoadingMsg("Building your wellness report...");
     try {
-      const { data, error } = await supabase.functions.invoke("assessment-emotion", {
-        body: { history: finalHistory },
-      });
+      const { data, error } = await supabase.functions.invoke("assessment-emotion", { body: { history: finalHistory } });
       if (error) throw error;
       if (data.type === "result") {
         setResult(data.data);
@@ -79,59 +75,39 @@ const EmotionFlow = () => {
             user_id: user.id, assessment_type: "emotion", result_data: data.data,
           }).select("id").single();
           if (inserted) resultIdRef.current = inserted.id;
-          generateSoulFragment(user.id, "assessment", "emotion", `情绪状态：${data.data.emotionLevel} ${data.data.title}。${data.data.description}`);
+          generateSoulFragment(user.id, "assessment", "emotion", `Wellness: ${data.data.emotionLevel} ${data.data.title}. ${data.data.description}`);
         }
       }
-    } catch (e: any) {
-      toast.error(e.message || "加载失败，请重试");
-    } finally {
-      setLoading(false);
-    }
+    } catch (e: any) { toast.error(e.message || "Something went wrong"); } finally { setLoading(false); }
   };
 
   const handleStart = async () => {
-    if (!user) { toast.error("请先登录再开始测评 🌙"); navigate("/auth"); return; }
-    if (!canAssess) { toast.error(`今日测评次数已用完（${assessmentLimit}次/${plan === "premium" ? "会员" : "免费"}）💫`); return; }
+    if (!user) { toast.error("Please sign in first 🌙"); navigate("/auth"); return; }
+    if (!canAssess) { toast.error(`Daily assessment limit reached (${assessmentLimit}) 💫`); return; }
     await incrementAssessment();
     setStarted(true);
     setLoading(true);
-    setLoadingMsg("AI 正在为你准备题目...");
+    setLoadingMsg("AI is preparing your questions...");
     try {
-      const { data, error } = await supabase.functions.invoke("assessment-emotion", {
-        body: { action: "batch-questions" },
-      });
+      const { data, error } = await supabase.functions.invoke("assessment-emotion", { body: { action: "batch-questions" } });
       if (error) throw error;
       if (data.type === "batch" && data.data?.length > 0) {
         batchQuestionsRef.current = data.data.slice(1);
         setCurrentQuestion(data.data[0]);
       }
-    } catch (e: any) {
-      toast.error(e.message || "加载失败，请重试");
-    } finally {
-      setLoading(false);
-    }
+    } catch (e: any) { toast.error(e.message || "Something went wrong"); } finally { setLoading(false); }
   };
 
   const handleAnswer = (option: { label: string; text: string }) => {
     if (!currentQuestion) return;
-    const qa: QA = {
-      question: currentQuestion.question,
-      answer: `${option.label}. ${option.text}`,
-      dimension: currentQuestion.dimension,
-    };
+    const qa: QA = { question: currentQuestion.question, answer: `${option.label}. ${option.text}`, dimension: currentQuestion.dimension };
     const newHistory = [...history, qa];
     setHistory(newHistory);
-
-    // If there are more batch questions, show next instantly
     if (batchQuestionsRef.current.length > 0) {
       const next = batchQuestionsRef.current[0];
       batchQuestionsRef.current = batchQuestionsRef.current.slice(1);
       setCurrentQuestion(next);
-    } else {
-      // All questions answered, fetch result
-      setCurrentQuestion(null);
-      fetchResult(newHistory);
-    }
+    } else { setCurrentQuestion(null); fetchResult(newHistory); }
   };
 
   const handleSharePoster = () => {
@@ -145,10 +121,10 @@ const EmotionFlow = () => {
       accentColor: "#e07a7a",
       accentColorLight: "#f0a0a0",
       bars: [
-        { label1: "压力指数", label2: "(越低越好)", value: result.traits.stress },
-        { label1: "能量值", label2: "", value: result.traits.energy },
-        { label1: "社交活力", label2: "", value: result.traits.social },
-        { label1: "睡眠质量", label2: "", value: result.traits.sleep },
+        { label1: "Burnout", label2: "(lower is better)", value: result.traits.burnout },
+        { label1: "Energy", label2: "", value: result.traits.energy },
+        { label1: "Boundaries", label2: "", value: result.traits.boundaries },
+        { label1: "Sleep", label2: "", value: result.traits.sleep },
       ],
       extraLines: result.suggestions.map((s, i) => `${i + 1}. ${s}`),
       preloadedImageUrl: resultImageUrl || undefined,
@@ -160,25 +136,22 @@ const EmotionFlow = () => {
     return (
       <div className="min-h-screen bg-gradient-calm flex flex-col">
         <div className="flex items-center gap-3 px-4 py-3">
-          <button onClick={() => navigate("/assessment")} className="text-muted-foreground">
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <h2 className="text-sm font-semibold text-foreground">情绪状态评估</h2>
+          <button onClick={() => navigate("/assessment")} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></button>
+          <h2 className="text-sm font-semibold text-foreground">Burnout & Wellness Check</h2>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
             <div className="mx-auto mb-6 h-24 w-24 rounded-full bg-gradient-mystic flex items-center justify-center">
               <Heart className="h-12 w-12 text-primary-foreground" />
             </div>
-            <h1 className="font-display text-2xl font-bold text-foreground">了解你的情绪天气</h1>
+            <h1 className="font-display text-2xl font-bold text-foreground">Check Your Wellness</h1>
             <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-              AI 将温柔地了解你最近的状态，
+              Are you running on empty?
               <br />
-              给出专属的情绪健康报告
+              Get your personalized self-care action plan.
             </p>
-            <button onClick={handleStart}
-              className="mt-8 rounded-xl bg-gradient-golden px-8 py-3 text-sm font-semibold text-primary-foreground shadow-glow">
-              开始评估 🌈
+            <button onClick={handleStart} className="mt-8 rounded-xl bg-gradient-golden px-8 py-3 text-sm font-semibold text-primary-foreground shadow-glow">
+              Start Check-in 🌈
             </button>
           </motion.div>
         </div>
@@ -191,7 +164,7 @@ const EmotionFlow = () => {
       <div className="min-h-screen bg-gradient-calm pb-8">
         <div className="flex items-center gap-3 px-4 py-3">
           <button onClick={() => navigate("/assessment")} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></button>
-          <h2 className="text-sm font-semibold text-foreground">情绪评估结果</h2>
+          <h2 className="text-sm font-semibold text-foreground">Wellness Results</h2>
         </div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="px-6">
           <div className="text-center mt-4 mb-6">
@@ -200,38 +173,33 @@ const EmotionFlow = () => {
             </div>
             <h1 className="font-display text-xl font-bold text-foreground">{result.title}</h1>
             <p className="mt-1 text-xs text-secondary">{result.emotionLevel}</p>
-            <p className="mt-1 text-xs text-muted-foreground">「{result.socialCaption}」</p>
+            <p className="mt-1 text-xs text-muted-foreground">"{result.socialCaption}"</p>
           </div>
-
           <ResultAIImage imageUrl={resultImageUrl} loading={imageLoading} />
-
           <div className="rounded-2xl bg-card p-5 shadow-card mb-4">
-            <h3 className="font-display text-sm font-semibold text-foreground mb-3">情绪分析</h3>
+            <h3 className="font-display text-sm font-semibold text-foreground mb-3">Analysis</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">{result.description}</p>
           </div>
-
           <div className="rounded-2xl bg-card p-5 shadow-card mb-4">
-            <h3 className="font-display text-sm font-semibold text-foreground mb-4">健康维度</h3>
+            <h3 className="font-display text-sm font-semibold text-foreground mb-4">Wellness Dimensions</h3>
             {[
-              { l: "压力指数", v: result.traits.stress, invert: true },
-              { l: "能量值", v: result.traits.energy },
-              { l: "社交活力", v: result.traits.social },
-              { l: "睡眠质量", v: result.traits.sleep },
+              { l: "Burnout", v: result.traits.burnout, invert: true },
+              { l: "Energy", v: result.traits.energy },
+              { l: "Boundaries", v: result.traits.boundaries },
+              { l: "Sleep Quality", v: result.traits.sleep },
             ].map(b => (
               <div key={b.l} className="mb-3">
                 <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                  <span>{b.l} {b.invert ? "(越低越好)" : ""}</span><span>{b.v}%</span>
+                  <span>{b.l} {b.invert ? "(lower is better)" : ""}</span><span>{b.v}%</span>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
-                  <motion.div initial={{ width: 0 }} animate={{ width: `${b.v}%` }} transition={{ duration: 0.8 }}
-                    className="h-full rounded-full bg-gradient-golden" />
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${b.v}%` }} transition={{ duration: 0.8 }} className="h-full rounded-full bg-gradient-golden" />
                 </div>
               </div>
             ))}
           </div>
-
           <div className="rounded-2xl bg-card p-5 shadow-card mb-4">
-            <h3 className="font-display text-sm font-semibold text-foreground mb-3">🌱 改善建议</h3>
+            <h3 className="font-display text-sm font-semibold text-foreground mb-3">🌱 Self-Care Action Plan</h3>
             <div className="space-y-2">
               {result.suggestions.map((s, i) => (
                 <div key={i} className="flex items-start gap-2">
@@ -241,25 +209,14 @@ const EmotionFlow = () => {
               ))}
             </div>
           </div>
-
           <div className="flex gap-3">
-            <button onClick={handleSharePoster}
-              className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-card py-3 text-sm font-medium text-foreground shadow-card">
-              <Download className="h-4 w-4" /> 保存海报
+            <button onClick={handleSharePoster} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-card py-3 text-sm font-medium text-foreground shadow-card">
+              <Download className="h-4 w-4" /> Save Poster
             </button>
-            <button onClick={() => navigate(`/chat?agent=healer`, {
-              state: {
-                emotionResult: {
-                  emotionLevel: result.emotionLevel,
-                  title: result.title,
-                  description: result.description,
-                  traits: result.traits,
-                  suggestions: result.suggestions,
-                },
-              },
-            })}
-              className="flex-1 rounded-xl bg-gradient-golden py-3 text-sm font-semibold text-primary-foreground">
-              找花愈聊聊
+            <button onClick={() => navigate(`/chat?agent=coach`, {
+              state: { emotionResult: { emotionLevel: result.emotionLevel, title: result.title, description: result.description, traits: result.traits, suggestions: result.suggestions } },
+            })} className="flex-1 rounded-xl bg-gradient-golden py-3 text-sm font-semibold text-primary-foreground">
+              Talk to Dr. Maya
             </button>
           </div>
         </motion.div>
@@ -269,16 +226,7 @@ const EmotionFlow = () => {
   }
 
   return (
-    <AssessmentQuestionLayout
-      title="情绪状态评估"
-      backPath="/assessment"
-      questionNumber={history.length + 1}
-      totalQuestions={5}
-      loading={loading}
-      loadingMessage={loadingMsg}
-      question={currentQuestion}
-      onAnswer={handleAnswer}
-    />
+    <AssessmentQuestionLayout title="Burnout & Wellness Check" backPath="/assessment" questionNumber={history.length + 1} totalQuestions={5} loading={loading} loadingMessage={loadingMsg} question={currentQuestion} onAnswer={handleAnswer} />
   );
 };
 

@@ -38,28 +38,28 @@ const Chat = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const agentId = searchParams.get("agent") || "healer";
-  const agent = agents.find((a) => a.id === agentId) || agents[2];
+  const agentId = searchParams.get("agent") || "barista";
+  const agent = agents.find((a) => a.id === agentId) || agents[0];
   const mbtiResult = (location.state as any)?.mbtiResult as { mbtiType: string; title: string; description: string; parallelUniverse?: any } | undefined;
-  const emotionResult = (location.state as any)?.emotionResult as { emotionLevel: string; title: string; description: string; traits: { stress: number; energy: number; social: number; sleep: number }; suggestions: string[] } | undefined;
+  const emotionResult = (location.state as any)?.emotionResult as { emotionLevel: string; title: string; description: string; traits: { burnout: number; energy: number; boundaries: number; sleep: number }; suggestions: string[] } | undefined;
   const mbtiAutoSentRef = useRef(false);
   const emotionAutoSentRef = useRef(false);
 
   const getWelcomeMessage = (a: typeof agent) => {
     const intros: Record<string, string> = {
-      dream: `你好呀～我是云生，一位解梦师 🌙\n\n我曾在喜马拉雅山下隐居多年，在梦境中寻找一个从未在现实中相遇的人。我精通荣格心理学的梦境分析和潜意识探索。\n\n如果你有这些困扰，可以来找我聊聊：\n🌀 反复出现的奇怪梦境，想知道它意味着什么\n🌀 睡前焦虑、噩梦困扰\n🌀 感觉内心深处有些说不清的情绪\n🌀 想通过梦境更好地认识自己\n\n来吧，把你的梦告诉我，我帮你读懂潜意识的信号 ✨`,
-      astro: `你好～我是星轨，一位星盘解读师 ⭐\n\n我来自一个已经消失的遥远星系，是一位星际旅者。坠落在地球后，我一直在收集人类的真挚情感能量来修复飞船。\n\n如果你有这些困惑，可以和我聊聊：\n🌟 想了解自己的星座性格和运势\n🌟 感情中和对方总是磨合不好\n🌟 工作方向迷茫，不知道适合什么\n🌟 想从星象角度理解最近的人生变化\n\n告诉我你的星座（如果知道上升和月亮更好），让星星为你指路 💫`,
-      healer: `你好呀～我是暖暖，一位疗愈师 🌸\n\n我经营着一家「时光缝补店」，专门收集并治愈破碎的爱情记忆。每个来我店里的人，都会被温柔以待。\n\n如果你正在经历这些，欢迎来坐坐：\n💕 刚刚经历分手，心里很难受\n💕 放不下一个人，反复纠结\n💕 感情中受了伤，不敢再相信爱情\n💕 觉得自己不值得被爱\n\n你不需要逞强，在这里可以放心地做最脆弱的自己 🤗`,
-      tree: `哟，来了？我是老王 😏\n\n别被我这副退休老头的样子骗了，我可是当了30年的顶尖心理医生。现在退休了，开了这个树洞，专门治你们这些"恋爱脑"。\n\n以下症状，对号入座：\n🔥 明知道对方是渣，还舍不得放手\n🔥 分手后疯狂查前任动态\n🔥 被PUA了还帮人找借口\n🔥 想找个人骂醒自己\n\n放心，我嘴毒但心不毒。骂你是为了让你清醒，最后那句暖心的话才是重点 💅`,
+      barista: `Hey there! I'm ${a.name} ☕\n\nI've been behind this counter for years — heard every kind of story, from wild first dates to existential crises at 2am. No judgment here, just good coffee and even better listening.\n\nI'm great at:\n☕ Lending an ear when you need to vent\n☕ Helping you think through life stuff\n☕ Casual advice (only if you want it)\n☕ Making you feel less alone\n\nSo what's on your mind? Pull up a stool.`,
+      coach: `Welcome. I'm ${a.name} 🌿\n\nI'm a certified wellness coach specializing in burnout recovery, boundary-setting, and mindful living. I've helped hundreds of people rebuild their relationship with rest.\n\nI can help with:\n🌿 Feeling overwhelmed or burned out\n🌿 Struggling to set boundaries\n🌿 Processing difficult emotions\n🌿 Building sustainable self-care habits\n\nBefore we start — do you want to just vent, or are you looking for guidance?`,
+      mentor: `Good to see you. I'm ${a.name} 📖\n\nRetired professor, lifelong learner, and someone who's made enough mistakes to hopefully help you avoid a few. I believe in asking the right questions more than giving easy answers.\n\nI'm here for:\n📖 Career crossroads and big decisions\n📖 Feeling lost or questioning your path\n📖 Deep conversations about life and purpose\n📖 When you need honest, no-BS perspective\n\nWhat's the question that's been keeping you up at night?`,
+      bestie: `OMG HI!! I'm ${a.name} 💖\n\nI'm basically that friend who'll hype you up in a bathroom at 1am and also hold your hair back. Zero judgment, maximum energy.\n\nI'm YOUR person when:\n💖 You need a confidence boost ASAP\n💖 Dating drama is driving you crazy\n💖 You want someone to celebrate your wins with\n💖 Life is being ridiculous and you need to laugh about it\n\nSpill the tea, bestie! What's happening? ✨`,
     };
-    return intros[a.id] || `你好呀～我是${a.name}，${a.description}。有什么想和我聊的吗？ 😊`;
+    return intros[a.id] || `Hey! I'm ${a.name}, ${a.description}. What's on your mind? 😊`;
   };
 
   const quickReplies: Record<string, string[]> = {
-    dream: ["我昨晚做了一个奇怪的梦", "我总是反复梦到同一个场景", "最近睡眠不好，经常做噩梦", "我想了解梦境的含义"],
-    astro: ["帮我分析一下我的星座", "我和另一半总是吵架，星座合吗", "最近工作不顺，看看运势", "我想知道我适合做什么"],
-    healer: ["我刚分手了，好难过", "我放不下前任怎么办", "我觉得自己不配被爱", "感情中总是受伤"],
-    tree: ["帮我骂醒自己", "我知道他不好但就是放不下", "我是不是恋爱脑", "分手后忍不住看前任朋友圈"],
+    barista: ["I just need someone to listen", "Work has been really stressful", "I'm going through a breakup", "I feel stuck in life"],
+    coach: ["I think I'm burning out", "I can't say no to anyone", "I need help with self-care", "I don't know how to rest"],
+    mentor: ["I'm at a career crossroads", "I feel lost about my purpose", "I need honest advice", "Help me think through a big decision"],
+    bestie: ["I need a hype-up right now!", "Dating is a disaster lol", "Something amazing happened!!", "I'm in my feelings tonight"],
   };
 
   const [messages, setMessages] = useState<Message[]>([]);
@@ -109,10 +109,8 @@ const Chat = () => {
     }
   }, [messages, isStreaming]);
 
-  // Detect if we're coming from an assessment (has context to auto-send)
   const hasAssessmentContext = !!(mbtiResult || emotionResult);
 
-  // Load last conversation + history messages + memories
   useEffect(() => {
     if (!user) {
       setMessages([{ id: "welcome", role: "assistant", content: getWelcomeMessage(agent) }]);
@@ -121,12 +119,9 @@ const Chat = () => {
     }
 
     const loadConversationAndMemories = async () => {
-      // If coming from assessment, skip loading old conversation (we'll start fresh)
-      // Only load memories/summaries for context
       if (hasAssessmentContext) {
         setMessages([{ id: "welcome", role: "assistant", content: getWelcomeMessage(agent) }]);
 
-        // Load memories and summaries in parallel for context injection
         const [{ data: memories }, { data: summaries }] = await Promise.all([
           supabase
             .from("user_memories")
@@ -147,25 +142,25 @@ const Chat = () => {
 
         const memCtx: string[] = [];
         if (mbtiResult) {
-          let mbtiSummary = `[刚刚测评] 用户刚完成MBTI测评，结果是 ${mbtiResult.mbtiType}（${mbtiResult.title}）。性格描述：${mbtiResult.description}`;
+          let mbtiSummary = `[Just assessed] User completed MBTI assessment: ${mbtiResult.mbtiType} (${mbtiResult.title}). Description: ${mbtiResult.description}`;
           if (mbtiResult.parallelUniverse) {
-            mbtiSummary += `。平行宇宙身份：魔法世界-${mbtiResult.parallelUniverse.magic?.role}，赛博朋克-${mbtiResult.parallelUniverse.cyberpunk?.role}`;
+            mbtiSummary += `. Parallel universe: Fantasy-${mbtiResult.parallelUniverse.magic?.role}, Cyberpunk-${mbtiResult.parallelUniverse.cyberpunk?.role}`;
           }
           memCtx.push(mbtiSummary);
         }
         if (emotionResult) {
-          memCtx.push(`[刚刚测评] 用户刚完成情绪状态评估，情绪等级：${emotionResult.emotionLevel}（${emotionResult.title}）。分析：${emotionResult.description}。压力指数${emotionResult.traits.stress}%，能量值${emotionResult.traits.energy}%，社交活力${emotionResult.traits.social}%，睡眠质量${emotionResult.traits.sleep}%。建议：${emotionResult.suggestions.join("；")}`);
+          memCtx.push(`[Just assessed] User completed Wellness Check: ${emotionResult.emotionLevel} (${emotionResult.title}). ${emotionResult.description}. Burnout ${emotionResult.traits.burnout}%, Energy ${emotionResult.traits.energy}%, Boundaries ${emotionResult.traits.boundaries}%, Sleep ${emotionResult.traits.sleep}%. Suggestions: ${emotionResult.suggestions.join("; ")}`);
         }
         if (memories && memories.length > 0) {
           memories.forEach((m) => {
             const daysAgo = Math.floor((Date.now() - new Date(m.created_at || "").getTime()) / 86400000);
-            const timeLabel = daysAgo === 0 ? "今天" : daysAgo === 1 ? "昨天" : `${daysAgo}天前`;
-            memCtx.push(`[${timeLabel}] ${m.content}${m.emotion_tag ? `（情绪：${m.emotion_tag}）` : ""}`);
+            const timeLabel = daysAgo === 0 ? "Today" : daysAgo === 1 ? "Yesterday" : `${daysAgo}d ago`;
+            memCtx.push(`[${timeLabel}] ${m.content}${m.emotion_tag ? ` (mood: ${m.emotion_tag})` : ""}`);
           });
         }
         if (summaries && summaries.length > 0) {
           summaries.forEach((s) => {
-            memCtx.push(`[摘要] ${s.summary}（话题：${(s.key_topics as string[] || []).join("、")}）`);
+            memCtx.push(`[Summary] ${s.summary} (topics: ${(s.key_topics as string[] || []).join(", ")})`);
           });
         }
         setMemoryContext(memCtx);
@@ -173,7 +168,6 @@ const Chat = () => {
         return;
       }
 
-      // Normal flow: load everything in parallel
       const [convResult, memoriesResult, summariesResult] = await Promise.all([
         supabase
           .from("conversations")
@@ -203,7 +197,6 @@ const Chat = () => {
       const convData = convResult.data;
 
       if (convData) {
-        // Load chat messages from existing conversation
         const { data: msgData } = await supabase
           .from("chat_messages")
           .select("id, role, content, created_at")
@@ -230,13 +223,13 @@ const Chat = () => {
       if (memories && memories.length > 0) {
         memories.forEach((m) => {
           const daysAgo = Math.floor((Date.now() - new Date(m.created_at || "").getTime()) / 86400000);
-          const timeLabel = daysAgo === 0 ? "今天" : daysAgo === 1 ? "昨天" : `${daysAgo}天前`;
-          memCtx.push(`[${timeLabel}] ${m.content}${m.emotion_tag ? `（情绪：${m.emotion_tag}）` : ""}`);
+          const timeLabel = daysAgo === 0 ? "Today" : daysAgo === 1 ? "Yesterday" : `${daysAgo}d ago`;
+          memCtx.push(`[${timeLabel}] ${m.content}${m.emotion_tag ? ` (mood: ${m.emotion_tag})` : ""}`);
         });
       }
       if (summaries && summaries.length > 0) {
         summaries.forEach((s) => {
-          memCtx.push(`[摘要] ${s.summary}（话题：${(s.key_topics as string[] || []).join("、")}）`);
+          memCtx.push(`[Summary] ${s.summary} (topics: ${(s.key_topics as string[] || []).join(", ")})`);
         });
       }
       setMemoryContext(memCtx);
@@ -245,32 +238,26 @@ const Chat = () => {
     loadConversationAndMemories();
   }, [user, agentId]);
 
-  // Auto-send MBTI context message when navigated from assessment
   useEffect(() => {
     if (mbtiResult && historyLoaded && !mbtiAutoSentRef.current && user) {
       mbtiAutoSentRef.current = true;
       setConversationId(null);
-      // Send immediately - no artificial delay needed
       const puText = mbtiResult.parallelUniverse
-        ? `，还说我在魔法世界是${mbtiResult.parallelUniverse.magic?.role}，赛博朋克世界是${mbtiResult.parallelUniverse.cyberpunk?.role}`
+        ? `, and apparently in a fantasy world I'd be a ${mbtiResult.parallelUniverse.magic?.role}, and in cyberpunk I'd be a ${mbtiResult.parallelUniverse.cyberpunk?.role}`
         : "";
-      handleSend(`我刚测完 MBTI，结果是 ${mbtiResult.mbtiType}（${mbtiResult.title}）${puText}，想聊聊我的性格 ✨`);
+      handleSend(`I just took the MBTI quiz and got ${mbtiResult.mbtiType} (${mbtiResult.title})${puText} — wanna talk about my personality? ✨`);
     }
   }, [historyLoaded, mbtiResult, user]);
 
-  // Auto-send emotion context message when navigated from emotion assessment
   useEffect(() => {
     if (emotionResult && historyLoaded && !emotionAutoSentRef.current && user) {
       emotionAutoSentRef.current = true;
       setConversationId(null);
-      // Send immediately - no artificial delay needed
-      handleSend(`我刚做完情绪状态评估，结果是「${emotionResult.emotionLevel}」——${emotionResult.title}。压力指数 ${emotionResult.traits.stress}%，能量值 ${emotionResult.traits.energy}%，想聊聊我最近的状态 🌈`);
+      handleSend(`I just did a Wellness Check and scored "${emotionResult.emotionLevel}" — ${emotionResult.title}. Burnout at ${emotionResult.traits.burnout}%, energy at ${emotionResult.traits.energy}%. Can we talk about how I'm doing? 🌈`);
     }
   }, [historyLoaded, emotionResult, user]);
 
-  // Start a new conversation (clear history)
   const startNewConversation = useCallback(() => {
-    // Trigger summarize for current conversation before clearing
     if (conversationId && messages.length > 4 && user) {
       const msgs = messages.filter((m) => m.id !== "welcome");
       supabase.functions.invoke("summarize-conversation", {
@@ -285,7 +272,7 @@ const Chat = () => {
     if (conversationId || !user) return conversationId;
     const { data, error } = await supabase
       .from("conversations")
-      .insert({ user_id: user.id, agent_id: agentId, title: `与${agent.name}的对话` })
+      .insert({ user_id: user.id, agent_id: agentId, title: `Chat with ${agent.name}` })
       .select("id")
       .single();
     if (error) {
@@ -298,7 +285,6 @@ const Chat = () => {
 
   const saveMessage = async (convId: string, role: string, content: string) => {
     await supabase.from("chat_messages").insert({ conversation_id: convId, role, content });
-    // Update conversation timestamp so it stays at the top when resuming
     await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
   };
 
@@ -334,13 +320,13 @@ const Chat = () => {
     if (!text || isStreaming) return;
 
     if (!user) {
-      toast.error("请先登录再开始对话 🌙");
+      toast.error("Please sign in to start chatting 🌙");
       navigate("/auth");
       return;
     }
 
     if (!canChat) {
-      toast.error(`今日对话次数已用完（${chatLimit}次/${plan === "premium" ? "会员" : "免费"}）💫 明天再来吧～`);
+      toast.error(`Daily chat limit reached (${chatLimit} chats/${plan === "premium" ? "Premium" : "Free"}) 💫 Come back tomorrow!`);
       return;
     }
 
@@ -380,16 +366,13 @@ const Chat = () => {
         bondLevel,
         onDelta: upsertAssistant,
         onDone: async () => {
-          // Parse game markers from completed content
           console.log("[Chat] raw AI response:", assistantContent.slice(-200));
           const { cleanContent, energyGain, branchOptions: parsedOptions, truthShard, atmosphere: newAtmosphere } = parseGameMarkers(assistantContent);
           
-          // Use AI-generated options, or generate contextual fallback options (only every ~3 turns)
           let finalBranchOptions: BranchOption[] | null = null;
           if (parsedOptions && parsedOptions.length > 0) {
             finalBranchOptions = parsedOptions;
           } else {
-            // Count assistant messages since last one that had branch options
             const assistantMsgsWithOptions = messages.filter(
               m => m.role === "assistant" && m.branchOptions && m.branchOptions.length > 0
             );
@@ -399,7 +382,6 @@ const Chat = () => {
             const assistantsSinceLast = messages
               .slice(lastOptionsIdx + 1)
               .filter(m => m.role === "assistant").length;
-            // +1 for the current response being processed
             if (assistantsSinceLast + 1 >= 3) {
               finalBranchOptions = generateFallbackOptions(agentId, [...apiMessages, { role: "assistant", content: cleanContent }]);
             }
@@ -417,19 +399,16 @@ const Chat = () => {
             )
           );
 
-          // Handle energy gain
           if (energyGain) {
             await updateEnergy(energyGain);
           }
 
-          // Handle truth shard
           if (truthShard) {
             setPendingShard(truthShard);
             setShowShard(true);
             await saveTruthShard(truthShard);
           }
 
-          // Check for easter egg
           if (assistantContent.includes(EASTER_EGG_MARKER)) {
             setShowEasterEgg(true);
             for (const egg of agent.easterEggs) {
@@ -438,10 +417,8 @@ const Chat = () => {
                 break;
               }
             }
-            // EasterEggEffect handles its own dismissal
           }
 
-          // Increment bond turn & check achievements
           await incrementTurn();
           await checkAchievements();
 
@@ -456,11 +433,10 @@ const Chat = () => {
       });
     } catch (e) {
       setIsStreaming(false);
-      toast.error("网络错误，请重试");
+      toast.error("Network error, please try again");
     }
   };
 
-  // Use refs to avoid stale closures in unmount cleanup
   const conversationIdRef = useRef(conversationId);
   const messagesRef = useRef(messages);
   const userRef = useRef(user);
@@ -468,7 +444,6 @@ const Chat = () => {
   useEffect(() => { messagesRef.current = messages; }, [messages]);
   useEffect(() => { userRef.current = user; }, [user]);
 
-  // Summarize on unmount
   useEffect(() => {
     return () => {
       const cid = conversationIdRef.current;
@@ -489,7 +464,7 @@ const Chat = () => {
               key_topics: data.key_topics,
             });
             if (turnCount >= 6) {
-              generateSoulFragment(u.id, "chat", agentId, `与${agent.name}的对话摘要：${data.summary}`);
+              generateSoulFragment(u.id, "chat", agentId, `Chat summary with ${agent.name}: ${data.summary}`);
             }
           }
         });
@@ -497,14 +472,11 @@ const Chat = () => {
     };
   }, [agentId, agent.name]);
 
-  // Get lore text for level-up display
   const levelUpLore = pendingLevelUp ? agent.lore.find((l) => l.level === pendingLevelUp)?.text || "" : "";
 
   return (
     <div className={`flex h-screen flex-col chat-theme-${agentId} relative`} style={{ background: dynamicBg || 'var(--chat-bg, hsl(40 30% 97%))' }}>
-      {/* Atmosphere particles */}
       <ChatParticles atmosphere={atmosphere} onBgChange={setDynamicBg} />
-      {/* Header */}
       <div className="border-b border-border backdrop-blur-xl px-4 py-3" style={{ backgroundColor: 'var(--chat-header-bg, hsl(0 0% 0% / 0.03))' }}>
         <div className="flex items-center gap-3">
           <button onClick={() => navigate(-1)} className="text-muted-foreground shrink-0">
@@ -515,15 +487,13 @@ const Chat = () => {
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-foreground truncate">{agent.name}</h2>
               <div className="flex items-center gap-1.5 shrink-0 ml-2">
-                {/* New conversation button */}
                 <button
                   onClick={startNewConversation}
                   className="rounded-lg bg-muted/50 p-1.5 text-muted-foreground transition-colors hover:bg-muted active:scale-95"
-                  title="开启新对话"
+                  title="New conversation"
                 >
                   <Plus className="h-3.5 w-3.5" />
                 </button>
-                {/* Energy display */}
                 <div className="flex items-center gap-1 rounded-lg bg-secondary/10 px-2 py-1">
                   <Zap className="h-3 w-3 text-secondary" />
                   <span className="text-[11px] font-bold text-secondary">{energyBits}</span>
@@ -531,17 +501,15 @@ const Chat = () => {
               </div>
             </div>
             <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-[11px] text-muted-foreground whitespace-nowrap">{agent.title} · 在线</p>
+              <p className="text-[11px] text-muted-foreground whitespace-nowrap">{agent.title} · Online</p>
               <BondIndicator level={bondLevel} totalTurns={totalTurns} energyBits={energyBits} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Energy float animation */}
       <EnergyFloat gain={lastEnergyGain} show={showEnergyFloat} />
 
-      {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         <AnimatePresence initial={false}>
           {messages.map((msg) => (
@@ -567,14 +535,12 @@ const Chat = () => {
                     msg.content
                   )}
                 </div>
-                {/* Branch options */}
                 {msg.role === "assistant" && msg.branchOptions && msg.branchOptions.length > 0 && !isStreaming && (
                   <BranchSelector options={msg.branchOptions} onSelect={handleSend} />
                 )}
               </div>
             </motion.div>
           ))}
-          {/* Narrative hint below welcome */}
           {messages.length === 1 && messages[0].id === "welcome" && !isStreaming && (
             <motion.div
               initial={{ opacity: 0 }}
@@ -583,7 +549,7 @@ const Chat = () => {
               className="mx-auto flex items-center gap-2 rounded-2xl bg-secondary/5 border border-secondary/15 px-3 py-2 max-w-[85%]"
             >
               <span className="text-[11px] leading-relaxed text-muted-foreground">
-                🔮 真诚倾诉可以获得能量，解锁{agent.name}的隐藏故事碎片。当前羁绊：<span className="text-secondary font-medium">{BOND_LABELS[bondLevel - 1]}</span>
+                🔮 Open up to earn energy and unlock {agent.name}'s hidden story fragments. Bond level: <span className="text-secondary font-medium">{BOND_LABELS[bondLevel - 1]}</span>
               </span>
             </motion.div>
           )}
@@ -617,13 +583,11 @@ const Chat = () => {
         )}
       </div>
 
-      {/* Easter egg full-screen effect */}
       <EasterEggEffect
         show={showEasterEgg}
         onComplete={() => setShowEasterEgg(false)}
       />
 
-      {/* Truth Shard Popup */}
       <TruthShardPopup
         shard={pendingShard}
         show={showShard}
@@ -633,7 +597,6 @@ const Chat = () => {
         }}
       />
 
-      {/* Input */}
       <div className="border-t border-border backdrop-blur-xl px-4 py-3" style={{ backgroundColor: 'var(--chat-header-bg, hsl(0 0% 0% / 0.03))' }}>
         <div className="flex items-center gap-2">
           <button className="shrink-0 rounded-xl bg-muted p-2.5 text-muted-foreground">
@@ -644,7 +607,7 @@ const Chat = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-              placeholder="说说你的心事..."
+              placeholder="What's on your mind..."
               className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
               disabled={isStreaming}
             />
@@ -659,7 +622,6 @@ const Chat = () => {
         </div>
       </div>
 
-      {/* Bond level up modal */}
       <BondLevelUp
         show={!!pendingLevelUp}
         level={pendingLevelUp || 1}
@@ -668,7 +630,6 @@ const Chat = () => {
         onClose={dismissLevelUp}
       />
 
-      {/* Achievement unlock modal */}
       <AchievementUnlock achievement={newlyUnlocked} onClose={dismissAchievement} />
     </div>
   );
