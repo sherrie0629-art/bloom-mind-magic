@@ -55,15 +55,24 @@ const AssessmentDetail = () => {
 
       if (error) {
         const errorBody = typeof error === "object" && "message" in error ? error.message : String(error);
-        if (errorBody.includes("402") || errorBody.includes("payment")) {
-          toast.error("Unlock deep report ($4.99) or become a member 💫");
+        if (errorBody.includes("402") || errorBody.includes("upgrade")) {
+          toast.error("Upgrade to Plus to unlock deep reports ✨");
+          return;
+        }
+        if (errorBody.includes("429") || errorBody.includes("limit")) {
+          toast.error("Daily deep report limit reached (1/day) 🌙");
           return;
         }
         throw error;
       }
 
-      if (data?.needPayment) {
-        toast.error("Unlock deep report ($4.99) or become a member 💫");
+      if (data?.needUpgrade) {
+        toast.error("Upgrade to Plus to unlock deep reports ✨");
+        return;
+      }
+
+      if (data?.dailyLimitReached) {
+        toast.error("Daily deep report limit reached (1/day) 🌙");
         return;
       }
 
@@ -345,13 +354,13 @@ const AssessmentDetail = () => {
                 ) : (
                   <>
                     <Crown className="h-4 w-4" />
-                    {plan === "premium" ? "Unlock Free (Member)" : "Unlock Deep Report ($4.99)"}
+                    {plan === "plus" ? "Generate Deep Report (1/day)" : "Upgrade to Plus to unlock"}
                   </>
                 )}
               </button>
-              {plan !== "premium" && (
+              {plan !== "plus" && (
                 <p className="text-[10px] text-muted-foreground text-center mt-2">
-                  Members get 2 free deep reports per month
+                  Plus members get 1 free deep report per day ✨
                 </p>
               )}
             </div>

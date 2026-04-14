@@ -87,14 +87,14 @@ const Admin = () => {
       supabase.from("assessment_results").select("*", { count: "exact", head: true }),
     ]);
     const subs = subsRes.data || [];
-    const premiumCount = subs.filter(s => s.plan === "premium" && s.expires_at && new Date(s.expires_at) > new Date()).length;
+    const plusCount = subs.filter(s => s.plan === "plus" && s.expires_at && new Date(s.expires_at) > new Date()).length;
     const usages = usageRes.data || [];
     const todayChats = usages.reduce((s, u) => s + u.chat_count, 0);
     const todayAssessments = usages.reduce((s, u) => s + u.assessment_count, 0);
     const totalRevenue = (purchaseRes.data || []).reduce((s, p) => s + p.amount, 0);
     setDashStats({
       total: users.length,
-      premium: premiumCount,
+      premium: plusCount,
       todayActive: usages.length,
       todayChats,
       todayAssessments,
@@ -114,29 +114,30 @@ const Admin = () => {
     loadDashboard();
   }, [isAdmin, users.length, loadDashboard]);
 
-  const setPremium = async (userId: string, months: number) => {
+  const setPlus = async (userId: string, months: number) => {
     setUpdatingId(userId);
     const expiresAt = new Date();
     expiresAt.setMonth(expiresAt.getMonth() + months);
+    const billingPeriod = months >= 12 ? "yearly" : "monthly";
 
     const { data: existing } = await supabase
       .from("user_subscriptions").select("id").eq("user_id", userId).single();
 
     if (existing) {
-      await supabase.from("user_subscriptions").update({
-        plan: "premium", expires_at: expiresAt.toISOString(),
+      await (supabase as any).from("user_subscriptions").update({
+        plan: "plus", expires_at: expiresAt.toISOString(), billing_period: billingPeriod,
       }).eq("user_id", userId);
     } else {
-      await supabase.from("user_subscriptions").insert({
-        user_id: userId, plan: "premium", expires_at: expiresAt.toISOString(),
+      await (supabase as any).from("user_subscriptions").insert({
+        user_id: userId, plan: "plus", expires_at: expiresAt.toISOString(), billing_period: billingPeriod,
       });
     }
-    toast({ title: "Updated", description: `Membership valid until ${expiresAt.toLocaleDateString("en-US")}` });
+    toast({ title: "Updated", description: `Plus membership valid until ${expiresAt.toLocaleDateString("en-US")}` });
     await loadUsers();
     setUpdatingId(null);
   };
 
-  const removePremium = async (userId: string) => {
+  const removePlus = async (userId: string) => {
     setUpdatingId(userId);
     await supabase.from("user_subscriptions").update({ plan: "free", expires_at: null }).eq("user_id", userId);
     toast({ title: "Removed", description: "Reverted to free user" });
@@ -188,7 +189,7 @@ const Admin = () => {
           <div className="grid grid-cols-2 gap-3">
             {[
               { label: "Total Users", value: String(dashStats.total), icon: Users, color: "text-secondary" },
-              { label: "Premium", value: String(dashStats.premium), icon: Crown, color: "text-yellow-500" },
+              { label: "Plus Members", value: String(dashStats.premium), icon: Crown, color: "text-yellow-500" },
               { label: "Active Today", value: String(dashStats.todayActive), icon: UserCheck, color: "text-accent" },
               { label: "Assessments", value: String(dashStats.totalAssessments), icon: FileText, color: "text-primary" },
             ].map(s => (
@@ -250,20 +251,20 @@ const Admin = () => {
 
           <div className="space-y-2">
             {filteredUsers.map(u => {
-              const isPremium = u.subscription?.plan === "premium" && u.subscription.expires_at && new Date(u.subscription.expires_at) > new Date();
+              const isPlus = u.subscription?.plan === "plus" && u.subscription.expires_at && new Date(u.subscription.expires_at) > new Date();
               return (
                 <div key={u.user_id} className="rounded-2xl bg-card shadow-card p-3">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className={`h-8 w-8 rounded-full flex items-center justify-center text-sm ${isPremium ? "bg-gradient-golden" : "bg-muted"}`}>
-                      {isPremium ? "👑" : "🌙"}
+                    <div className={`h-8 w-8 rounded-full flex items-center justify-center text-sm ${isPlus ? "bg-gradient-golden" : "bg-muted"}`}>
+                      {isPlus ? "👑" : "🌙"}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-foreground truncate">{u.display_name || "Traveler"}</p>
                       <p className="text-[9px] text-muted-foreground truncate">{u.user_id}</p>
                     </div>
-                    {isPremium && (
+                    {isPlus && (
                       <span className="rounded-full bg-secondary/20 px-2 py-0.5 text-[10px] font-medium text-secondary">
-                        Member
+                        Plus
                       </span>
                     )}
                   </div>
@@ -271,24 +272,24 @@ const Admin = () => {
                   <div className="flex items-center gap-2 text-[10px] text-muted-foreground mb-2">
                     <span>Joined: {new Date(u.created_at).toLocaleDateString("en-US")}</span>
                     {u.usage && <span>· Today: {u.usage.chat_count} chats, {u.usage.assessment_count} assessments</span>}
-                    {isPremium && u.subscription?.expires_at && (
+                    {isPlus && u.subscription?.expires_at && (
                       <span>· Expires: {new Date(u.subscription.expires_at).toLocaleDateString("en-US")}</span>
                     )}
                   </div>
 
                   <div className="flex gap-2">
-                    {!isPremium ? (
+                    {!isPlus ? (
                       <>
                         <button
                           disabled={updatingId === u.user_id}
-                          onClick={() => setPremium(u.user_id, 1)}
+                          onClick={() => setPlus(u.user_id, 1)}
                           className="flex-1 rounded-lg bg-gradient-golden py-1.5 text-[10px] font-semibold text-primary-foreground disabled:opacity-50"
                         >
                           <Crown className="inline h-3 w-3 mr-0.5" />1 Month
                         </button>
                         <button
                           disabled={updatingId === u.user_id}
-                          onClick={() => setPremium(u.user_id, 12)}
+                          onClick={() => setPlus(u.user_id, 12)}
                           className="flex-1 rounded-lg bg-secondary/20 py-1.5 text-[10px] font-semibold text-secondary disabled:opacity-50"
                         >
                           1 Year
@@ -297,10 +298,10 @@ const Admin = () => {
                     ) : (
                       <button
                         disabled={updatingId === u.user_id}
-                        onClick={() => removePremium(u.user_id)}
+                        onClick={() => removePlus(u.user_id)}
                         className="flex-1 rounded-lg bg-destructive/10 py-1.5 text-[10px] font-medium text-destructive disabled:opacity-50"
                       >
-                        Remove Membership
+                        Remove Plus
                       </button>
                     )}
                   </div>
