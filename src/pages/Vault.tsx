@@ -7,20 +7,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { agents } from "@/data/agents";
 import BottomNav from "@/components/BottomNav";
 
-interface VaultItem {
-  id: string;
-  agent_id: string;
-  type: string;
-  title: string;
-  content: string;
-  icon: string;
-  unlocked_at: string;
-}
+interface VaultItem { id: string; agent_id: string; type: string; title: string; content: string; icon: string; unlocked_at: string; }
 
 const TABS = [
-  { key: "lore", label: "故事碎片", icon: BookOpen },
-  { key: "truth_shard", label: "真相碎片", icon: Gem },
-  { key: "quote", label: "疗愈金句", icon: Sparkles },
+  { key: "lore", label: "Story Fragments", icon: BookOpen },
+  { key: "truth_shard", label: "Truth Shards", icon: Gem },
+  { key: "quote", label: "Healing Quotes", icon: Sparkles },
 ];
 
 const Vault = () => {
@@ -30,144 +22,35 @@ const Vault = () => {
   const [items, setItems] = useState<VaultItem[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!user) return;
-    const load = async () => {
-      setLoading(true);
-      const { data } = await supabase
-        .from("story_vault")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("unlocked_at", { ascending: false });
-      setItems((data as VaultItem[]) || []);
-      setLoading(false);
-    };
-    load();
-  }, [user]);
+  useEffect(() => { if (!user) return; const load = async () => { setLoading(true); const { data } = await supabase.from("story_vault").select("*").eq("user_id", user.id).order("unlocked_at", { ascending: false }); setItems((data as VaultItem[]) || []); setLoading(false); }; load(); }, [user]);
 
   const filtered = items.filter((i) => i.type === tab);
-
-  const getAgentName = (agentId: string) =>
-    agents.find((a) => a.id === agentId)?.name || agentId;
-
+  const getAgentName = (agentId: string) => agents.find((a) => a.id === agentId)?.name || agentId;
   const getAgentGradient = (agentId: string) => {
-    const gradients: Record<string, string> = {
-      dream: "from-indigo to-lavender",
-      astro: "from-lavender to-rose-warm",
-      healer: "from-rose-warm to-gold",
-      tree: "from-teal to-indigo",
-    };
+    const gradients: Record<string, string> = { barista: "from-secondary to-gold", coach: "from-teal to-indigo", mentor: "from-indigo to-lavender", bestie: "from-rose-warm to-gold" };
     return gradients[agentId] || "from-secondary to-primary";
   };
 
-  if (!user) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-calm p-6">
-        <p className="text-muted-foreground text-sm">请先登录查看收藏夹</p>
-        <button onClick={() => navigate("/auth")} className="mt-3 text-secondary text-sm">
-          去登录 →
-        </button>
-      </div>
-    );
-  }
+  if (!user) return (<div className="flex min-h-screen flex-col items-center justify-center bg-gradient-calm p-6"><p className="text-muted-foreground text-sm">Please sign in to view your collection</p><button onClick={() => navigate("/auth")} className="mt-3 text-secondary text-sm">Sign In →</button></div>);
 
   return (
     <div className="min-h-screen bg-gradient-calm pb-20">
-      {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-12 pb-4">
-        <button onClick={() => navigate(-1)} className="text-muted-foreground">
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <h1 className="font-display text-lg font-bold text-foreground">收藏夹</h1>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex gap-2 px-4 mb-4">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`flex items-center gap-1.5 rounded-2xl px-3.5 py-2 text-xs font-medium transition-all active:scale-95 ${
-              tab === t.key
-                ? "bg-secondary text-primary-foreground shadow-sm"
-                : "bg-card text-muted-foreground border border-border"
-            }`}
-          >
-            <t.icon className="h-3.5 w-3.5" />
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Content */}
+      <div className="flex items-center gap-3 px-4 pt-12 pb-4"><button onClick={() => navigate(-1)} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></button><h1 className="font-display text-lg font-bold text-foreground">Collection</h1></div>
+      <div className="flex gap-2 px-4 mb-4">{TABS.map((t) => (<button key={t.key} onClick={() => setTab(t.key)} className={`flex items-center gap-1.5 rounded-2xl px-3.5 py-2 text-xs font-medium transition-all active:scale-95 ${tab === t.key ? "bg-secondary text-primary-foreground shadow-sm" : "bg-card text-muted-foreground border border-border"}`}><t.icon className="h-3.5 w-3.5" />{t.label}</button>))}</div>
       <div className="px-4 space-y-3">
         <AnimatePresence mode="wait">
-          {loading ? (
-            <motion.div
-              key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="py-16 text-center text-sm text-muted-foreground"
-            >
-              加载中...
-            </motion.div>
-          ) : filtered.length === 0 ? (
-            <motion.div
-              key="empty"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="py-16 text-center"
-            >
-              <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
-                <Gem className="h-6 w-6 text-muted-foreground" />
+          {loading ? <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="py-16 text-center text-sm text-muted-foreground">Loading...</motion.div>
+          : filtered.length === 0 ? <motion.div key="empty" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="py-16 text-center"><div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted"><Gem className="h-6 w-6 text-muted-foreground" /></div><p className="text-sm text-muted-foreground">No fragments collected yet</p><p className="mt-1 text-xs text-muted-foreground/70">Chat deeper with characters to unlock more ✨</p></motion.div>
+          : <motion.div key={tab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-3">
+            {filtered.map((item, i) => (<motion.div key={item.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} className="rounded-2xl bg-card border border-border p-4 shadow-card">
+              <div className="flex items-start gap-3">
+                <div className={`shrink-0 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${getAgentGradient(item.agent_id)}`}><span className="text-lg">{item.icon}</span></div>
+                <div className="flex-1 min-w-0"><div className="flex items-center gap-2"><h3 className="text-sm font-semibold text-foreground truncate">{item.title}</h3><span className="shrink-0 text-[10px] text-muted-foreground/60">{getAgentName(item.agent_id)}</span></div><p className="mt-1 text-xs text-muted-foreground leading-relaxed">{item.content}</p><p className="mt-2 text-[10px] text-muted-foreground/50">{new Date(item.unlocked_at).toLocaleDateString("en-US")}</p></div>
               </div>
-              <p className="text-sm text-muted-foreground">还没有收集到任何碎片</p>
-              <p className="mt-1 text-xs text-muted-foreground/70">与角色深入对话，解锁更多内容 ✨</p>
-            </motion.div>
-          ) : (
-            <motion.div
-              key={tab}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="space-y-3"
-            >
-              {filtered.map((item, i) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.06 }}
-                  className="rounded-2xl bg-card border border-border p-4 shadow-card"
-                >
-                  <div className="flex items-start gap-3">
-                    <div
-                      className={`shrink-0 flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${getAgentGradient(item.agent_id)}`}
-                    >
-                      <span className="text-lg">{item.icon}</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-sm font-semibold text-foreground truncate">{item.title}</h3>
-                        <span className="shrink-0 text-[10px] text-muted-foreground/60">
-                          {getAgentName(item.agent_id)}
-                        </span>
-                      </div>
-                      <p className="mt-1 text-xs text-muted-foreground leading-relaxed">{item.content}</p>
-                      <p className="mt-2 text-[10px] text-muted-foreground/50">
-                        {new Date(item.unlocked_at).toLocaleDateString("zh-CN")}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </motion.div>
-          )}
+            </motion.div>))}
+          </motion.div>}
         </AnimatePresence>
       </div>
-
       <BottomNav />
     </div>
   );

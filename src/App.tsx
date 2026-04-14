@@ -10,7 +10,7 @@ import Assessment from "./pages/Assessment.tsx";
 import AssessmentFlow from "./pages/AssessmentFlow.tsx";
 import AssessmentDetail from "./pages/AssessmentDetail.tsx";
 import AssessmentReports from "./pages/AssessmentReports.tsx";
-import BaziFlow from "./pages/BaziFlow.tsx";
+import EnneagramFlow from "./pages/EnneagramFlow.tsx";
 import ZodiacFlow from "./pages/ZodiacFlow.tsx";
 import EmotionFlow from "./pages/EmotionFlow.tsx";
 import CompatibilityFlow from "./pages/CompatibilityFlow.tsx";
@@ -44,7 +44,8 @@ const App = () => (
             <Route path="/assessment-reports" element={<AssessmentReports />} />
             <Route path="/assessment-reports/:id" element={<AssessmentDetail />} />
             <Route path="/assessment/mbti" element={<AssessmentFlow />} />
-            <Route path="/assessment/bazi" element={<BaziFlow />} />
+            <Route path="/assessment/enneagram" element={<EnneagramFlow />} />
+            <Route path="/assessment/bazi" element={<EnneagramFlow />} />
             <Route path="/assessment/zodiac" element={<ZodiacFlow />} />
             <Route path="/assessment/emotion" element={<EmotionFlow />} />
             <Route path="/assessment/compatibility" element={<CompatibilityFlow />} />
