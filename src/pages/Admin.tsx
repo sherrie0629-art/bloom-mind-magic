@@ -272,24 +272,24 @@ const Admin = () => {
                   <div className="flex items-center gap-2 text-[10px] text-muted-foreground mb-2">
                     <span>Joined: {new Date(u.created_at).toLocaleDateString("en-US")}</span>
                     {u.usage && <span>· Today: {u.usage.chat_count} chats, {u.usage.assessment_count} assessments</span>}
-                    {isPl && u.subscription?.expires_at && (
+                    {isPlus && u.subscription?.expires_at && (
                       <span>· Expires: {new Date(u.subscription.expires_at).toLocaleDateString("en-US")}</span>
                     )}
                   </div>
 
                   <div className="flex gap-2">
-                    {!isPremium ? (
+                    {!isPlus ? (
                       <>
                         <button
                           disabled={updatingId === u.user_id}
-                          onClick={() => setPremium(u.user_id, 1)}
+                          onClick={() => setPlus(u.user_id, 1)}
                           className="flex-1 rounded-lg bg-gradient-golden py-1.5 text-[10px] font-semibold text-primary-foreground disabled:opacity-50"
                         >
                           <Crown className="inline h-3 w-3 mr-0.5" />1 Month
                         </button>
                         <button
                           disabled={updatingId === u.user_id}
-                          onClick={() => setPremium(u.user_id, 12)}
+                          onClick={() => setPlus(u.user_id, 12)}
                           className="flex-1 rounded-lg bg-secondary/20 py-1.5 text-[10px] font-semibold text-secondary disabled:opacity-50"
                         >
                           1 Year
@@ -298,10 +298,10 @@ const Admin = () => {
                     ) : (
                       <button
                         disabled={updatingId === u.user_id}
-                        onClick={() => removePremium(u.user_id)}
+                        onClick={() => removePlus(u.user_id)}
                         className="flex-1 rounded-lg bg-destructive/10 py-1.5 text-[10px] font-medium text-destructive disabled:opacity-50"
                       >
-                        Remove Membership
+                        Remove Plus
                       </button>
                     )}
                   </div>
