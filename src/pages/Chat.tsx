@@ -326,7 +326,7 @@ const Chat = () => {
     }
 
     if (!canChat) {
-      toast.error(`Daily chat limit reached (${chatLimit} chats/${plan === "premium" ? "Premium" : "Free"}) 💫 Come back tomorrow!`);
+      toast.error(`Daily chat limit reached (${chatLimit} chats/${plan === "plus" ? "Plus" : "Free"}) 💫 Come back tomorrow!`);
       return;
     }
 

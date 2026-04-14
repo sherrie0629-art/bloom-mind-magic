@@ -103,7 +103,7 @@ const BaziFlow = () => {
 
   const handleStart = async () => {
     if (!user) { toast.error("请先登录再开始测评 🌙"); navigate("/auth"); return; }
-    if (!canAssess) { toast.error(`今日测评次数已用完（${assessmentLimit}次/${plan === "premium" ? "会员" : "免费"}）💫`); return; }
+    if (!canAssess) { toast.error(`Daily quiz limit reached (${assessmentLimit}/${plan === "plus" ? "Plus" : "Free"}) 💫`); return; }
     await incrementAssessment();
     birthInfoRef.current = birthInfo;
     setStarted(true);
