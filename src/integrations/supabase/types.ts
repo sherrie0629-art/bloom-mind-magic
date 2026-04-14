@@ -412,6 +412,7 @@ export type Database = {
         Row: {
           assessment_count: number
           chat_count: number
+          deep_report_count: number
           id: string
           track_date: string
           user_id: string
@@ -419,6 +420,7 @@ export type Database = {
         Insert: {
           assessment_count?: number
           chat_count?: number
+          deep_report_count?: number
           id?: string
           track_date?: string
           user_id: string
@@ -426,6 +428,7 @@ export type Database = {
         Update: {
           assessment_count?: number
           chat_count?: number
+          deep_report_count?: number
           id?: string
           track_date?: string
           user_id?: string
@@ -485,6 +488,7 @@ export type Database = {
       }
       user_subscriptions: {
         Row: {
+          billing_period: string
           created_at: string
           expires_at: string | null
           id: string
@@ -493,6 +497,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          billing_period?: string
           created_at?: string
           expires_at?: string | null
           id?: string
@@ -501,6 +506,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          billing_period?: string
           created_at?: string
           expires_at?: string | null
           id?: string
