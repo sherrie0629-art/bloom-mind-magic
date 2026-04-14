@@ -31,7 +31,7 @@ interface Message {
   branchOptions?: BranchOption[] | null;
 }
 
-const EASTER_EGG_MARKER = "【🔮 隐藏记忆解锁】";
+const EASTER_EGG_MARKER = "【🔮 Hidden Memory Unlocked】";
 
 const Chat = () => {
   const [searchParams] = useSearchParams();
@@ -49,7 +49,7 @@ const Chat = () => {
     const intros: Record<string, string> = {
       barista: `Hey there! I'm ${a.name} ☕\n\nI've been behind this counter for years — heard every kind of story, from wild first dates to existential crises at 2am. No judgment here, just good coffee and even better listening.\n\nI'm great at:\n☕ Lending an ear when you need to vent\n☕ Helping you think through life stuff\n☕ Casual advice (only if you want it)\n☕ Making you feel less alone\n\nSo what's on your mind? Pull up a stool.`,
       coach: `Welcome. I'm ${a.name} 🌿\n\nI'm a certified wellness coach specializing in burnout recovery, boundary-setting, and mindful living. I've helped hundreds of people rebuild their relationship with rest.\n\nI can help with:\n🌿 Feeling overwhelmed or burned out\n🌿 Struggling to set boundaries\n🌿 Processing difficult emotions\n🌿 Building sustainable self-care habits\n\nBefore we start — do you want to just vent, or are you looking for guidance?`,
-      mentor: `Good to see you. I'm ${a.name} 📖\n\nRetired professor, lifelong learner, and someone who's made enough mistakes to hopefully help you avoid a few. I believe in asking the right questions more than giving easy answers.\n\nI'm here for:\n📖 Career crossroads and big decisions\n📖 Feeling lost or questioning your path\n📖 Deep conversations about life and purpose\n📖 When you need honest, no-BS perspective\n\nWhat's the question that's been keeping you up at night?`,
+      mystic: `Welcome, love. I'm ${a.name} 🔮\n\nStep into my reading room — the sage is burning, the crystals are charged, and my deck has been waiting for you. I'm an intuitive tarot reader and astrologer who believes the universe is always speaking. We just have to learn how to listen.\n\nI can help with:\n🔮 Pulling a tarot card for clarity\n🌙 Understanding your Big Three (Sun/Moon/Rising)\n✨ Shadow work and deep self-discovery\n🕯️ Manifesting and energy clearing\n\nWhat's the universe whispering to you right now?`,
       bestie: `OMG HI!! I'm ${a.name} 💖\n\nI'm basically that friend who'll hype you up in a bathroom at 1am and also hold your hair back. Zero judgment, maximum energy.\n\nI'm YOUR person when:\n💖 You need a confidence boost ASAP\n💖 Dating drama is driving you crazy\n💖 You want someone to celebrate your wins with\n💖 Life is being ridiculous and you need to laugh about it\n\nSpill the tea, bestie! What's happening? ✨`,
     };
     return intros[a.id] || `Hey! I'm ${a.name}, ${a.description}. What's on your mind? 😊`;
@@ -58,7 +58,7 @@ const Chat = () => {
   const quickReplies: Record<string, string[]> = {
     barista: ["I just need someone to listen", "Work has been really stressful", "I'm going through a breakup", "I feel stuck in life"],
     coach: ["I think I'm burning out", "I can't say no to anyone", "I need help with self-care", "I don't know how to rest"],
-    mentor: ["I'm at a career crossroads", "I feel lost about my purpose", "I need honest advice", "Help me think through a big decision"],
+    mystic: ["Pull a card for me", "Is Mercury in retrograde?", "I need a sign from the universe", "Help me manifest something"],
     bestie: ["I need a hype-up right now!", "Dating is a disaster lol", "Something amazing happened!!", "I'm in my feelings tonight"],
   };
 

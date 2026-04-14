@@ -45,21 +45,21 @@ const agentOptionPools: Record<string, { keywords: string[]; options: BranchOpti
       ],
     },
   ],
-  mentor: [
+  mystic: [
     {
-      keywords: ["lost", "direction", "meaning", "purpose", "stuck"],
+      keywords: ["universe", "sign", "fate", "meant to be", "destiny"],
       options: [
-        { text: "Maybe being lost is the beginning of finding something new", emotion: "hopeful" },
-        { text: "I need to stop and look at where I actually am", emotion: "rational" },
-        { text: "Tell me a story — I could use some perspective", emotion: "curious" },
+        { text: "I want to trust the universe but I'm scared it's not listening", emotion: "brave" },
+        { text: "Pull a card for me — I need to see what's coming", emotion: "curious" },
+        { text: "Maybe this is divine timing and I just can't see the pattern yet", emotion: "hopeful" },
       ],
     },
     {
-      keywords: ["grief", "loss", "death", "gone", "miss"],
+      keywords: ["confused", "lost", "stuck", "energy", "blocked"],
       options: [
-        { text: "I want to honor what I lost without letting it define me", emotion: "brave" },
-        { text: "Let me sit by this fire a little longer", emotion: "gentle" },
-        { text: "How did you get through losing someone you loved?", emotion: "curious" },
+        { text: "I feel like my energy is blocked and I don't know how to clear it", emotion: "sad" },
+        { text: "What if I'm the one standing in my own way?", emotion: "brave" },
+        { text: "I need to sit with this darkness before I can find the light", emotion: "gentle" },
       ],
     },
   ],
