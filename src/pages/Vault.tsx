@@ -31,7 +31,12 @@ const Vault = () => {
     return gradients[agentId] || "from-secondary to-primary";
   };
 
-  if (!user) return (<div className="flex min-h-screen flex-col items-center justify-center bg-gradient-calm p-6"><p className="text-muted-foreground text-sm">Please sign in to view your collection</p><button onClick={() => navigate("/auth")} className="mt-3 text-secondary text-sm">Sign In →</button></div>);
+  const { promptLogin } = useAuth();
+
+  if (!user) {
+    promptLogin("登录后查看你的收藏 ✨");
+    return (<div className="flex min-h-screen flex-col items-center justify-center bg-gradient-calm p-6"><p className="text-muted-foreground text-sm">正在跳转...</p></div>);
+  }
 
   return (
     <div className="min-h-screen bg-gradient-calm pb-20">
