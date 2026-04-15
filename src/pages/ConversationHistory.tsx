@@ -11,11 +11,11 @@ interface Conversation { id: string; agent_id: string; title: string | null; upd
 
 const ConversationHistory = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, promptLogin } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => { if (!user) { navigate("/auth"); return; } const load = async () => { const { data } = await supabase.from("conversations").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }); setConversations(data || []); setLoading(false); }; load(); }, [user, navigate]);
+  useEffect(() => { if (!user) { promptLogin("登录后查看聊天历史 📖"); navigate("/"); return; } const load = async () => { const { data } = await supabase.from("conversations").select("*").eq("user_id", user.id).order("updated_at", { ascending: false }); setConversations(data || []); setLoading(false); }; load(); }, [user, navigate, promptLogin]);
 
   const handleDelete = async (id: string, e: React.MouseEvent) => { e.stopPropagation(); await supabase.from("conversations").delete().eq("id", id); setConversations((prev) => prev.filter((c) => c.id !== id)); };
 

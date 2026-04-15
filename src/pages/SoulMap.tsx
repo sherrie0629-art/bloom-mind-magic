@@ -18,13 +18,13 @@ const SOURCE_GROUPS = [
 
 const SoulMap = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, promptLogin } = useAuth();
   const { unlockedIds } = useAchievements(user?.id);
   const [fragments, setFragments] = useState<SoulFragment[]>([]);
   const [selectedFragment, setSelectedFragment] = useState<SoulFragment | null>(null);
   const [selectedConstellation, setSelectedConstellation] = useState<AchievementDef | null>(null);
 
-  useEffect(() => { if (!user) return; (supabase as any).from("soul_fragments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).then(({ data }: any) => { if (data) setFragments(data); }); }, [user]);
+  useEffect(() => { if (!user) { promptLogin("登录后查看灵魂星图 🌟"); navigate("/"); return; } (supabase as any).from("soul_fragments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).then(({ data }: any) => { if (data) setFragments(data); }); }, [user, promptLogin, navigate]);
 
   const unlocked = ACHIEVEMENTS.filter((a) => unlockedIds.includes(a.id));
   const locked = ACHIEVEMENTS.filter((a) => !unlockedIds.includes(a.id));
