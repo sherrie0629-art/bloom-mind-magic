@@ -1,72 +1,101 @@
 
-## 诊断结论
+## 更新后的实施方案
 
-图片其实已经生成成功，问题不在生成，而在“显示链路”。
+这次我会在“重写每日塔罗核心版”的基础上，按你的新要求同步调整两件事：
 
-从当前请求可以确认：
-- `daily-whisper` 的 `check-image` 已经返回了 `tarot-card-art` 的 signed URL
-- `daily_tarot_draws.image_url` 也已经成功写入文件路径
-- 但前端随后又发起了 `whisper-images/...` 的签名请求，并返回 404
+1. 全应用固定文案统一改成英文  
+2. 保留“保存海报”能力，不删除
 
-也就是说：后端已经把图生成并上传好了，但前端某个运行中的逻辑还在用旧桶名 `whisper-images` 去取图，所以界面才一直停在 “Generating card art”。
+## 方案调整
 
-## 修复方案
+### 1. 每日塔罗继续按“全新核心版”重写
+- 下线旧的 `DailyWhisper` 逻辑，重建为干净的每日塔罗核心流程
+- 新结构仍采用：
+  - 新页面：`DailyTarot`
+  - 新数据表：`tarot_draws`
+  - 新后端函数：`tarot-draw` + `tarot-draw-status`
+- 保留旧入口 `/daily-whisper`，但内部实现切到新的塔罗页面，避免入口失效
 
-### 1. 统一图片 URL 生成来源
-修改 `supabase/functions/daily-whisper/index.ts`
+### 2. 保存海报功能明确保留
+- 不删除现有海报能力
+- 每日塔罗结果页会保留“Save Poster / Save to Device”这类导出入口
+- 实现上优先复用现有共享能力：
+  - `src/hooks/useSharePoster.ts`
+  - `src/components/PosterPreviewDialog.tsx`
+- 只会把相关文案统一成英文，并适配新的塔罗结果内容
 
-- 保留现有 `action: "check-image"` 轮询逻辑
-- 新增一个用于获取历史记录/已签名图片的 action（例如 `action: "history"`）
-- 由后端统一读取 `daily_tarot_draws`，并把 `image_url` 全部转换成可直接渲染的 signed URL 后返回
+### 3. 全应用界面文案统一改成英文
+我会做一次“固定文案清理”，把目前残留的中文 UI 文案统一成英文，重点包括：
+- 登录/注册页
+- 首页 CTA 和提示文案
+- 每日塔罗页面
+- 各测评页按钮、提示、加载态、错误提示
+- 弹窗、toast、空状态、历史记录标题、解锁提示
+- 海报预览和保存相关按钮/提示
 
-目的：以后图片桶名只在后端维护一处，前端不再自己签名，彻底避免再次出现 `whisper-images` / `tarot-card-art` 不一致。
+目标是去掉当前中英混用，统一成完整英文体验。
 
-### 2. 去掉前端本地签名逻辑
-修改 `src/pages/DailyWhisper.tsx`
+### 4. 每日塔罗的用户可见输出也改成英文
+因为之前方案里我准备统一成中文，现在按你的新要求改为：
+- 塔罗页面标题、按钮、状态文案改英文
+- AI 解读输出改英文
+- Action tip 改英文
+- 海报里的标题、说明、底部品牌文案改英文
+- 卡牌状态统一为英文，例如 `Upright / Reversed`
 
-- 删除 `resolveImageUrl()` 里直接调用 `supabase.storage.from(...).createSignedUrl()` 的逻辑
-- `loadHistory()` 改为调用 edge function 的新 action，直接拿已经签好的图片 URL
-- 轮询成功后直接更新 `result.imageUrl`
-- 刷新历史列表时也使用后端返回的已签名 URL，不再由浏览器自行拼/签 storage 地址
-
-### 3. 修正图片状态管理
-继续调整 `src/pages/DailyWhisper.tsx`
-
-- 新抽牌前重置 `imageTimedOut`
-- 轮询成功后重置 `imageTimedOut`
-- 点击历史记录切换卡片时也重置该状态
-- 成功拿到图片后立即停止轮询，避免重复请求
-- 图片真实加载失败时显示 fallback，但不再触发旧桶请求
-
-### 4. 做一次桶名一致性清理
-检查并统一以下位置只使用 `tarot-card-art`
-
-- `src/pages/DailyWhisper.tsx`
-- `supabase/functions/daily-whisper/index.ts`
-
-如有必要，会把桶名提取成单一常量，避免后续再次出现旧命名残留。
+### 5. 不再沿用旧的 Whisper 语义
+这次会一起清掉旧命名残留：
+- 页面语义用 Tarot
+- 后端函数语义用 Tarot
+- 数据表语义用 Tarot
+- 存储继续使用 `tarot-card-art`
+- 不再保留 Whisper 时代的命名逻辑和混杂状态分支
 
 ## 预期结果
 
-修复后流程会变成：
+重写后会得到一套更简单、更稳定的每日塔罗核心功能：
 
 ```text
-抽牌 → AI 解读返回 → 后端异步生成图片 → 轮询拿到 signed URL → 页面直接显示图片
+Open Daily Tarot
+→ Draw today’s card
+→ Get English reading
+→ Poll for generated card art
+→ Display final result
+→ Save poster successfully
 ```
 
-不会再出现：
-```text
-图片已生成成功，但前端又去请求 whisper-images 导致 404
-```
+同时整个应用里的固定界面文案会统一为英文，不再出现中文界面字符串混入。
 
-## 技术说明
+## 技术实施范围
 
-- 这次不需要新增数据库表，也不需要再改存储桶权限
-- 当前桶 `tarot-card-art` 已存在，上传链路也已经是通的
-- 真正需要修的是：前端显示层还残留了旧桶取图逻辑
-- 由于“仓库源码已是 `tarot-card-art`，但运行时网络仍请求 `whisper-images`”，实现后还需要触发一次完整预览重载，确保旧 bundle 缓存被清掉
+### 需要重写/新增
+- `src/pages/DailyTarot.tsx`（或直接替换现有 `DailyWhisper.tsx` 实现）
+- `supabase/functions/tarot-draw/index.ts`
+- `supabase/functions/tarot-draw-status/index.ts`
+- 新 migration：`tarot_draws` 表 + RLS
 
-## 涉及文件
+### 需要同步清理/调整
+- `src/App.tsx`
+- `src/pages/Index.tsx`
+- `src/pages/Auth.tsx`
+- `src/components/PosterPreviewDialog.tsx`
+- `src/hooks/useSharePoster.ts`
+- 其他含中文固定文案的页面（如登录提示、toast、测评页按钮等）
 
-- `src/pages/DailyWhisper.tsx`
-- `supabase/functions/daily-whisper/index.ts`
+## 额外注意事项
+
+- “保存海报”会保留；如果“分享”不是必须，本次可以不作为核心交付重点
+- 现有 `useSharePoster` / `PosterPreviewDialog` 是多处页面复用的，我会保留它们，只改文案和接入方式，不会粗暴删除
+- 当前项目记忆里有“必须中文”的旧规则，这次实现时需要同步更新为新的英文界面规则，避免后续又被改回去
+
+## 验收重点
+
+我会按这些点落地与验证：
+1. 未登录时进入每日塔罗，英文提示正确
+2. 登录后首次抽牌成功
+3. 英文解读正常返回
+4. 图片生成中状态正常，不再卡死
+5. 图片完成后自动显示
+6. Save Poster 可正常使用
+7. 390 宽移动端下按钮、文案、海报预览不溢出
+8. 首页、登录页、塔罗页等固定界面文案统一为英文
