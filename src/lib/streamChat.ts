@@ -7,6 +7,7 @@ export async function streamChat({
   agentId,
   memoryContext,
   bondLevel,
+  accessToken,
   onDelta,
   onDone,
   onError,
@@ -15,6 +16,7 @@ export async function streamChat({
   agentId: string;
   memoryContext?: string[];
   bondLevel?: number;
+  accessToken?: string;
   onDelta: (deltaText: string) => void;
   onDone: () => void;
   onError: (error: string) => void;
@@ -23,7 +25,7 @@ export async function streamChat({
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+      Authorization: `Bearer ${accessToken || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
     body: JSON.stringify({ messages, agentId, memoryContext, bondLevel }),
   });
