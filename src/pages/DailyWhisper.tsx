@@ -23,7 +23,17 @@ interface TarotRecord {
 
 const DailyWhisper = () => {
   const navigate = useNavigate();
-  const { user, promptLogin } = useAuth();
+  const { user, loading, promptLogin } = useAuth();
+
+  const getValidSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      promptLogin("登录后才能使用每日塔罗 🔮");
+      navigate("/");
+      return null;
+    }
+    return session;
+  };
 
   const [drawnCard, setDrawnCard] = useState<{ card: TarotCard; isReversed: boolean } | null>(null);
   const [isFlipping, setIsFlipping] = useState(false);
@@ -39,14 +49,16 @@ const DailyWhisper = () => {
   const [imageTimedOut, setImageTimedOut] = useState(false);
 
   useEffect(() => {
-    if (!user) { promptLogin("Sign in to access Daily Tarot 🔮"); navigate("/"); return; }
+    if (loading) return;
+    if (!user) { promptLogin("登录后才能使用每日塔罗 🔮"); navigate("/"); return; }
     loadHistory();
-  }, [user]);
+  }, [user, loading]);
 
   useEffect(() => { return () => { if (imagePollingRef.current) clearInterval(imagePollingRef.current); }; }, []);
 
   const loadHistory = async () => {
-    if (!user) return;
+    const session = await getValidSession();
+    if (!session) return;
     try {
       const { data, error } = await supabase.functions.invoke("daily-whisper", { body: { action: "history" } });
       if (error || !data?.records) return;
@@ -95,6 +107,8 @@ const DailyWhisper = () => {
   }, [todayDraw]);
 
   const handleGenerate = async (draw: { card: TarotCard; isReversed: boolean }) => {
+    const session = await getValidSession();
+    if (!session) return;
     setIsGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("daily-whisper", {
