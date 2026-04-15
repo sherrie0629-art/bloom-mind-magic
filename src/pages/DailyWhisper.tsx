@@ -45,38 +45,34 @@ const DailyWhisper = () => {
 
   useEffect(() => { return () => { if (imagePollingRef.current) clearInterval(imagePollingRef.current); }; }, []);
 
-  const resolveImageUrl = async (imageUrl: string | null): Promise<string | null> => {
-    if (!imageUrl) return null;
-    if (imageUrl.startsWith("http")) return imageUrl;
-    const { data } = await supabase.storage.from("tarot-card-art").createSignedUrl(imageUrl, 3600);
-    return data?.signedUrl || null;
-  };
-
   const loadHistory = async () => {
     if (!user) return;
-    const { data } = await supabase.from("daily_tarot_draws").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100);
-    if (data && data.length > 0) {
-      const resolved = await Promise.all(data.map(async (r: any) => ({ ...r, image_url: await resolveImageUrl(r.image_url) })));
-      setHistory(resolved as TarotRecord[]);
+    try {
+      const { data, error } = await supabase.functions.invoke("daily-whisper", { body: { action: "history" } });
+      if (error || !data?.records) return;
+      const records = data.records as TarotRecord[];
+      setHistory(records);
       const today = new Date().toISOString().slice(0, 10);
-      const todayRecord = resolved.find((r: any) => r.draw_date === today);
+      const todayRecord = records.find((r) => r.draw_date === today);
       if (todayRecord) {
-        setTodayDraw(todayRecord as TarotRecord);
-        const rec = todayRecord as TarotRecord;
-        const card = tarotCards.find(c => c.id === rec.card_id);
+        setTodayDraw(todayRecord);
+        const card = tarotCards.find(c => c.id === todayRecord.card_id);
         if (card) {
-          setDrawnCard({ card, isReversed: rec.is_reversed });
+          setDrawnCard({ card, isReversed: todayRecord.is_reversed });
           setIsFlipped(true);
+          setImageTimedOut(false);
           setResult({
-            whisper: rec.interpretation || "",
-            actionTip: rec.action_tip || "",
-            imageUrl: rec.image_url,
-            drawId: rec.id,
+            whisper: todayRecord.interpretation || "",
+            actionTip: todayRecord.action_tip || "",
+            imageUrl: todayRecord.image_url,
+            drawId: todayRecord.id,
             card,
-            isReversed: rec.is_reversed,
+            isReversed: todayRecord.is_reversed,
           });
         }
       }
+    } catch (e) {
+      console.error("Failed to load history:", e);
     }
   };
 
