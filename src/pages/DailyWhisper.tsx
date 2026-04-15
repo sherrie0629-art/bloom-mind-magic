@@ -86,6 +86,7 @@ const DailyWhisper = () => {
     const draw = drawRandomCard();
     setDrawnCard(draw);
     setIsFlipping(true);
+    setImageTimedOut(false);
     setTimeout(() => {
       setIsFlipped(true);
       setIsFlipping(false);
