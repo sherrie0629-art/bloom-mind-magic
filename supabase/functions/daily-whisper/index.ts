@@ -30,7 +30,6 @@ serve(async (req) => {
       if (!whisper_id) throw new Error("Missing whisper_id");
       const { data } = await supabaseUser.from("daily_whispers").select("image_url").eq("id", whisper_id).eq("user_id", user.id).single();
       let imageUrl = data?.image_url || null;
-      // If it's a storage path (not a full URL), generate a signed URL
       if (imageUrl && !imageUrl.startsWith("http")) {
         const { data: signedData } = await supabaseUser.storage.from("whisper-images").createSignedUrl(imageUrl, 3600);
         imageUrl = signedData?.signedUrl || null;
@@ -38,48 +37,78 @@ serve(async (req) => {
       return new Response(JSON.stringify({ imageUrl }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Generate whisper
-    const { inputText, inputImageBase64, moodEmoji, moodWord, moodScore } = body;
-    const whisperContent: any[] = [];
-    const moodContext = moodEmoji ? `User selected mood emoji ${moodEmoji}, mood word "${moodWord || ""}", mood score ${moodScore}/5.` : "";
+    // ===== Tarot card interpretation =====
+    const { cardId, cardName, cardNameEn, isReversed, keywords } = body;
+    if (cardId === undefined || !cardName) throw new Error("Missing card info");
 
-    if (inputImageBase64) {
-      whisperContent.push({ type: "image_url", image_url: { url: inputImageBase64 } });
-      whisperContent.push({ type: "text", text: `${moodContext}${inputText ? `User's current feeling: "${inputText}". ` : ""}Based on this image, generate a personal whisper for the user. Requirements: poetic, warm, healing, under 40 words. Return only the whisper itself.` });
-    } else {
-      whisperContent.push({ type: "text", text: `${moodContext}User's current feeling/thought: "${inputText || "Nothing specific"}". Generate a personal daily whisper. Requirements: poetic, warm, healing, under 40 words. Return only the whisper itself.` });
-    }
+    const position = isReversed ? "逆位" : "正位";
+    const keywordsStr = (keywords || []).join("、");
 
     const whisperResp = await fetchAI("google/gemini-3-flash-preview", {
       messages: [
-        { role: "system", content: "You are a wise and warm mindfulness guide who crafts brief, poetic daily affirmations. Your style blends zen wisdom with modern self-care language." },
-        { role: "user", content: whisperContent },
+        { role: "system", content: `你是一位融合荣格心理学与塔罗智慧的心灵导师。你的解读风格温暖、有洞察力，善于用心理学概念（如原型、阴影、集体无意识）来解释塔罗牌的象征意义。你的目标是帮助用户理解当下的情绪状态，获得心理层面的启发。` },
+        { role: "user", content: `我抽到了塔罗牌"${cardName}"（${cardNameEn}），${position}。关键词：${keywordsStr}。
+
+请用心理学视角为我解读这张牌对今日情绪的启示。要求：
+1. 先简述牌面的心理学象征含义（2-3句）
+2. 再结合${position}含义，给出今日情绪启示（3-4句）
+3. 整体不超过200字，温暖有深度
+4. 最后另起一行，以"💡 "开头给出一句简短的今日行动建议（15字以内）
+
+请直接输出解读内容，不要加标题或分隔符。` },
       ],
     });
+
     if (!whisperResp.ok) {
-      if (whisperResp.status === 429) return new Response(JSON.stringify({ error: "Too many requests" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-      if (whisperResp.status === 402) return new Response(JSON.stringify({ error: "Credits exhausted" }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (whisperResp.status === 429) return new Response(JSON.stringify({ error: "请求过于频繁，请稍后再试" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      if (whisperResp.status === 402) return new Response(JSON.stringify({ error: "额度已用完" }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       throw new Error("Whisper generation failed");
     }
     const whisperData = await whisperResp.json();
-    const whisper = whisperData.choices?.[0]?.message?.content?.trim() || "It's okay to slow down. That's a kind of gentleness too.";
+    const fullText = whisperData.choices?.[0]?.message?.content?.trim() || "每一张牌都是镜子，映照此刻的你。";
+
+    // Split whisper and action tip
+    const tipMatch = fullText.match(/\n\n?💡\s*(.+)/);
+    const whisper = tipMatch ? fullText.slice(0, tipMatch.index).trim() : fullText;
+    const actionTip = tipMatch ? tipMatch[1].trim() : "给自己一个温柔的拥抱";
+
+    // Ask AI to score mood 1-5 based on card
+    const moodScoreResp = await fetchAI("google/gemini-2.5-flash-lite", {
+      messages: [
+        { role: "user", content: `塔罗牌"${cardName}"${position}，关键词：${keywordsStr}。请给出一个1-5的情绪能量分数（1=低落消极，5=积极充沛）。只回复数字。` },
+      ],
+    });
+    let moodScore = 3;
+    if (moodScoreResp.ok) {
+      const scoreData = await moodScoreResp.json();
+      const scoreText = scoreData.choices?.[0]?.message?.content?.trim();
+      const parsed = parseInt(scoreText);
+      if (parsed >= 1 && parsed <= 5) moodScore = parsed;
+    }
+
+    const contentStr = `${cardName}（${position}）`;
+    const inputTextStr = `card:${cardId},reversed:${isReversed}`;
 
     const { data: insertedRow, error: insertError } = await supabaseUser.from("daily_whispers").insert({
-      user_id: user.id, input_text: inputText || null, whisper, image_url: null,
-      mood_emoji: moodEmoji || null, mood_word: moodWord || null, mood_score: moodScore || null,
+      user_id: user.id,
+      content: contentStr,
+      input_text: inputTextStr,
+      whisper: `${whisper}\n\n💡 ${actionTip}`,
+      image_url: null,
+      mood_emoji: null,
+      mood_word: cardName,
+      mood_score: moodScore,
     }).select("id").single();
     if (insertError) console.error("Insert error:", insertError);
     const whisperId = insertedRow?.id || null;
 
-    const moodDesc = moodWord || inputText || (moodEmoji ? `feeling ${moodEmoji}` : "peaceful contemplation");
-    const scoreDesc = moodScore ? moodScore <= 2 ? "melancholic, tender, with gentle comfort" : moodScore <= 3 ? "calm, serene, with quiet introspection" : "warm, hopeful, with gentle joy" : "peaceful and contemplative";
-    const imagePrompt = `Create an elegant, healing illustration for someone feeling "${moodDesc}". Mood: ${scoreDesc}. Style: soft dreamy watercolor with gentle light, ethereal atmosphere, warm muted palette. Abstract and poetic. NO TEXT. Square format.`;
-
+    // Generate tarot card art asynchronously
+    const imagePrompt = `Create a mystical tarot card illustration for "${cardNameEn}" (${position === "逆位" ? "reversed" : "upright"}). Style: ethereal watercolor with gold accents, dreamy cosmic atmosphere, rich symbolism. The card should evoke ${keywordsStr}. Mystical, elegant, NO TEXT. Square format.`;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
     const imagePromise = generateAndSaveImage(LOVABLE_API_KEY, supabaseUser, user.id, whisperId, imagePrompt);
     try { if (typeof EdgeRuntime !== "undefined" && (EdgeRuntime as any).waitUntil) { (EdgeRuntime as any).waitUntil(imagePromise); } } catch {}
 
-    return new Response(JSON.stringify({ whisper, imageUrl: null, whisperId }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ whisper, actionTip, imageUrl: null, whisperId, moodScore }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
     console.error("daily-whisper error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -98,7 +127,6 @@ async function generateAndSaveImage(apiKey: string, supabase: any, userId: strin
     const fileName = `${userId}/${Date.now()}.png`;
     const { error: uploadError } = await supabase.storage.from("whisper-images").upload(fileName, binaryData, { contentType: "image/png", upsert: false });
     if (uploadError) { console.error("Upload error:", uploadError); return; }
-    // Store the storage path (not a public URL) so the client can generate signed URLs
     if (whisperId) { await supabase.from("daily_whispers").update({ image_url: fileName }).eq("id", whisperId); }
   } catch (err) { console.error("Image processing error:", err); }
 }
@@ -108,29 +136,29 @@ async function handleMonthlyReport(supabaseUser: any, userId: string) {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
   const { data: records } = await supabaseUser.from("daily_whispers").select("*").eq("user_id", userId).gte("created_at", startOfMonth).order("created_at", { ascending: true });
   if (!records || records.length === 0) {
-    return new Response(JSON.stringify({ error: "No check-ins this month yet. Go log your mood first!" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    return new Response(JSON.stringify({ error: "本月还没有签到记录，先去抽一张塔罗牌吧！" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
   }
   const summary = records.map((r: any) => {
     const d = new Date(r.created_at);
-    return `${d.getMonth() + 1}/${d.getDate()}: ${r.mood_emoji || ""} ${r.mood_word || ""} (score ${r.mood_score || "N/A"}/5) ${r.input_text ? `note: ${r.input_text}` : ""}`;
+    return `${d.getMonth() + 1}/${d.getDate()}: ${r.content || ""} (能量 ${r.mood_score || "N/A"}/5) ${r.input_text ? `${r.mood_word || ""}` : ""}`;
   }).join("\n");
 
   const reportResp = await fetchAI("google/gemini-3-flash-preview", {
     messages: [
-      { role: "system", content: `You are "Dr. Maya", a deeply empathetic wellness coach. Write a monthly wellness letter to the user. Your style is like a handwritten letter — warm, genuine, and poetic. You should:
-1. Acknowledge and celebrate their commitment to tracking their wellness
-2. Identify emotional trends (highlights and low points)
-3. Show deep empathy for difficult moments
-4. Celebrate the good moments sincerely
-5. Give 1-2 warm, specific self-care suggestions
-Format: Start with "Dear friend," and end with a warm sign-off from Dr. Maya. Keep it 300-500 words.` },
-      { role: "user", content: `Here are my mood check-ins this month (${records.length} days):\n${summary}\n\nPlease write my monthly wellness report.` },
+      { role: "system", content: `你是"Dr. Maya"，一位融合荣格心理学与塔罗智慧的情绪导师。请用心理学视角为用户撰写一封月度情绪信件。你的风格如同一封手写信——温暖、真诚、有洞察力。你需要：
+1. 肯定并庆祝他们坚持每日塔罗仪式的行为
+2. 从塔罗牌组合中识别情绪模式和心理主题
+3. 对低谷时刻给予深切的共情
+4. 真诚地赞美高光时刻
+5. 给出 1-2 个温暖而具体的自我关怀建议
+格式：以"亲爱的朋友，"开头，以 Dr. Maya 的温暖签名结尾。300-500 字。全程中文。` },
+      { role: "user", content: `以下是我本月的塔罗签到记录（共 ${records.length} 天）：\n${summary}\n\n请为我撰写月度情绪报告。` },
     ],
     stream: true,
   });
   if (!reportResp.ok) {
-    if (reportResp.status === 429) return new Response(JSON.stringify({ error: "Too many requests" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    if (reportResp.status === 402) return new Response(JSON.stringify({ error: "Credits exhausted" }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (reportResp.status === 429) return new Response(JSON.stringify({ error: "请求过于频繁" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (reportResp.status === 402) return new Response(JSON.stringify({ error: "额度已用完" }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     throw new Error("Report generation failed");
   }
   return new Response(reportResp.body, { headers: { ...corsHeaders, "Content-Type": "text/event-stream" } });
