@@ -38,7 +38,7 @@ const Chat = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, promptLogin } = useAuth();
+  const { user, session, promptLogin } = useAuth();
   const agentId = searchParams.get("agent") || "barista";
   const agent = agents.find((a) => a.id === agentId) || agents[0];
   const mbtiResult = (location.state as any)?.mbtiResult as { mbtiType: string; title: string; description: string; parallelUniverse?: any } | undefined;
@@ -356,6 +356,7 @@ const Chat = () => {
           agentId,
           memoryContext: [],
           bondLevel: 1,
+          accessToken: session?.access_token,
           onDelta: upsertAssistant,
           onDone: () => {
             const { cleanContent, branchOptions: parsedOptions } = parseGameMarkers(assistantContent);
@@ -423,6 +424,7 @@ const Chat = () => {
         agentId,
         memoryContext,
         bondLevel,
+        accessToken: session?.access_token,
         onDelta: upsertAssistant,
         onDone: async () => {
           console.log("[Chat] raw AI response:", assistantContent.slice(-200));
