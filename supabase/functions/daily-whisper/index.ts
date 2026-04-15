@@ -31,7 +31,7 @@ serve(async (req) => {
       const { data } = await supabaseAdmin.from("daily_tarot_draws").select("image_url").eq("id", draw_id).eq("user_id", user.id).single();
       let imageUrl = data?.image_url || null;
       if (imageUrl && !imageUrl.startsWith("http")) {
-        const { data: signedData } = await supabaseAdmin.storage.from("whisper-images").createSignedUrl(imageUrl, 3600);
+        const { data: signedData } = await supabaseAdmin.storage.from("tarot-card-art").createSignedUrl(imageUrl, 3600);
         imageUrl = signedData?.signedUrl || null;
       }
       return new Response(JSON.stringify({ imageUrl }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -121,7 +121,7 @@ async function generateAndSaveImage(apiKey: string, supabase: any, userId: strin
     const base64Data = base64Url.split(",")[1]; if (!base64Data) return;
     const binaryData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
     const fileName = `${userId}/${Date.now()}.png`;
-    const { error: uploadError } = await supabase.storage.from("whisper-images").upload(fileName, binaryData, { contentType: "image/png", upsert: false });
+    const { error: uploadError } = await supabase.storage.from("tarot-card-art").upload(fileName, binaryData, { contentType: "image/png", upsert: false });
     if (uploadError) { console.error("Upload error:", uploadError); return; }
     if (drawId) { await supabase.from("daily_tarot_draws").update({ image_url: fileName }).eq("id", drawId); }
   } catch (err) { console.error("Image processing error:", err); }

@@ -48,7 +48,7 @@ const DailyWhisper = () => {
   const resolveImageUrl = async (imageUrl: string | null): Promise<string | null> => {
     if (!imageUrl) return null;
     if (imageUrl.startsWith("http")) return imageUrl;
-    const { data } = await supabase.storage.from("whisper-images").createSignedUrl(imageUrl, 3600);
+    const { data } = await supabase.storage.from("tarot-card-art").createSignedUrl(imageUrl, 3600);
     return data?.signedUrl || null;
   };
 
