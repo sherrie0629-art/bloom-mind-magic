@@ -38,7 +38,7 @@ const Chat = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, promptLogin } = useAuth();
   const agentId = searchParams.get("agent") || "barista";
   const agent = agents.find((a) => a.id === agentId) || agents[0];
   const mbtiResult = (location.state as any)?.mbtiResult as { mbtiType: string; title: string; description: string; parallelUniverse?: any } | undefined;
