@@ -1,70 +1,63 @@
 
 
-## 方案：匿名模式 + Google One Tap 一键登录
+## 方案：每日塔罗抽牌（Daily Tarot Draw）
 
-### 核心思路
+将现有「选心情 → 生成 whisper」升级为「抽塔罗牌 → 心理学解读」，保留原有心情曲线和月报功能。
 
-用户进入应用后无需注册即可体验核心功能（浏览首页、聊天、做测验）。当触发需要持久化数据的操作时（如保存聊天记录、查看历史、解锁 Deep Report），弹出登录提示，支持 Google One Tap 一键完成。
+### 用户体验流程
 
 ```text
-用户进入 → 匿名浏览/聊天（本地缓存） → 触发存储操作 → 弹出登录弹窗
-                                                          ↓
-                                              Google One Tap / 邮箱登录
-                                                          ↓
-                                              本地数据迁移至云端
+进入页面 → 今日已抽？显示结果 : 显示抽牌界面
+                                    ↓
+              点击"抽一张牌" → 翻牌动画（3D 翻转）
+                                    ↓
+              显示牌面 + AI 心理学解读 + 情绪启示
+                                    ↓
+              保存/分享海报 + 情绪曲线照常记录
 ```
 
-### 匿名模式规则
+### 核心玩法设计
 
-| 功能 | 匿名可用 | 触发登录 |
-|------|----------|----------|
-| 浏览首页 | ✅ | — |
-| 聊天（前 5 条） | ✅ 本地存储 | 第 6 条消息 |
-| 做测验 | ✅ 显示结果 | 保存报告 |
-| Daily Whisper | ❌ | 进入时 |
-| 查看历史 | ❌ | 进入时 |
-| Profile | ❌ | 进入时 |
-| Deep Report | ❌ | 点击时 |
+- **78 张塔罗牌数据**：前端静态数据文件，含牌名、序号、正/逆位关键词、对应 emoji
+- **随机抽牌**：随机抽 1 张 + 正/逆位，带翻牌动画
+- **AI 解读**：Edge Function 用心理学视角解读这张牌对今日情绪的启示（~200 字），包含：
+  - 牌面含义（心理学角度）
+  - 今日情绪启示
+  - 一句行动建议
+- **AI 生成牌面插图**：用图片模型生成对应牌面的艺术插图
+- **每日限抽一次**：已抽过则直接展示结果，增强"仪式感"
 
-### 修改清单（6 步）
+### 修改清单（4 个文件）
 
-#### 1. 创建登录弹窗组件 `src/components/AuthPromptDialog.tsx`
-- 全局可复用的模态弹窗，包含 Google One Tap 按钮 + 邮箱登录表单
-- 接收 `open` / `onClose` / `reason`（提示文案，如"登录后保存聊天记录"）
-- Google 登录使用 `lovable.auth.signInWithOAuth("google")`
-- 邮箱登录保留现有逻辑
+#### 1. 新建 `src/data/tarotCards.ts`
+- 78 张塔罗牌的静态数据（大阿卡纳 22 张 + 小阿卡纳 56 张）
+- 每张含：`id`、`name`（中英）、`emoji`、`keywords`（正/逆位）
 
-#### 2. 配置 Google OAuth（工具调用）
-- 使用 Configure Social Auth 工具生成 `src/integrations/lovable/` 模块
-- Lovable Cloud 自动管理 Google OAuth 凭据，无需额外配置
+#### 2. 重写 `src/pages/DailyWhisper.tsx`
+- 页面标题改为"每日塔罗"
+- **抽牌界面**：牌背图案 + "抽取今日塔罗牌" 按钮
+- **翻牌动画**：framer-motion 3D 翻转效果
+- **结果展示**：牌名 + 正/逆位标签 + AI 插图 + 解读文字 + 行动建议
+- **保留**：14 天情绪曲线（mood_score 由 AI 根据牌面自动评分 1-5）、月报功能、历史记录
+- **每日一次逻辑**：检查 `todayWhisper`，已存在则跳过抽牌直接展示
 
-#### 3. 修改 `src/contexts/AuthContext.tsx`
-- 新增 `isAnonymous: boolean`（`user === null` 时为匿名）
-- 新增 `promptLogin: (reason: string) => void` 方法，控制弹窗显示
-- 新增 `loginPromptState: { open: boolean; reason: string }` 状态
-- 在 Provider 最外层渲染 `<AuthPromptDialog />`
+#### 3. 重写 `supabase/functions/daily-whisper/index.ts`
+- 接收 `{ cardId, cardName, isReversed }` 参数
+- AI prompt 改为心理学塔罗解读风格
+- 返回 `{ whisper (解读文字), moodScore (1-5), actionTip (行动建议) }`
+- 图片生成 prompt 改为塔罗牌艺术风格
+- 月报功能保持不变
 
-#### 4. 修改 `src/pages/Chat.tsx` — 匿名可聊天
-- 移除 `if (!user) return` 的硬拦截
-- 匿名用户消息存 `useState`（不写数据库），跳过 conversation/memory 加载
-- 匿名用户发第 6 条消息时调用 `promptLogin("登录后保存聊天记录")`
-- 登录成功后将本地消息写入数据库（创建 conversation + chat_messages）
-
-#### 5. 修改路由守卫页面 — 需登录页面拦截
-- `DailyWhisper.tsx` / `ConversationHistory.tsx` / `Profile.tsx` / `Vault.tsx` / `SoulMap.tsx`：
-  - 页面顶部检查 `!user`，调用 `promptLogin` 并导航回首页
-- `AssessmentDetail.tsx`：保存报告时检查登录状态
-- 各测评 Flow 页面：允许答题，提交结果时检查登录
-
-#### 6. 修改 `src/pages/Auth.tsx` — 增加 Google 登录
-- 表单上方添加 "Continue with Google" 按钮
-- 调用 `lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin })`
-- 保留邮箱登录作为备选
+#### 4. 数据库兼容
+- 复用现有 `daily_whispers` 表，无需迁移
+- `content` 字段存牌面信息（如 `"The Star (正位)"`）
+- `whisper` 存 AI 解读
+- `mood_score` 由 AI 根据牌面含义自动打分
+- `input_text` 存额外信息（如 `"card:17,reversed:false"`）
 
 ### 技术要点
 
-- **不使用 Supabase 匿名登录**：纯前端状态管理，避免产生大量匿名用户记录
-- **数据迁移**：登录成功后 `onAuthStateChange` 触发时，检查本地缓存并批量写入
-- **本地缓存键**：`mindgarden_anon_chat_{agentId}` 存 JSON 消息数组
-- **30 天试用期**：仅在用户注册后开始计算，匿名模式不受影响
+- 牌面插图仍用 `google/gemini-3.1-flash-image-preview` 异步生成
+- 翻牌动画用 `framer-motion` 的 `rotateY` 实现 3D 翻转
+- 所有文案中文显示
 
