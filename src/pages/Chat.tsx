@@ -15,6 +15,7 @@ import ChatParticles from "@/components/ChatParticles";
 import { useAchievements } from "@/hooks/useAchievements";
 import { agents, BOND_LABELS } from "@/data/agents";
 import { useAuth } from "@/contexts/AuthContext";
+const ANON_MSG_LIMIT = 5;
 import { supabase } from "@/integrations/supabase/client";
 import { streamChat, type Msg } from "@/lib/streamChat";
 import { useBond } from "@/hooks/useBond";
