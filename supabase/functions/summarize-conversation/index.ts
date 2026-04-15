@@ -12,7 +12,27 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, agentId, userId } = await req.json();
+    // Auth check - extract userId from JWT, not from request body
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+    );
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const userId = claimsData.claims.sub;
+
+    const { messages, agentId } = await req.json();
 
     const conversation = messages.map((m: any) => `${m.role}: ${m.content}`).join("\n");
 
@@ -73,7 +93,7 @@ serve(async (req) => {
     const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     const args = JSON.parse(toolCall.function.arguments);
 
-    if (userId && args.memories && args.memories.length > 0) {
+    if (args.memories && args.memories.length > 0) {
       const supabaseAdmin = createClient(
         Deno.env.get("SUPABASE_URL")!,
         Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!

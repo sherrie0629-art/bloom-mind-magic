@@ -29,7 +29,13 @@ serve(async (req) => {
       const { whisper_id } = body;
       if (!whisper_id) throw new Error("Missing whisper_id");
       const { data } = await supabaseUser.from("daily_whispers").select("image_url").eq("id", whisper_id).eq("user_id", user.id).single();
-      return new Response(JSON.stringify({ imageUrl: data?.image_url || null }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      let imageUrl = data?.image_url || null;
+      // If it's a storage path (not a full URL), generate a signed URL
+      if (imageUrl && !imageUrl.startsWith("http")) {
+        const { data: signedData } = await supabaseUser.storage.from("whisper-images").createSignedUrl(imageUrl, 3600);
+        imageUrl = signedData?.signedUrl || null;
+      }
+      return new Response(JSON.stringify({ imageUrl }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Generate whisper
@@ -92,8 +98,8 @@ async function generateAndSaveImage(apiKey: string, supabase: any, userId: strin
     const fileName = `${userId}/${Date.now()}.png`;
     const { error: uploadError } = await supabase.storage.from("whisper-images").upload(fileName, binaryData, { contentType: "image/png", upsert: false });
     if (uploadError) { console.error("Upload error:", uploadError); return; }
-    const { data: urlData } = supabase.storage.from("whisper-images").getPublicUrl(fileName);
-    if (whisperId) { await supabase.from("daily_whispers").update({ image_url: urlData.publicUrl }).eq("id", whisperId); }
+    // Store the storage path (not a public URL) so the client can generate signed URLs
+    if (whisperId) { await supabase.from("daily_whispers").update({ image_url: fileName }).eq("id", whisperId); }
   } catch (err) { console.error("Image processing error:", err); }
 }
 

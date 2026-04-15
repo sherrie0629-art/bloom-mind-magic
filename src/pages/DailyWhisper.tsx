@@ -51,13 +51,26 @@ const DailyWhisper = () => {
     loadHistory();
   }, [user]);
 
+  const resolveImageUrl = async (imageUrl: string | null): Promise<string | null> => {
+    if (!imageUrl) return null;
+    if (imageUrl.startsWith("http")) return imageUrl; // Legacy public URLs
+    // Storage path — generate signed URL
+    const { data } = await supabase.storage.from("whisper-images").createSignedUrl(imageUrl, 3600);
+    return data?.signedUrl || null;
+  };
+
   const loadHistory = async () => {
     if (!user) return;
     const { data } = await supabase.from("daily_whispers").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100);
     if (data && data.length > 0) {
-      setHistory(data as WhisperRecord[]);
+      // Resolve storage paths to signed URLs
+      const resolved = await Promise.all(data.map(async (r: any) => ({
+        ...r,
+        image_url: await resolveImageUrl(r.image_url),
+      })));
+      setHistory(resolved as WhisperRecord[]);
       const today = new Date().toDateString();
-      const todayRecord = data.find((r: any) => new Date(r.created_at).toDateString() === today);
+      const todayRecord = resolved.find((r: any) => new Date(r.created_at).toDateString() === today);
       if (todayRecord) setTodayWhisper(todayRecord as WhisperRecord);
     }
   };
