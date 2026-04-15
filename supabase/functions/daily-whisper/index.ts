@@ -29,7 +29,13 @@ serve(async (req) => {
       const { whisper_id } = body;
       if (!whisper_id) throw new Error("Missing whisper_id");
       const { data } = await supabaseUser.from("daily_whispers").select("image_url").eq("id", whisper_id).eq("user_id", user.id).single();
-      return new Response(JSON.stringify({ imageUrl: data?.image_url || null }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      let imageUrl = data?.image_url || null;
+      // If it's a storage path (not a full URL), generate a signed URL
+      if (imageUrl && !imageUrl.startsWith("http")) {
+        const { data: signedData } = await supabaseUser.storage.from("whisper-images").createSignedUrl(imageUrl, 3600);
+        imageUrl = signedData?.signedUrl || null;
+      }
+      return new Response(JSON.stringify({ imageUrl }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Generate whisper
