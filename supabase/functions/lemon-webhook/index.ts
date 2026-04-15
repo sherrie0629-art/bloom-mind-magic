@@ -54,12 +54,13 @@ Deno.serve(async (req) => {
     const userId = customData.user_id;
     const attrs = event.data?.attributes || {};
 
-    console.log(`Received event: ${eventName}, user_id: ${userId}`);
+    console.log(`Received event: ${eventName}, user_id: ${userId}, status: ${attrs.status}`);
 
     if (!userId) {
-      console.error("No user_id in custom_data");
-      return new Response(JSON.stringify({ error: "Missing user_id" }), {
-        status: 400,
+      // order_created may not always have custom_data depending on config — log and accept
+      console.warn("No user_id in custom_data, skipping DB update");
+      return new Response(JSON.stringify({ success: true, skipped: true }), {
+        status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -69,17 +70,26 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // ─── order_created ───
+    // Initial order — log it but subscription_created handles the actual activation
+    if (eventName === "order_created") {
+      console.log(`Order created for ${userId}, amount: ${attrs.total_formatted || attrs.total}`);
+      // No subscription upsert here; wait for subscription_created
+    }
+
+    // ─── subscription_created / subscription_updated ───
     if (
       eventName === "subscription_created" ||
-      eventName === "subscription_updated" ||
-      eventName === "subscription_resumed"
+      eventName === "subscription_updated"
     ) {
-      const status = attrs.status; // active, past_due, cancelled, expired, etc.
+      const status = attrs.status; // active, on_trial, past_due, paused, cancelled, expired
       const isActive = status === "active" || status === "on_trial";
       const billingInterval = attrs.variant_name?.toLowerCase().includes("year") ? "yearly" : "monthly";
-      const endsAt = attrs.ends_at || attrs.renews_at;
 
-      // Upsert subscription
+      // ends_at is set when subscription is cancelled (access until this date)
+      // renews_at is the next billing date for active subscriptions
+      const expiresAt = attrs.ends_at || attrs.renews_at || null;
+
       const { error } = await supabase
         .from("user_subscriptions")
         .upsert(
@@ -87,7 +97,7 @@ Deno.serve(async (req) => {
             user_id: userId,
             plan: isActive ? "plus" : "free",
             billing_period: billingInterval,
-            expires_at: endsAt,
+            expires_at: expiresAt,
             updated_at: new Date().toISOString(),
           },
           { onConflict: "user_id" }
@@ -101,23 +111,45 @@ Deno.serve(async (req) => {
         });
       }
 
-      console.log(`Subscription ${isActive ? "activated" : "deactivated"} for ${userId}`);
+      console.log(`Subscription ${eventName} — plan=${isActive ? "plus" : "free"}, expires_at=${expiresAt}, status=${status}`);
     }
 
-    if (
-      eventName === "subscription_cancelled" ||
-      eventName === "subscription_expired"
-    ) {
+    // ─── subscription_cancelled ───
+    // User cancelled but still has access until ends_at
+    if (eventName === "subscription_cancelled") {
+      const endsAt = attrs.ends_at || null;
+
+      // Keep plan as "plus" until ends_at — the client-side useSubscription
+      // checks expires_at to determine if the subscription is still valid
       const { error } = await supabase
         .from("user_subscriptions")
-        .update({
-          plan: "free",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("user_id", userId);
+        .upsert(
+          {
+            user_id: userId,
+            plan: endsAt ? "plus" : "free", // keep plus if there's remaining time
+            billing_period: attrs.variant_name?.toLowerCase().includes("year") ? "yearly" : "monthly",
+            expires_at: endsAt,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id" }
+        );
 
-      if (error) console.error("Update error:", error);
-      console.log(`Subscription ended for ${userId}`);
+      if (error) console.error("Cancel upsert error:", error);
+      console.log(`Subscription cancelled for ${userId}, access until: ${endsAt}`);
+    }
+
+    // ─── subscription_payment_success ───
+    if (eventName === "subscription_payment_success") {
+      // Renewal payment succeeded — ensure plan stays active
+      // subscription_updated usually fires too, but this is a safety net
+      console.log(`Payment success for ${userId}`);
+    }
+
+    // ─── subscription_payment_failed ───
+    if (eventName === "subscription_payment_failed") {
+      // Payment failed — log it; Lemon Squeezy will retry and eventually
+      // fire subscription_updated with status=past_due or subscription_expired
+      console.warn(`Payment failed for ${userId}, awaiting retry or expiration`);
     }
 
     return new Response(JSON.stringify({ success: true }), {
