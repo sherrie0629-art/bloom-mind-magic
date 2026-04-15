@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
@@ -6,6 +7,59 @@ const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+// --- Quota limits ---
+const FREE_DAILY_CHAT = 20;
+const PLUS_DAILY_CHAT = 100;
+const ANON_MAX_MESSAGES = 5; // anonymous users limited to 5 messages per request payload
+
+async function checkChatQuota(req: Request): Promise<{ allowed: boolean; userId?: string; errorResponse?: Response }> {
+  const authHeader = req.headers.get("Authorization");
+  const token = authHeader?.startsWith("Bearer ") ? authHeader.replace("Bearer ", "") : null;
+
+  // Try to authenticate
+  if (token && token !== Deno.env.get("SUPABASE_ANON_KEY")) {
+    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!);
+    const { data: claimsData, error } = await supabase.auth.getClaims(token);
+    if (!error && claimsData?.claims?.sub) {
+      const userId = claimsData.claims.sub as string;
+      const authedClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
+        global: { headers: { Authorization: authHeader! } },
+      });
+
+      // Check subscription
+      const { data: sub } = await authedClient.from("user_subscriptions").select("plan, expires_at").eq("user_id", userId).single();
+      const isPlus = sub?.plan === "plus" && sub?.expires_at && new Date(sub.expires_at) > new Date();
+      const dailyLimit = isPlus ? PLUS_DAILY_CHAT : FREE_DAILY_CHAT;
+
+      // Check usage
+      const today = new Date().toISOString().split("T")[0];
+      const { data: usage } = await authedClient.from("usage_tracking").select("id, chat_count").eq("user_id", userId).eq("track_date", today).single();
+      const currentCount = usage?.chat_count || 0;
+
+      if (currentCount >= dailyLimit) {
+        return {
+          allowed: false,
+          errorResponse: new Response(JSON.stringify({ error: `Daily chat limit reached (${dailyLimit}/day). ${isPlus ? "Come back tomorrow!" : "Upgrade to Plus for more!"} 🌙` }), {
+            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }),
+        };
+      }
+
+      // Increment usage
+      if (usage) {
+        await authedClient.from("usage_tracking").update({ chat_count: currentCount + 1 }).eq("id", usage.id);
+      } else {
+        await authedClient.from("usage_tracking").insert({ user_id: userId, track_date: today, chat_count: 1, assessment_count: 0, deep_report_count: 0 });
+      }
+
+      return { allowed: true, userId };
+    }
+  }
+
+  // Anonymous user — allow but enforce message count limit from payload
+  return { allowed: true };
+}
 
 const RPG_INSTRUCTION = `
 
@@ -178,6 +232,24 @@ serve(async (req) => {
 
   try {
     const { messages, agentId, memoryContext, bondLevel } = await req.json();
+
+    // --- Server-side quota check ---
+    // For anonymous users, enforce message count limit
+    if (!req.headers.get("Authorization")?.startsWith("Bearer ") || 
+        req.headers.get("Authorization")?.replace("Bearer ", "") === Deno.env.get("SUPABASE_ANON_KEY")) {
+      // Anonymous: limit to ANON_MAX_MESSAGES messages in the conversation
+      if (messages && messages.filter((m: any) => m.role === "user").length > ANON_MAX_MESSAGES) {
+        return new Response(JSON.stringify({ error: "Please sign in to continue chatting 🌙" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    } else {
+      // Authenticated user: check daily quota
+      const quotaResult = await checkChatQuota(req);
+      if (!quotaResult.allowed && quotaResult.errorResponse) {
+        return quotaResult.errorResponse;
+      }
+    }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
     const MODEL = "google/gemini-2.5-flash";
