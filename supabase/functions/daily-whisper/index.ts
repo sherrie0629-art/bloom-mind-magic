@@ -2,10 +2,18 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
 const AI_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const BUCKET = "tarot-card-art";
 const corsHeaders = { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version" };
 
 function fetchAI(model: string, requestBody: Record<string, unknown>): Promise<Response> {
   return fetch(AI_URL, { method: "POST", headers: { Authorization: `Bearer ${Deno.env.get("LOVABLE_API_KEY")!}`, "Content-Type": "application/json" }, body: JSON.stringify({ ...requestBody, model }) });
+}
+
+async function signImageUrl(supabase: any, imageUrl: string | null): Promise<string | null> {
+  if (!imageUrl) return null;
+  if (imageUrl.startsWith("http")) return imageUrl;
+  const { data } = await supabase.storage.from(BUCKET).createSignedUrl(imageUrl, 3600);
+  return data?.signedUrl || null;
 }
 
 serve(async (req) => {
@@ -29,12 +37,18 @@ serve(async (req) => {
       const { draw_id } = body;
       if (!draw_id) throw new Error("Missing draw_id");
       const { data } = await supabaseAdmin.from("daily_tarot_draws").select("image_url").eq("id", draw_id).eq("user_id", user.id).single();
-      let imageUrl = data?.image_url || null;
-      if (imageUrl && !imageUrl.startsWith("http")) {
-        const { data: signedData } = await supabaseAdmin.storage.from("tarot-card-art").createSignedUrl(imageUrl, 3600);
-        imageUrl = signedData?.signedUrl || null;
-      }
+      const imageUrl = await signImageUrl(supabaseAdmin, data?.image_url || null);
       return new Response(JSON.stringify({ imageUrl }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    if (action === "history") {
+      const { data } = await supabaseAdmin.from("daily_tarot_draws").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).limit(100);
+      if (!data) return new Response(JSON.stringify({ records: [] }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const records = await Promise.all(data.map(async (r: any) => ({
+        ...r,
+        image_url: await signImageUrl(supabaseAdmin, r.image_url),
+      })));
+      return new Response(JSON.stringify({ records }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // ===== Tarot card interpretation =====
@@ -121,7 +135,7 @@ async function generateAndSaveImage(apiKey: string, supabase: any, userId: strin
     const base64Data = base64Url.split(",")[1]; if (!base64Data) return;
     const binaryData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
     const fileName = `${userId}/${Date.now()}.png`;
-    const { error: uploadError } = await supabase.storage.from("tarot-card-art").upload(fileName, binaryData, { contentType: "image/png", upsert: false });
+    const { error: uploadError } = await supabase.storage.from(BUCKET).upload(fileName, binaryData, { contentType: "image/png", upsert: false });
     if (uploadError) { console.error("Upload error:", uploadError); return; }
     if (drawId) { await supabase.from("daily_tarot_draws").update({ image_url: fileName }).eq("id", drawId); }
   } catch (err) { console.error("Image processing error:", err); }
