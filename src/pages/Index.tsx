@@ -73,7 +73,7 @@ const Index = () => {
             animate={{ opacity: 1, y: 0 }}
             className="font-display text-2xl font-bold text-foreground"
           >
-            MindGarden AI
+            Soul Sanctuary
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}

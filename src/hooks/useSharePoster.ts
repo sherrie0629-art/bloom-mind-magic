@@ -280,7 +280,7 @@ export function useSharePoster() {
 
     ctx.fillStyle = "rgba(255,255,255,0.3)";
     ctx.font = "18px 'Inter', sans-serif";
-    ctx.fillText(config.appName || "MindGarden AI", POSTER_WIDTH / 2, captionY + 45);
+    ctx.fillText(config.appName || "Soul Sanctuary", POSTER_WIDTH / 2, captionY + 45);
 
     drawGradientLine(ctx, config.accentColor, POSTER_PADDING, 675, POSTER_HEIGHT - 40);
 
