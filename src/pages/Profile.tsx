@@ -85,8 +85,19 @@ const Profile = () => {
               <div className="flex items-center gap-2 mb-3">
                 <Crown className={`h-5 w-5 ${plan === "plus" ? "text-yellow-500" : "text-muted-foreground"}`} />
                 <span className="text-sm font-semibold text-foreground">{plan === "plus" ? "✨ Plus" : "Free Plan"}</span>
-                {plan === "plus" && expiresAt && <span className="text-[10px] text-muted-foreground ml-auto">Expires: {new Date(expiresAt).toLocaleDateString("en-US")}</span>}
+                {plan === "plus" && expiresAt && <span className="text-[10px] text-muted-foreground ml-auto">到期: {new Date(expiresAt).toLocaleDateString("zh-CN")}</span>}
               </div>
+              {plan === "free" && (
+                freeTrialExpired ? (
+                  <div className="mb-3 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-xs text-destructive font-medium text-center">
+                    🚫 免费试用已结束，请升级 Plus 继续使用
+                  </div>
+                ) : (
+                  <div className="mb-3 rounded-lg bg-secondary/10 border border-secondary/20 px-3 py-2 text-xs text-secondary font-medium text-center">
+                    🎁 免费试用剩余 {freeTrialDaysLeft} 天
+                  </div>
+                )
+              )}
               <div className="space-y-2.5 mb-3">
                 <div>
                   <div className="flex justify-between text-[11px] text-muted-foreground mb-1"><span>Today's Chats</span><span>{chatCount}/{plan === "plus" ? "∞" : chatLimit}</span></div>
