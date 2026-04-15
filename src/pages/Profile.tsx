@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Settings, ChevronRight, BookOpen, Star, Bell, LogOut, Crown, Heart, Sparkles, FileText, ShoppingBag, Shield, Gem } from "lucide-react";
@@ -8,6 +8,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAchievements } from "@/hooks/useAchievements";
+import { toast } from "sonner";
+
+// TODO: Replace with your actual Lemon Squeezy checkout URLs
+const LS_MONTHLY_URL = "https://YOURSTORE.lemonsqueezy.com/checkout/buy/MONTHLY_VARIANT_ID";
+const LS_YEARLY_URL = "https://YOURSTORE.lemonsqueezy.com/checkout/buy/YEARLY_VARIANT_ID";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -17,8 +22,27 @@ const Profile = () => {
   const [fragments, setFragments] = useState<Array<{ id: string; name: string; icon: string; color: string }>>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [billingToggle, setBillingToggle] = useState<"monthly" | "yearly">("monthly");
-  const { plan, chatCount, chatLimit, assessmentCount, assessmentLimit, deepReportCount, deepReportLimit, expiresAt, freeTrialExpired, freeTrialDaysLeft, isLoading: subLoading } = useSubscription(user?.id, user?.created_at);
+  const { plan, chatCount, chatLimit, assessmentCount, assessmentLimit, deepReportCount, deepReportLimit, expiresAt, freeTrialExpired, freeTrialDaysLeft, isLoading: subLoading, refresh } = useSubscription(user?.id, user?.created_at);
   const { unlockedIds } = useAchievements(user?.id);
+
+  // Initialize Lemon Squeezy + listen for checkout success
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.createLemonSqueezy) {
+      window.createLemonSqueezy();
+    }
+
+    const handler = (event: any) => {
+      if (event?.event === "Checkout.Success") {
+        toast.success("Upgrade successful! 🎉");
+        // Give webhook a moment to process, then refresh
+        setTimeout(() => refresh(), 3000);
+      }
+    };
+
+    if (window.LemonSqueezy) {
+      window.LemonSqueezy.Setup({ eventHandler: handler });
+    }
+  }, [refresh]);
 
   useEffect(() => {
     if (!user) return;
@@ -37,6 +61,19 @@ const Profile = () => {
     };
     load();
   }, [user]);
+
+  const openCheckout = useCallback(() => {
+    if (!user) return;
+    const baseUrl = billingToggle === "yearly" ? LS_YEARLY_URL : LS_MONTHLY_URL;
+    const url = `${baseUrl}?checkout[custom][user_id]=${user.id}&checkout[email]=${encodeURIComponent(user.email || "")}`;
+    
+    if (window.LemonSqueezy) {
+      window.LemonSqueezy.Url.Open(url);
+    } else {
+      // Fallback: open in new tab
+      window.open(url, "_blank");
+    }
+  }, [user, billingToggle]);
 
   const menuItems = [
     { icon: Star, label: "Reports", count: stats.assessments, action: () => navigate("/assessment-reports") },
@@ -85,16 +122,16 @@ const Profile = () => {
               <div className="flex items-center gap-2 mb-3">
                 <Crown className={`h-5 w-5 ${plan === "plus" ? "text-yellow-500" : "text-muted-foreground"}`} />
                 <span className="text-sm font-semibold text-foreground">{plan === "plus" ? "✨ Plus" : "Free Plan"}</span>
-                {plan === "plus" && expiresAt && <span className="text-[10px] text-muted-foreground ml-auto">到期: {new Date(expiresAt).toLocaleDateString("zh-CN")}</span>}
+                {plan === "plus" && expiresAt && <span className="text-[10px] text-muted-foreground ml-auto">Expires: {new Date(expiresAt).toLocaleDateString()}</span>}
               </div>
               {plan === "free" && (
                 freeTrialExpired ? (
                   <div className="mb-3 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-xs text-destructive font-medium text-center">
-                    🚫 免费试用已结束，请升级 Plus 继续使用
+                    🚫 Free trial ended. Upgrade to Plus to continue.
                   </div>
                 ) : (
                   <div className="mb-3 rounded-lg bg-secondary/10 border border-secondary/20 px-3 py-2 text-xs text-secondary font-medium text-center">
-                    🎁 免费试用剩余 {freeTrialDaysLeft} 天
+                    🎁 Free trial: {freeTrialDaysLeft} days left
                   </div>
                 )
               )}
@@ -115,8 +152,8 @@ const Profile = () => {
                 )}
               </div>
               {plan !== "plus" && (
-                <button onClick={() => {}} className="w-full rounded-xl bg-gradient-golden py-2.5 text-xs font-semibold text-primary-foreground flex items-center justify-center gap-1.5">
-                  <Sparkles className="h-3.5 w-3.5" /> Upgrade to Plus
+                <button onClick={openCheckout} className="w-full rounded-xl bg-gradient-golden py-2.5 text-xs font-semibold text-primary-foreground flex items-center justify-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5" /> Get Full Access
                 </button>
               )}
             </motion.div>
@@ -151,7 +188,7 @@ const Profile = () => {
                 </button>
               </div>
 
-              <button onClick={() => {}} className="w-full rounded-xl bg-gradient-golden py-2.5 text-xs font-semibold text-primary-foreground flex items-center justify-center gap-1.5">
+              <button onClick={openCheckout} className="w-full rounded-xl bg-gradient-golden py-2.5 text-xs font-semibold text-primary-foreground flex items-center justify-center gap-1.5">
                 <Sparkles className="h-3.5 w-3.5" />
                 {billingToggle === "monthly" ? "Get Plus · $4.99/mo" : "Get Plus · $47.99/yr"}
               </button>
