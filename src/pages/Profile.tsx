@@ -151,11 +151,6 @@ const Profile = () => {
                   </div>
                 )}
               </div>
-              {plan !== "plus" && (
-                <button onClick={openCheckout} className="w-full rounded-xl bg-gradient-golden py-2.5 text-xs font-semibold text-primary-foreground flex items-center justify-center gap-1.5">
-                  <Sparkles className="h-3.5 w-3.5" /> Get Full Access
-                </button>
-              )}
             </motion.div>
           )}
 
