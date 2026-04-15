@@ -144,7 +144,7 @@ const DailyTarot = () => {
       accentColorLight: "#c4b5fd",
       icon: card?.emoji || "🔮",
       caption: result.actionTip,
-      appName: "MindGarden AI · Daily Tarot",
+      appName: "Soul Sanctuary · Daily Tarot",
       preloadedImageUrl: result.imageUrl || undefined,
     });
   };

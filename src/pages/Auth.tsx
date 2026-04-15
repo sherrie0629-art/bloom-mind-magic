@@ -56,7 +56,7 @@ const Auth = () => {
     <div className="min-h-screen bg-gradient-calm flex flex-col items-center justify-center px-6">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="font-display text-3xl font-bold text-gradient-mystic">MindGarden</h1>
+          <h1 className="font-display text-3xl font-bold text-gradient-mystic">Soul Sanctuary</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             {isLogin ? "Welcome back. Continue your journey within." : "Begin your journey of self-discovery."}
           </p>
