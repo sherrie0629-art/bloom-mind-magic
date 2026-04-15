@@ -435,6 +435,8 @@ const DailyWhisper = () => {
                     if (card) {
                       setDrawnCard({ card, isReversed: record.is_reversed });
                       setIsFlipped(true);
+                      setImageTimedOut(false);
+                      if (imagePollingRef.current) clearInterval(imagePollingRef.current);
                       setResult({ whisper: record.interpretation || "", actionTip: record.action_tip || "", imageUrl: record.image_url, drawId: record.id, card, isReversed: record.is_reversed });
                     }
                   }}>
