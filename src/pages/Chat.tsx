@@ -80,7 +80,7 @@ const Chat = () => {
 
   const { bondLevel, totalTurns, pendingLevelUp, incrementTurn, recordEasterEgg, dismissLevelUp } =
     useBond(user?.id, agentId);
-  const { canChat, chatCount, chatLimit, plan, incrementChat } = useSubscription(user?.id);
+  const { canChat, chatCount, chatLimit, plan, freeTrialExpired, incrementChat } = useSubscription(user?.id, user?.created_at);
   const { newlyUnlocked, checkAchievements, dismissAchievement } = useAchievements(user?.id);
 
   // Load energy from bond

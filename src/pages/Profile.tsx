@@ -17,7 +17,7 @@ const Profile = () => {
   const [fragments, setFragments] = useState<Array<{ id: string; name: string; icon: string; color: string }>>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [billingToggle, setBillingToggle] = useState<"monthly" | "yearly">("monthly");
-  const { plan, chatCount, chatLimit, assessmentCount, assessmentLimit, deepReportCount, deepReportLimit, expiresAt, isLoading: subLoading } = useSubscription(user?.id);
+  const { plan, chatCount, chatLimit, assessmentCount, assessmentLimit, deepReportCount, deepReportLimit, expiresAt, freeTrialExpired, freeTrialDaysLeft, isLoading: subLoading } = useSubscription(user?.id, user?.created_at);
   const { unlockedIds } = useAchievements(user?.id);
 
   useEffect(() => {
