@@ -11,6 +11,8 @@ interface SubscriptionState {
   chatLimit: number;
   assessmentLimit: number;
   deepReportLimit: number;
+  freeTrialExpired: boolean;
+  freeTrialDaysLeft: number;
   isLoading: boolean;
 }
 
@@ -19,7 +21,9 @@ const LIMITS = {
   plus: { chat: 9999, assessment: 9999, deepReport: 1 },
 };
 
-export function useSubscription(userId: string | undefined) {
+const FREE_TRIAL_DAYS = 30;
+
+export function useSubscription(userId: string | undefined, createdAt?: string) {
   const [state, setState] = useState<SubscriptionState>({
     plan: "free",
     billingPeriod: "monthly",
@@ -30,6 +34,8 @@ export function useSubscription(userId: string | undefined) {
     chatLimit: LIMITS.free.chat,
     assessmentLimit: LIMITS.free.assessment,
     deepReportLimit: LIMITS.free.deepReport,
+    freeTrialExpired: false,
+    freeTrialDaysLeft: FREE_TRIAL_DAYS,
     isLoading: true,
   });
 
@@ -62,6 +68,18 @@ export function useSubscription(userId: string | undefined) {
       sub?.plan === "plus" && sub?.expires_at && new Date(sub.expires_at) > now;
     const plan: "free" | "plus" = isActive ? "plus" : "free";
     const limits = LIMITS[plan];
+
+    // Calculate free trial status
+    let freeTrialExpired = false;
+    let freeTrialDaysLeft = FREE_TRIAL_DAYS;
+    if (plan === "free" && createdAt) {
+      const daysSinceCreation = Math.floor(
+        (now.getTime() - new Date(createdAt).getTime()) / 86400000
+      );
+      freeTrialDaysLeft = Math.max(0, FREE_TRIAL_DAYS - daysSinceCreation);
+      freeTrialExpired = freeTrialDaysLeft <= 0;
+    }
+
     setState({
       plan,
       billingPeriod: sub?.billing_period || "monthly",
@@ -72,9 +90,11 @@ export function useSubscription(userId: string | undefined) {
       chatLimit: limits.chat,
       assessmentLimit: limits.assessment,
       deepReportLimit: limits.deepReport,
+      freeTrialExpired,
+      freeTrialDaysLeft,
       isLoading: false,
     });
-  }, [userId]);
+  }, [userId, createdAt]);
 
   useEffect(() => {
     load();
@@ -158,8 +178,8 @@ export function useSubscription(userId: string | undefined) {
     return true;
   }, [userId]);
 
-  const canChat = state.chatCount < state.chatLimit;
-  const canAssess = state.assessmentCount < state.assessmentLimit;
+  const canChat = !state.freeTrialExpired && state.chatCount < state.chatLimit;
+  const canAssess = !state.freeTrialExpired && state.assessmentCount < state.assessmentLimit;
   const canDeepReport = state.plan === "plus" && state.deepReportCount < state.deepReportLimit;
 
   return {

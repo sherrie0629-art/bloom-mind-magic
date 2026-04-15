@@ -80,7 +80,7 @@ const Chat = () => {
 
   const { bondLevel, totalTurns, pendingLevelUp, incrementTurn, recordEasterEgg, dismissLevelUp } =
     useBond(user?.id, agentId);
-  const { canChat, chatCount, chatLimit, plan, incrementChat } = useSubscription(user?.id);
+  const { canChat, chatCount, chatLimit, plan, freeTrialExpired, incrementChat } = useSubscription(user?.id, user?.created_at);
   const { newlyUnlocked, checkAchievements, dismissAchievement } = useAchievements(user?.id);
 
   // Load energy from bond
@@ -326,7 +326,11 @@ const Chat = () => {
     }
 
     if (!canChat) {
-      toast.error(`Daily chat limit reached (${chatLimit} chats/${plan === "plus" ? "Plus" : "Free"}) 💫 Come back tomorrow!`);
+      if (freeTrialExpired) {
+        toast.error("免费试用已结束，请升级 Plus 继续使用 ✨");
+      } else {
+        toast.error(`今日聊天次数已用完 (${chatLimit} 次/${plan === "plus" ? "Plus" : "Free"}) 💫 明天再来吧！`);
+      }
       return;
     }
 
