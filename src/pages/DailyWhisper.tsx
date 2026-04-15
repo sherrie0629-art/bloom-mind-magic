@@ -31,7 +31,7 @@ const QUICK_WORDS = ["Exhausted", "Anxious", "Calm", "Happy", "Excited", "Lonely
 
 const DailyWhisper = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, promptLogin } = useAuth();
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [moodWord, setMoodWord] = useState("");
   const [inputText, setInputText] = useState("");
@@ -47,7 +47,7 @@ const DailyWhisper = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!user) { navigate("/auth"); return; }
+    if (!user) { promptLogin("登录后记录每日心语 🌙"); navigate("/"); return; }
     loadHistory();
   }, [user]);
 
