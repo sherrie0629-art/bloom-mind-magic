@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,7 +19,7 @@ import CompatibilityDetail from "./pages/CompatibilityDetail.tsx";
 import Profile from "./pages/Profile.tsx";
 import Auth from "./pages/Auth.tsx";
 import ConversationHistory from "./pages/ConversationHistory.tsx";
-import DailyWhisper from "./pages/DailyWhisper.tsx";
+import DailyTarot from "./pages/DailyTarot.tsx";
 import AgentArchive from "./pages/AgentArchive.tsx";
 import Vault from "./pages/Vault.tsx";
 import SoulMap from "./pages/SoulMap.tsx";
@@ -51,7 +51,8 @@ const App = () => (
             <Route path="/assessment/compatibility" element={<CompatibilityFlow />} />
             <Route path="/compatibility-reports" element={<CompatibilityReports />} />
             <Route path="/compatibility-reports/:id" element={<CompatibilityDetail />} />
-            <Route path="/daily-whisper" element={<DailyWhisper />} />
+            <Route path="/daily-tarot" element={<DailyTarot />} />
+            <Route path="/daily-whisper" element={<Navigate to="/daily-tarot" replace />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/archive" element={<AgentArchive />} />
             <Route path="/vault" element={<Vault />} />

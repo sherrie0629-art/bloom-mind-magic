@@ -94,7 +94,7 @@ const Index = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => navigate("/daily-whisper")}
+            onClick={() => navigate("/daily-tarot")}
             className="cursor-pointer rounded-2xl bg-card p-3 shadow-card border border-secondary/10"
           >
             <div className="flex flex-col items-center gap-1.5 text-center">
