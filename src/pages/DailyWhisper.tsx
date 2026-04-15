@@ -129,6 +129,7 @@ const DailyWhisper = () => {
   const startImagePolling = (drawId: string) => {
     if (imagePollingRef.current) clearInterval(imagePollingRef.current);
     let attempts = 0;
+    setImageTimedOut(false);
     imagePollingRef.current = setInterval(async () => {
       attempts++;
       if (attempts > 20) { if (imagePollingRef.current) clearInterval(imagePollingRef.current); setImageTimedOut(true); return; }
@@ -136,8 +137,8 @@ const DailyWhisper = () => {
         const { data } = await supabase.functions.invoke("daily-whisper", { body: { action: "check-image", draw_id: drawId } });
         if (data?.imageUrl) {
           setResult(prev => prev ? { ...prev, imageUrl: data.imageUrl } : prev);
+          setImageTimedOut(false);
           if (imagePollingRef.current) clearInterval(imagePollingRef.current);
-          loadHistory();
         }
       } catch {}
     }, 2000);
