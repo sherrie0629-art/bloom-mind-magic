@@ -320,9 +320,63 @@ const Chat = () => {
     const text = directText || input.trim();
     if (!text || isStreaming) return;
 
+    // Anonymous mode: allow first ANON_MSG_LIMIT messages without login
     if (!user) {
-      toast.error("Please sign in to start chatting 🌙");
-      navigate("/auth");
+      const userMsgCount = messages.filter(m => m.role === "user").length;
+      if (userMsgCount >= ANON_MSG_LIMIT) {
+        promptLogin("登录后保存聊天记录，继续探索更多 ✨");
+        return;
+      }
+      // Anonymous: skip DB ops, just chat locally
+      const userMsg: Message = { id: Date.now().toString(), role: "user", content: text };
+      setMessages((prev) => [...prev, userMsg]);
+      setInput("");
+      setIsStreaming(true);
+
+      const apiMessages: Msg[] = messages
+        .filter((m) => m.id !== "welcome")
+        .map((m) => ({ role: m.role, content: m.content }));
+      apiMessages.push({ role: "user", content: userMsg.content });
+
+      let assistantContent = "";
+      const upsertAssistant = (chunk: string) => {
+        assistantContent += chunk;
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last?.role === "assistant" && last.id === "streaming") {
+            return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantContent } : m));
+          }
+          return [...prev, { id: "streaming", role: "assistant", content: assistantContent }];
+        });
+      };
+
+      try {
+        await streamChat({
+          messages: apiMessages,
+          agentId,
+          memoryContext: [],
+          bondLevel: 1,
+          onDelta: upsertAssistant,
+          onDone: () => {
+            const { cleanContent, branchOptions: parsedOptions } = parseGameMarkers(assistantContent);
+            setIsStreaming(false);
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === "streaming"
+                  ? { ...m, id: Date.now().toString(), content: cleanContent, branchOptions: parsedOptions }
+                  : m
+              )
+            );
+          },
+          onError: (error) => {
+            setIsStreaming(false);
+            toast.error(error);
+          },
+        });
+      } catch {
+        setIsStreaming(false);
+        toast.error("网络错误，请重试");
+      }
       return;
     }
 
