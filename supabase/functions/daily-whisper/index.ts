@@ -92,8 +92,8 @@ async function generateAndSaveImage(apiKey: string, supabase: any, userId: strin
     const fileName = `${userId}/${Date.now()}.png`;
     const { error: uploadError } = await supabase.storage.from("whisper-images").upload(fileName, binaryData, { contentType: "image/png", upsert: false });
     if (uploadError) { console.error("Upload error:", uploadError); return; }
-    const { data: urlData } = supabase.storage.from("whisper-images").getPublicUrl(fileName);
-    if (whisperId) { await supabase.from("daily_whispers").update({ image_url: urlData.publicUrl }).eq("id", whisperId); }
+    // Store the storage path (not a public URL) so the client can generate signed URLs
+    if (whisperId) { await supabase.from("daily_whispers").update({ image_url: fileName }).eq("id", whisperId); }
   } catch (err) { console.error("Image processing error:", err); }
 }
 
