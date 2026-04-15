@@ -11,8 +11,8 @@ import { useAchievements } from "@/hooks/useAchievements";
 import { toast } from "sonner";
 
 // TODO: Replace with your actual Lemon Squeezy checkout URLs
-const LS_MONTHLY_URL = "https://YOURSTORE.lemonsqueezy.com/checkout/buy/MONTHLY_VARIANT_ID";
-const LS_YEARLY_URL = "https://YOURSTORE.lemonsqueezy.com/checkout/buy/YEARLY_VARIANT_ID";
+const LS_MONTHLY_URL = "https://sherrie.lemonsqueezy.com/checkout/buy/3d9841b4-e58e-43c1-a0a7-31608ef980fd";
+const LS_YEARLY_URL = "https://sherrie.lemonsqueezy.com/checkout/buy/cea09e6c-699d-43be-aad0-6561f6624654";
 
 const Profile = () => {
   const navigate = useNavigate();
