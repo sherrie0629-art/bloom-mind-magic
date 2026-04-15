@@ -36,6 +36,7 @@ const DailyWhisper = () => {
   const [deepReading, setDeepReading] = useState<string | null>(null);
   const [isReadingLoading, setIsReadingLoading] = useState(false);
   const imagePollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [imageTimedOut, setImageTimedOut] = useState(false);
 
   useEffect(() => {
     if (!user) { promptLogin("Sign in to access Daily Tarot 🔮"); navigate("/"); return; }
@@ -133,7 +134,7 @@ const DailyWhisper = () => {
     let attempts = 0;
     imagePollingRef.current = setInterval(async () => {
       attempts++;
-      if (attempts > 20) { if (imagePollingRef.current) clearInterval(imagePollingRef.current); return; }
+      if (attempts > 20) { if (imagePollingRef.current) clearInterval(imagePollingRef.current); setImageTimedOut(true); return; }
       try {
         const { data } = await supabase.functions.invoke("daily-whisper", { body: { action: "check-image", draw_id: drawId } });
         if (data?.imageUrl) {
@@ -329,8 +330,17 @@ const DailyWhisper = () => {
             <img src={result.imageUrl} alt={result.card.name} className="h-72 w-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
           ) : result.drawId ? (
             <div className="h-72 w-full bg-gradient-to-br from-violet-900/50 to-indigo-900/50 flex flex-col items-center justify-center gap-3 rounded-2xl">
-              <motion.div className="h-12 w-12 rounded-full border-2 border-white/20 border-t-white/60" animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }} />
-              <p className="text-xs text-white/50">Generating card art…</p>
+              {imageTimedOut ? (
+                <>
+                  <Sparkles className="h-10 w-10 text-white/30" />
+                  <p className="text-xs text-white/40">Card art unavailable</p>
+                </>
+              ) : (
+                <>
+                  <motion.div className="h-12 w-12 rounded-full border-2 border-white/20 border-t-white/60" animate={{ rotate: 360 }} transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }} />
+                  <p className="text-xs text-white/50">Generating card art…</p>
+                </>
+              )}
             </div>
           ) : null}
         </div>
