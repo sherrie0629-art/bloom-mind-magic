@@ -237,93 +237,6 @@ export type Database = {
         }
         Relationships: []
       }
-      daily_tarot_draws: {
-        Row: {
-          action_tip: string | null
-          card_id: number
-          card_name: string
-          created_at: string
-          draw_date: string
-          energy_score: number | null
-          id: string
-          image_url: string | null
-          interpretation: string | null
-          is_reversed: boolean
-          user_id: string
-        }
-        Insert: {
-          action_tip?: string | null
-          card_id: number
-          card_name: string
-          created_at?: string
-          draw_date?: string
-          energy_score?: number | null
-          id?: string
-          image_url?: string | null
-          interpretation?: string | null
-          is_reversed?: boolean
-          user_id: string
-        }
-        Update: {
-          action_tip?: string | null
-          card_id?: number
-          card_name?: string
-          created_at?: string
-          draw_date?: string
-          energy_score?: number | null
-          id?: string
-          image_url?: string | null
-          interpretation?: string | null
-          is_reversed?: boolean
-          user_id?: string
-        }
-        Relationships: []
-      }
-      daily_whispers: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          image_url: string | null
-          input_text: string | null
-          mood: string | null
-          mood_emoji: string | null
-          mood_score: number | null
-          mood_word: string | null
-          user_id: string
-          whisper: string | null
-          whisper_date: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          input_text?: string | null
-          mood?: string | null
-          mood_emoji?: string | null
-          mood_score?: number | null
-          mood_word?: string | null
-          user_id: string
-          whisper?: string | null
-          whisper_date?: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          image_url?: string | null
-          input_text?: string | null
-          mood?: string | null
-          mood_emoji?: string | null
-          mood_score?: number | null
-          mood_word?: string | null
-          user_id?: string
-          whisper?: string | null
-          whisper_date?: string
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -446,6 +359,51 @@ export type Database = {
           title?: string
           type?: string
           unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tarot_draws: {
+        Row: {
+          action_tip: string | null
+          card_id: number
+          card_name: string
+          created_at: string
+          draw_date: string
+          energy_score: number | null
+          id: string
+          image_path: string | null
+          image_status: string
+          interpretation: string | null
+          is_reversed: boolean
+          user_id: string
+        }
+        Insert: {
+          action_tip?: string | null
+          card_id: number
+          card_name: string
+          created_at?: string
+          draw_date?: string
+          energy_score?: number | null
+          id?: string
+          image_path?: string | null
+          image_status?: string
+          interpretation?: string | null
+          is_reversed?: boolean
+          user_id: string
+        }
+        Update: {
+          action_tip?: string | null
+          card_id?: number
+          card_name?: string
+          created_at?: string
+          draw_date?: string
+          energy_score?: number | null
+          id?: string
+          image_path?: string | null
+          image_status?: string
+          interpretation?: string | null
+          is_reversed?: boolean
           user_id?: string
         }
         Relationships: []
