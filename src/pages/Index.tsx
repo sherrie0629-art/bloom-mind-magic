@@ -101,8 +101,8 @@ const Index = () => {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-mystic">
                 <Sparkles className="h-5 w-5 text-primary-foreground" />
               </div>
-              <p className="text-[11px] font-semibold text-foreground">Daily Check-in</p>
-              <p className="text-[9px] text-muted-foreground leading-tight">Log mood · AI whisper ✨</p>
+              <p className="text-[11px] font-semibold text-foreground">Daily Tarot</p>
+              <p className="text-[9px] text-muted-foreground leading-tight">Draw a card · Get your insight 🔮</p>
             </div>
           </motion.div>
           <motion.div

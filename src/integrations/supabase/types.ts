@@ -237,6 +237,48 @@ export type Database = {
         }
         Relationships: []
       }
+      daily_tarot_draws: {
+        Row: {
+          action_tip: string | null
+          card_id: number
+          card_name: string
+          created_at: string
+          draw_date: string
+          energy_score: number | null
+          id: string
+          image_url: string | null
+          interpretation: string | null
+          is_reversed: boolean
+          user_id: string
+        }
+        Insert: {
+          action_tip?: string | null
+          card_id: number
+          card_name: string
+          created_at?: string
+          draw_date?: string
+          energy_score?: number | null
+          id?: string
+          image_url?: string | null
+          interpretation?: string | null
+          is_reversed?: boolean
+          user_id: string
+        }
+        Update: {
+          action_tip?: string | null
+          card_id?: number
+          card_name?: string
+          created_at?: string
+          draw_date?: string
+          energy_score?: number | null
+          id?: string
+          image_url?: string | null
+          interpretation?: string | null
+          is_reversed?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       daily_whispers: {
         Row: {
           content: string
