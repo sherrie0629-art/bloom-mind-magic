@@ -421,6 +421,7 @@ const AssessmentDetail = () => {
         text="Discover yours at Soul Sanctuary ✨"
       />
     </div>
+    </DesktopLayout>
   );
 };
 
