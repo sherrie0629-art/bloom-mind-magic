@@ -331,6 +331,22 @@ export function useSharePoster() {
     toast.success("Poster saved ✨");
   }, [posterDataUrl]);
 
+  const uploadPosterToStorage = useCallback(async (dataUrl: string): Promise<string | null> => {
+    try {
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const fileName = `poster_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.png`;
+      const { error } = await supabase.storage
+        .from("shared-posters")
+        .upload(fileName, blob, { contentType: "image/png", upsert: false });
+      if (error) return null;
+      const { data: urlData } = supabase.storage.from("shared-posters").getPublicUrl(fileName);
+      return urlData?.publicUrl || null;
+    } catch {
+      return null;
+    }
+  }, []);
+
   return {
     sharePoster,
     generatePoster,
@@ -339,6 +355,7 @@ export function useSharePoster() {
     showPosterPreview,
     closePosterPreview,
     downloadPoster,
+    uploadPosterToStorage,
   };
 }
 
