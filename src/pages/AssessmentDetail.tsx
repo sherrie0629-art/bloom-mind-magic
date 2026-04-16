@@ -410,6 +410,14 @@ const AssessmentDetail = () => {
           )}
         </motion.div>
       </div>
+
+      <ShareSheet
+        open={shareOpen}
+        onClose={() => { setShareOpen(false); setShareImageUrl(null); }}
+        imageDataUrl={shareImageUrl}
+        title={getTitle()}
+        text="Discover yours at Soul Sanctuary ✨"
+      />
     </div>
   );
 };
