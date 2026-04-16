@@ -8,6 +8,7 @@ import { tarotCards, drawRandomCard } from "@/data/tarotCards";
 import { useSharePoster } from "@/hooks/useSharePoster";
 import ShareSheet from "@/components/ShareSheet";
 import BottomNav from "@/components/BottomNav";
+import DesktopLayout from "@/components/DesktopLayout";
 import { toast } from "sonner";
 import SEO from "@/components/SEO";
 
