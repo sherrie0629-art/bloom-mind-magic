@@ -27,6 +27,9 @@ const AssessmentDetail = () => {
   const [deepLoading, setDeepLoading] = useState(false);
   const [showDeepReport, setShowDeepReport] = useState(false);
   const { plan } = useSubscription(user?.id);
+  const { generatePoster } = useSharePoster();
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user || !id) return;
