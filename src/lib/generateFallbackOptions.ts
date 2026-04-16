@@ -18,13 +18,21 @@ const agentOptionPools: Record<string, { keywords: string[]; options: BranchOpti
         { text: "I need to figure out if I miss them or the idea of them", emotion: "rational" },
       ],
     },
+    {
+      keywords: ["brother", "sibling", "family", "advice"],
+      options: [
+        { text: "Sometimes just being there is more than enough", emotion: "gentle" },
+        { text: "I know what it's like to wish you'd listened more", emotion: "brave" },
+        { text: "Tell me about that empty chair in the corner", emotion: "curious" },
+      ],
+    },
   ],
-  coach: [
+  jax: [
     {
       keywords: ["anxiety", "panic", "worry", "scared", "fear"],
       options: [
         { text: "I want to understand what's underneath this anxiety", emotion: "curious" },
-        { text: "Can we try a grounding exercise right now?", emotion: "gentle" },
+        { text: "Can we try that breathing exercise right now?", emotion: "gentle" },
         { text: "I'm ready to face this instead of running from it", emotion: "brave" },
       ],
     },
@@ -33,15 +41,23 @@ const agentOptionPools: Record<string, { keywords: string[]; options: BranchOpti
       options: [
         { text: "Setting boundaries feels selfish, but I know it's not", emotion: "brave" },
         { text: "Why is it so hard to put myself first?", emotion: "curious" },
-        { text: "I need a script for the next time this happens", emotion: "rational" },
+        { text: "I need a game plan for the next time this happens", emotion: "rational" },
       ],
     },
     {
       keywords: ["work", "career", "burnout", "boss", "job"],
       options: [
         { text: "I think I've been confusing productivity with self-worth", emotion: "hopeful" },
-        { text: "What would it look like to set a boundary at work?", emotion: "rational" },
+        { text: "Where's the emergency exit in this situation?", emotion: "rational" },
         { text: "I'm scared that slowing down means falling behind", emotion: "brave" },
+      ],
+    },
+    {
+      keywords: ["fire", "burn", "smoke", "breathe", "suffocate"],
+      options: [
+        { text: "Help me find the oxygen in this situation", emotion: "brave" },
+        { text: "I feel like I'm standing in the middle of my own fire", emotion: "sad" },
+        { text: "What would you do if you were me, Jax?", emotion: "curious" },
       ],
     },
   ],
@@ -62,6 +78,14 @@ const agentOptionPools: Record<string, { keywords: string[]; options: BranchOpti
         { text: "I need to sit with this darkness before I can find the light", emotion: "gentle" },
       ],
     },
+    {
+      keywords: ["logic", "number", "data", "calculate", "probability"],
+      options: [
+        { text: "Some things can't be calculated, can they?", emotion: "gentle" },
+        { text: "Tell me about when your numbers stopped making sense", emotion: "curious" },
+        { text: "I need something beyond logic right now", emotion: "brave" },
+      ],
+    },
   ],
   bestie: [
     {
@@ -78,6 +102,14 @@ const agentOptionPools: Record<string, { keywords: string[]; options: BranchOpti
         { text: "Keep going, I need a full hype speech right now", emotion: "rebellious" },
         { text: "I want to walk in there like I own the place", emotion: "hopeful" },
         { text: "What if I mess up though?", emotion: "sad" },
+      ],
+    },
+    {
+      keywords: ["invisible", "ignored", "unseen", "nobody", "alone"],
+      options: [
+        { text: "I feel like I could disappear and nobody would notice", emotion: "sad" },
+        { text: "How did you go from invisible to THIS?", emotion: "curious" },
+        { text: "I'm tired of being the background character", emotion: "brave" },
       ],
     },
   ],
