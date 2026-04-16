@@ -580,7 +580,29 @@ const Chat = () => {
   }, []);
 
   return (
-    <div className={`flex h-screen flex-col chat-theme-${agentId} relative`} style={{ background: dynamicBg || 'var(--chat-bg, hsl(40 30% 97%))' }}>
+    <div className="md:ml-[220px] flex">
+    {/* Desktop sidebar nav */}
+    <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-[220px] flex-col border-r border-border bg-card/80 backdrop-blur-xl z-50">
+      <div className="px-5 pt-8 pb-6">
+        <h1 className="font-display text-lg font-bold text-foreground">Soul Sanctuary</h1>
+        <p className="text-[10px] text-muted-foreground mt-0.5">Your AI Healing Space</p>
+      </div>
+      <nav className="flex-1 px-3 space-y-1">
+        {[
+          { icon: "🏠", label: "Home", path: "/" },
+          { icon: "📖", label: "Archive", path: "/archive" },
+          { icon: "✨", label: "Assess", path: "/assessment" },
+          { icon: "👤", label: "Me", path: "/profile" },
+        ].map((item) => (
+          <button key={item.path} onClick={() => navigate(item.path)} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors">
+            <span>{item.icon}</span><span>{item.label}</span>
+          </button>
+        ))}
+      </nav>
+      <div className="px-5 py-4 border-t border-border"><p className="text-[10px] text-muted-foreground">islandai.life</p></div>
+    </aside>
+
+    <div className={`flex h-screen flex-col flex-1 chat-theme-${agentId} relative`} style={{ background: dynamicBg || 'var(--chat-bg, hsl(40 30% 97%))' }}>
       <SEO title="Chat — Soul Sanctuary" description="Talk with your AI companion. A safe, private space for emotional support and self-reflection." />
       <ChatParticles atmosphere={atmosphere} onBgChange={setDynamicBg} />
       <div className="border-b border-border backdrop-blur-xl px-4 py-3" style={{ backgroundColor: 'var(--chat-header-bg, hsl(0 0% 0% / 0.03))' }}>
