@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAchievements } from "@/hooks/useAchievements";
 import { ACHIEVEMENTS, type AchievementDef } from "@/data/achievements";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import DesktopLayout from "@/components/DesktopLayout";
 import SEO from "@/components/SEO";
 
 interface SoulFragment { id: string; name: string; description: string | null; icon: string; color: string; source_type: string; source_id: string | null; created_at: string; }
@@ -32,6 +33,7 @@ const SoulMap = () => {
   const groupedFragments = SOURCE_GROUPS.map((g) => ({ ...g, items: fragments.filter((f) => g.sources.includes(f.source_type)) }));
 
   return (
+    <DesktopLayout maxWidth="4xl">
     <div className="min-h-screen pb-12" style={{ background: "linear-gradient(180deg, hsl(225 50% 8%), hsl(260 40% 12%), hsl(225 45% 10%))" }}>
       <SEO title="Soul Map — Soul Sanctuary" description="Your personalized soul map — a living constellation of insights from every conversation." />
       <div className="flex items-center gap-3 px-5 pt-12 pb-4">
@@ -76,6 +78,7 @@ const SoulMap = () => {
           {!unlockedIds.includes(selectedConstellation.id) && selectedConstellation.agentId && (<div className="pt-2 text-center"><button onClick={() => { setSelectedConstellation(null); navigate(`/chat?agent=${selectedConstellation.agentId}`); }} className="rounded-2xl bg-gradient-golden px-6 py-2.5 text-sm font-medium text-primary-foreground active:scale-95 transition-transform">Chat ✨</button></div>)}</>)}</DialogContent>
       </Dialog>
     </div>
+    </DesktopLayout>
   );
 };
 

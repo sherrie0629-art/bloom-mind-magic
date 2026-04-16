@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Heart, Loader2, Users, Sparkles, Download } from "lucide-react";
+import DesktopLayout from "@/components/DesktopLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -146,6 +147,7 @@ const CompatibilityFlow = () => {
   };
 
   return (
+    <DesktopLayout>
     <div className="min-h-screen bg-gradient-calm pb-12">
       <div className="flex items-center gap-3 px-4 py-3 pt-14">
         <button onClick={() => navigate(-1)} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></button>
@@ -280,6 +282,7 @@ const CompatibilityFlow = () => {
       </AnimatePresence>
       <PosterPreviewDialog open={showPosterPreview} onClose={closePosterPreview} dataUrl={posterDataUrl} onDownload={downloadPoster} />
     </div>
+    </DesktopLayout>
   );
 };
 

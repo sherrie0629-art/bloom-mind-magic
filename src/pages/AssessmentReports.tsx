@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Brain, Compass, Stars, Flame, ChevronRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import DesktopLayout from "@/components/DesktopLayout";
 
 const typeConfig: Record<string, { icon: typeof Brain; label: string; gradient: string }> = {
   mbti: { icon: Brain, label: "MBTI Personality", gradient: "bg-gradient-to-br from-indigo to-indigo-light" },
@@ -61,7 +62,8 @@ const AssessmentReports = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-calm pb-24">
+    <DesktopLayout>
+    <div className="min-h-screen bg-gradient-calm pb-24 md:pb-8">
       <div className="flex items-center gap-3 px-4 py-3 pt-14">
         <button onClick={() => navigate("/profile")} className="text-muted-foreground">
           <ArrowLeft className="h-5 w-5" />
@@ -117,6 +119,7 @@ const AssessmentReports = () => {
         )}
       </div>
     </div>
+    </DesktopLayout>
   );
 };
 
