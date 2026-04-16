@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, RotateCcw, Download, ArrowLeft } from "lucide-react";
+import { Sparkles, RotateCcw, Share2, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { tarotCards, drawRandomCard } from "@/data/tarotCards";
 import { useSharePoster } from "@/hooks/useSharePoster";
-import PosterPreviewDialog from "@/components/PosterPreviewDialog";
+import ShareSheet from "@/components/ShareSheet";
 import BottomNav from "@/components/BottomNav";
 import { toast } from "sonner";
 import SEO from "@/components/SEO";
@@ -33,7 +33,9 @@ const DailyTarot = () => {
   const [loadingToday, setLoadingToday] = useState(true);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const { sharePoster, posterDataUrl, showPosterPreview, closePosterPreview, downloadPoster } = useSharePoster();
+  const { generatePoster } = useSharePoster();
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareDataUrl, setShareDataUrl] = useState<string | null>(null);
 
   // Check today's existing draw on mount
   useEffect(() => {
@@ -133,21 +135,28 @@ const DailyTarot = () => {
     }
   };
 
-  const handleSavePoster = () => {
+  const handleShare = async () => {
     if (!result) return;
     const card = tarotCards.find((c) => c.id === result.cardId);
-    sharePoster({
-      title: result.cardName,
-      subtitle: result.isReversed ? "Reversed" : "Upright",
-      description: result.interpretation.split("\n\n💡")[0],
-      bars: [],
-      accentColor: "#a78bfa",
-      accentColorLight: "#c4b5fd",
-      icon: card?.emoji || "🔮",
-      caption: result.actionTip,
-      appName: "Soul Sanctuary · Daily Tarot",
-      preloadedImageUrl: result.imageUrl || undefined,
-    });
+    try {
+      toast.info("Generating your poster…", { duration: 3000 });
+      const canvas = await generatePoster({
+        title: result.cardName,
+        subtitle: result.isReversed ? "Reversed" : "Upright",
+        description: result.interpretation.split("\n\n💡")[0],
+        bars: [],
+        accentColor: "#a78bfa",
+        accentColorLight: "#c4b5fd",
+        icon: card?.emoji || "🔮",
+        caption: result.actionTip,
+        appName: "Soul Sanctuary · Daily Tarot",
+        preloadedImageUrl: result.imageUrl || undefined,
+      });
+      setShareDataUrl(canvas.toDataURL("image/png"));
+      setShareOpen(true);
+    } catch {
+      toast.error("Failed to generate poster");
+    }
   };
 
   const cardData = result ? tarotCards.find((c) => c.id === result.cardId) : null;
@@ -267,16 +276,22 @@ const DailyTarot = () => {
             {/* Save poster */}
             <motion.button
               whileTap={{ scale: 0.97 }}
-              onClick={handleSavePoster}
+              onClick={handleShare}
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-golden py-3 text-sm font-semibold text-primary-foreground shadow-lg"
             >
-              <Download className="h-4 w-4" /> Save Poster
+              <Share2 className="h-4 w-4" /> Save & Share
             </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <PosterPreviewDialog open={showPosterPreview} dataUrl={posterDataUrl} onClose={closePosterPreview} onDownload={downloadPoster} />
+      <ShareSheet
+        open={shareOpen}
+        onClose={() => { setShareOpen(false); setShareDataUrl(null); }}
+        imageDataUrl={shareDataUrl}
+        title={result?.cardName || "Daily Tarot"}
+        text="Discover your daily tarot insight ✨"
+      />
       <BottomNav />
     </div>
   );

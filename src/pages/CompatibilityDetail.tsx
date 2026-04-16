@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Heart } from "lucide-react";
+import { ArrowLeft, Heart, Share2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useSharePoster } from "@/hooks/useSharePoster";
+import ShareSheet from "@/components/ShareSheet";
+import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 
 const DIM_LABELS: Record<string, string> = {
@@ -20,6 +23,9 @@ const CompatibilityDetail = () => {
   const { user } = useAuth();
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { generatePoster } = useSharePoster();
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareDataUrl, setShareDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user || !id) return;
@@ -69,11 +75,45 @@ const CompatibilityDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-calm pb-12">
-      <div className="flex items-center gap-3 px-4 py-3 pt-14">
-        <button onClick={() => navigate("/compatibility-reports")} className="text-muted-foreground">
-          <ArrowLeft className="h-5 w-5" />
+      <div className="flex items-center justify-between px-4 py-3 pt-14">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate("/compatibility-reports")} className="text-muted-foreground">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h2 className="font-display text-sm font-semibold text-foreground">💕 Compatibility Details</h2>
+        </div>
+        <button
+          onClick={async () => {
+            try {
+              toast.info("Generating poster…", { duration: 3000 });
+              const bars = d?.dimensions
+                ? Object.entries(d.dimensions).map(([k, v]) => ({
+                    label1: DIM_LABELS[k] || k,
+                    label2: "",
+                    value: v as number,
+                  }))
+                : [];
+              const canvas = await generatePoster({
+                title: d?.title || "Compatibility",
+                subtitle: `${d?.overallScore || 0}% Match`,
+                description: d?.summary || "",
+                bars,
+                accentColor: "#f472b6",
+                accentColorLight: "#fb7185",
+                icon: d?.emoji || "💕",
+                caption: `with ${partner?.name || "Partner"}`,
+                appName: "Soul Sanctuary · Compatibility",
+              });
+              setShareDataUrl(canvas.toDataURL("image/png"));
+              setShareOpen(true);
+            } catch {
+              toast.error("Failed to generate poster");
+            }
+          }}
+          className="text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Share2 className="h-5 w-5" />
         </button>
-        <h2 className="font-display text-sm font-semibold text-foreground">💕 Compatibility Details</h2>
       </div>
 
       <div className="px-6 mt-2 space-y-4">
@@ -200,6 +240,14 @@ const CompatibilityDetail = () => {
           </motion.div>
         )}
       </div>
+
+      <ShareSheet
+        open={shareOpen}
+        onClose={() => { setShareOpen(false); setShareDataUrl(null); }}
+        imageDataUrl={shareDataUrl}
+        title={d?.title || "Compatibility"}
+        text={`${d?.overallScore || 0}% Match ✨`}
+      />
     </div>
   );
 };

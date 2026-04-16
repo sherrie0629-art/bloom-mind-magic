@@ -47,13 +47,7 @@ export function useSharePoster() {
 
       imageCache.set(prompt, data.imageUrl);
 
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.onload = () => resolve(img);
-        img.onerror = () => resolve(null);
-        img.src = data.imageUrl;
-      });
+      return loadImageViaBlobUrl(data.imageUrl);
     } catch {
       return null;
     }
@@ -61,13 +55,7 @@ export function useSharePoster() {
 
   const generatePoster = useCallback(async (config: PosterConfig) => {
     const aiImagePromise = config.preloadedImageUrl
-      ? new Promise<HTMLImageElement | null>((resolve) => {
-          const img = new Image();
-          img.crossOrigin = "anonymous";
-          img.onload = () => resolve(img);
-          img.onerror = () => resolve(null);
-          img.src = config.preloadedImageUrl!;
-        })
+      ? loadImageViaBlobUrl(config.preloadedImageUrl)
       : config.imagePrompt ? fetchAIImage(config.imagePrompt) : Promise.resolve(null);
 
     const measureCanvas = document.createElement("canvas");
@@ -398,4 +386,20 @@ function getWrappedLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: 
   }
   if (line) lines.push(line);
   return lines;
+}
+
+async function loadImageViaBlobUrl(url: string): Promise<HTMLImageElement | null> {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = objectUrl;
+    });
+  } catch {
+    return null;
+  }
 }
