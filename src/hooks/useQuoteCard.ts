@@ -43,7 +43,7 @@ export function useQuoteCard() {
     ctx.globalAlpha = 0.15;
     ctx.font = "bold 200px 'DM Serif Display', serif";
     ctx.textAlign = "left";
-    ctx.fillText(""", PADDING - 10, 220);
+    ctx.fillText("\u201C", PADDING - 10, 220);
     ctx.globalAlpha = 1;
 
     // Quote text
