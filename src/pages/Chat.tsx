@@ -12,6 +12,7 @@ import AchievementUnlock from "@/components/AchievementUnlock";
 import EasterEggEffect from "@/components/EasterEggEffect";
 import BranchSelector from "@/components/BranchSelector";
 import ChatParticles from "@/components/ChatParticles";
+import AgentProfileDrawer from "@/components/AgentProfileDrawer";
 import { useAchievements } from "@/hooks/useAchievements";
 import { agents, BOND_LABELS } from "@/data/agents";
 import { useAuth } from "@/contexts/AuthContext";
@@ -78,6 +79,7 @@ const Chat = () => {
   const [atmosphere, setAtmosphere] = useState<Atmosphere>(null);
   const [dynamicBg, setDynamicBg] = useState("");
   const [historyLoaded, setHistoryLoaded] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { bondLevel, totalTurns, pendingLevelUp, incrementTurn, recordEasterEgg, dismissLevelUp } =
@@ -545,7 +547,9 @@ const Chat = () => {
           <button onClick={() => navigate(-1)} className="text-muted-foreground shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <img src={agent.image} alt={agent.name} className="h-9 w-9 rounded-xl object-cover shrink-0" />
+          <button onClick={() => setProfileOpen(true)} className="shrink-0 active:scale-95 transition-transform">
+            <img src={agent.image} alt={agent.name} className="h-9 w-9 rounded-xl object-cover" />
+          </button>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-foreground truncate">{agent.name}</h2>
@@ -694,6 +698,14 @@ const Chat = () => {
       />
 
       <AchievementUnlock achievement={newlyUnlocked} onClose={dismissAchievement} />
+
+      <AgentProfileDrawer
+        agent={agent}
+        bondLevel={bondLevel}
+        totalTurns={totalTurns}
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+      />
     </div>
   );
 };
