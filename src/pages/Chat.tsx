@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Send, Mic, Zap, Plus } from "lucide-react";
+import { useQuoteCard } from "@/hooks/useQuoteCard";
+import ShareSheet from "@/components/ShareSheet";
 import ReactMarkdown from "react-markdown";
 import BottomNav from "@/components/BottomNav";
 import BondIndicator from "@/components/BondIndicator";
