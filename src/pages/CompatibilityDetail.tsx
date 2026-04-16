@@ -240,6 +240,14 @@ const CompatibilityDetail = () => {
           </motion.div>
         )}
       </div>
+
+      <ShareSheet
+        open={shareOpen}
+        onClose={() => { setShareOpen(false); setShareDataUrl(null); }}
+        imageDataUrl={shareDataUrl}
+        title={d?.title || "Compatibility"}
+        text={`${d?.overallScore || 0}% Match ✨`}
+      />
     </div>
   );
 };
