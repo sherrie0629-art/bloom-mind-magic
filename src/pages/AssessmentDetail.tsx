@@ -111,9 +111,32 @@ const AssessmentDetail = () => {
   }
 
   const d = report.result_data as any;
-  const type = report.type as string;
+  const type = report.assessment_type as string;
   const cfg = typeConfig[type] || typeConfig.mbti;
   const Icon = cfg.icon;
+
+  const handleShare = async () => {
+    const iconMap: Record<string, string> = { mbti: "🧠", enneagram: "🧭", zodiac: "⭐", emotion: "🔥" };
+    const bars = d.traits
+      ? Object.entries(d.traits).map(([k, v]) => ({ label1: k, label2: "", value: v as number }))
+      : [];
+    try {
+      const canvas = await generatePoster({
+        title: getTitle(),
+        subtitle: cfg.label,
+        description: d.description || "",
+        bars,
+        accentColor: "#8b5cf6",
+        accentColorLight: "#a78bfa",
+        icon: iconMap[type] || "✨",
+        caption: d.socialCaption || "Discover your inner self",
+      });
+      setShareImageUrl(canvas.toDataURL("image/png"));
+      setShareOpen(true);
+    } catch {
+      toast.error("Failed to generate share image");
+    }
+  };
 
   const formatDate = (s: string) => {
     const dt = new Date(s);
