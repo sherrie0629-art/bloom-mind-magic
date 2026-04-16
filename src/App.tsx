@@ -24,6 +24,7 @@ import AgentArchive from "./pages/AgentArchive.tsx";
 import Vault from "./pages/Vault.tsx";
 import SoulMap from "./pages/SoulMap.tsx";
 import Admin from "./pages/Admin.tsx";
+import Welcome from "./pages/Welcome.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/vault" element={<Vault />} />
             <Route path="/soul-map" element={<SoulMap />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/welcome" element={<Welcome />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
