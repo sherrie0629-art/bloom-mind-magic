@@ -84,3 +84,4 @@ const DesktopLayout = ({ children, maxWidth = "2xl" }: DesktopLayoutProps) => {
 };
 
 export default DesktopLayout;
+
