@@ -109,7 +109,7 @@ export function useQuoteCard() {
     ctx.fillStyle = "rgba(255,255,255,0.3)";
     ctx.font = "16px 'Inter', sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("Soul Sanctuary · soulsanctuary.app", CARD_WIDTH / 2, CARD_HEIGHT - 50);
+    ctx.fillText("Soul Sanctuary · islandai.life", CARD_WIDTH / 2, CARD_HEIGHT - 50);
 
     return canvas.toDataURL("image/png");
   }, []);
