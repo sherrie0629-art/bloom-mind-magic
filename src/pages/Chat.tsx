@@ -626,11 +626,22 @@ const Chat = () => {
             >
               <div className="flex flex-col max-w-[75%]">
                 <div
-                  className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                  className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed select-none ${
                     msg.role === "user"
                       ? "bg-primary text-primary-foreground rounded-br-md"
                       : "bg-card text-card-foreground shadow-card rounded-bl-md"
                   } ${msg.content.includes(EASTER_EGG_MARKER) ? "ring-2 ring-secondary/50 shadow-glow" : ""}`}
+                  {...(msg.role === "assistant" && msg.id !== "welcome" && msg.id !== "streaming"
+                    ? {
+                        onTouchStart: () => handleLongPressStart(msg.content),
+                        onTouchEnd: handleLongPressEnd,
+                        onTouchCancel: handleLongPressEnd,
+                        onContextMenu: (e: React.MouseEvent) => {
+                          e.preventDefault();
+                          handleLongPressStart(msg.content);
+                        },
+                      }
+                    : {})}
                 >
                   {msg.role === "assistant" ? (
                     <div className="prose prose-sm max-w-none text-card-foreground prose-p:my-1 prose-headings:my-2">
