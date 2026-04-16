@@ -538,6 +538,7 @@ const Chat = () => {
 
   return (
     <div className={`flex h-screen flex-col chat-theme-${agentId} relative`} style={{ background: dynamicBg || 'var(--chat-bg, hsl(40 30% 97%))' }}>
+      <SEO title="Chat — Soul Sanctuary" description="Talk with your AI companion. A safe, private space for emotional support and self-reflection." />
       <ChatParticles atmosphere={atmosphere} onBgChange={setDynamicBg} />
       <div className="border-b border-border backdrop-blur-xl px-4 py-3" style={{ backgroundColor: 'var(--chat-header-bg, hsl(0 0% 0% / 0.03))' }}>
         <div className="flex items-center gap-3">

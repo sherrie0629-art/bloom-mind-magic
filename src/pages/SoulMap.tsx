@@ -33,6 +33,7 @@ const SoulMap = () => {
 
   return (
     <div className="min-h-screen pb-12" style={{ background: "linear-gradient(180deg, hsl(225 50% 8%), hsl(260 40% 12%), hsl(225 45% 10%))" }}>
+      <SEO title="Soul Map — Soul Sanctuary" description="Your personalized soul map — a living constellation of insights from every conversation." />
       <div className="flex items-center gap-3 px-5 pt-12 pb-4">
         <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80 active:scale-95 transition-transform"><ArrowLeft className="h-4 w-4" /></button>
         <h1 className="font-display text-lg font-semibold text-white/90">Soul Map</h1>

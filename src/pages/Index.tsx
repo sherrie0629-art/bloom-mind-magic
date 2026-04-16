@@ -65,6 +65,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-calm pb-20">
+      <SEO title="Soul Sanctuary — Your AI Healing Space" description="Meet AI companions who listen without judgement. Explore personality assessments and build your soul map." />
       {/* Hero */}
       <div className="relative overflow-hidden">
         <img src={heroBg} alt="" className="absolute inset-0 h-full w-full object-cover opacity-60" />
