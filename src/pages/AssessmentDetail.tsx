@@ -5,6 +5,8 @@ import { ArrowLeft, Brain, Compass, Stars, Flame, Share2, Crown, Sparkles, Loade
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useSharePoster } from "@/hooks/useSharePoster";
+import ShareSheet from "@/components/ShareSheet";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 
@@ -25,6 +27,9 @@ const AssessmentDetail = () => {
   const [deepLoading, setDeepLoading] = useState(false);
   const [showDeepReport, setShowDeepReport] = useState(false);
   const { plan } = useSubscription(user?.id);
+  const { generatePoster } = useSharePoster();
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user || !id) return;
@@ -106,9 +111,32 @@ const AssessmentDetail = () => {
   }
 
   const d = report.result_data as any;
-  const type = report.type as string;
+  const type = report.assessment_type as string;
   const cfg = typeConfig[type] || typeConfig.mbti;
   const Icon = cfg.icon;
+
+  const handleShare = async () => {
+    const iconMap: Record<string, string> = { mbti: "🧠", enneagram: "🧭", zodiac: "⭐", emotion: "🔥" };
+    const bars = d.traits
+      ? Object.entries(d.traits).map(([k, v]) => ({ label1: k, label2: "", value: v as number }))
+      : [];
+    try {
+      const canvas = await generatePoster({
+        title: getTitle(),
+        subtitle: cfg.label,
+        description: d.description || "",
+        bars,
+        accentColor: "#8b5cf6",
+        accentColorLight: "#a78bfa",
+        icon: iconMap[type] || "✨",
+        caption: d.socialCaption || "Discover your inner self",
+      });
+      setShareImageUrl(canvas.toDataURL("image/png"));
+      setShareOpen(true);
+    } catch {
+      toast.error("Failed to generate share image");
+    }
+  };
 
   const formatDate = (s: string) => {
     const dt = new Date(s);
@@ -193,11 +221,16 @@ const AssessmentDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-calm pb-12">
-      <div className="flex items-center gap-3 px-4 py-3 pt-14">
-        <button onClick={() => navigate("/assessment-reports")} className="text-muted-foreground">
-          <ArrowLeft className="h-5 w-5" />
+      <div className="flex items-center justify-between px-4 py-3 pt-14">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate("/assessment-reports")} className="text-muted-foreground">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h2 className="font-display text-sm font-semibold text-foreground">{cfg.label}</h2>
+        </div>
+        <button onClick={handleShare} className="text-muted-foreground hover:text-foreground transition-colors">
+          <Share2 className="h-5 w-5" />
         </button>
-        <h2 className="font-display text-sm font-semibold text-foreground">{cfg.label}</h2>
       </div>
 
       <div className="px-6 mt-2">
@@ -377,6 +410,14 @@ const AssessmentDetail = () => {
           )}
         </motion.div>
       </div>
+
+      <ShareSheet
+        open={shareOpen}
+        onClose={() => { setShareOpen(false); setShareImageUrl(null); }}
+        imageDataUrl={shareImageUrl}
+        title={getTitle()}
+        text="Discover yours at Soul Sanctuary ✨"
+      />
     </div>
   );
 };

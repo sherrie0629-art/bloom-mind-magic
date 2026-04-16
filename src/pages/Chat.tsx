@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Send, Mic, Zap, Plus } from "lucide-react";
+import { useQuoteCard } from "@/hooks/useQuoteCard";
+import ShareSheet from "@/components/ShareSheet";
 import ReactMarkdown from "react-markdown";
 import BottomNav from "@/components/BottomNav";
 import BondIndicator from "@/components/BondIndicator";
@@ -80,6 +82,10 @@ const Chat = () => {
   const [dynamicBg, setDynamicBg] = useState("");
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { generateQuoteCard } = useQuoteCard();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { bondLevel, totalTurns, pendingLevelUp, incrementTurn, recordEasterEgg, dismissLevelUp } =
@@ -538,6 +544,38 @@ const Chat = () => {
 
   const levelUpLore = pendingLevelUp ? agent.lore.find((l) => l.level === pendingLevelUp)?.text || "" : "";
 
+  const handleLongPressStart = useCallback((content: string) => {
+    longPressTimer.current = setTimeout(async () => {
+      toast.info("Generating quote card...");
+      const accentMap: Record<string, string> = {
+        barista: "#e8a87c",
+        jax: "#f59e0b",
+        mystic: "#8b5cf6",
+        bestie: "#6366f1",
+      };
+      try {
+        const dataUrl = await generateQuoteCard({
+          quote: content.slice(0, 200),
+          agentName: agent.name,
+          agentTitle: agent.title,
+          agentImage: agent.image,
+          accentColor: accentMap[agentId] || "#8b5cf6",
+        });
+        setShareImageUrl(dataUrl);
+        setShareOpen(true);
+      } catch {
+        toast.error("Failed to generate card");
+      }
+    }, 600);
+  }, [agent, agentId, generateQuoteCard]);
+
+  const handleLongPressEnd = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
   return (
     <div className={`flex h-screen flex-col chat-theme-${agentId} relative`} style={{ background: dynamicBg || 'var(--chat-bg, hsl(40 30% 97%))' }}>
       <SEO title="Chat — Soul Sanctuary" description="Talk with your AI companion. A safe, private space for emotional support and self-reflection." />
@@ -588,11 +626,22 @@ const Chat = () => {
             >
               <div className="flex flex-col max-w-[75%]">
                 <div
-                  className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                  className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed select-none ${
                     msg.role === "user"
                       ? "bg-primary text-primary-foreground rounded-br-md"
                       : "bg-card text-card-foreground shadow-card rounded-bl-md"
                   } ${msg.content.includes(EASTER_EGG_MARKER) ? "ring-2 ring-secondary/50 shadow-glow" : ""}`}
+                  {...(msg.role === "assistant" && msg.id !== "welcome" && msg.id !== "streaming"
+                    ? {
+                        onTouchStart: () => handleLongPressStart(msg.content),
+                        onTouchEnd: handleLongPressEnd,
+                        onTouchCancel: handleLongPressEnd,
+                        onContextMenu: (e: React.MouseEvent) => {
+                          e.preventDefault();
+                          handleLongPressStart(msg.content);
+                        },
+                      }
+                    : {})}
                 >
                   {msg.role === "assistant" ? (
                     <div className="prose prose-sm max-w-none text-card-foreground prose-p:my-1 prose-headings:my-2">
@@ -705,6 +754,14 @@ const Chat = () => {
         totalTurns={totalTurns}
         open={profileOpen}
         onClose={() => setProfileOpen(false)}
+      />
+
+      <ShareSheet
+        open={shareOpen}
+        onClose={() => { setShareOpen(false); setShareImageUrl(null); }}
+        imageDataUrl={shareImageUrl}
+        title={`${agent.name} says...`}
+        text={`via Soul Sanctuary`}
       />
     </div>
   );

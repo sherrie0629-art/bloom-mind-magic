@@ -282,6 +282,11 @@ export function useSharePoster() {
     ctx.font = "18px 'Inter', sans-serif";
     ctx.fillText(config.appName || "Soul Sanctuary", POSTER_WIDTH / 2, captionY + 45);
 
+    // Brand CTA
+    ctx.fillStyle = "rgba(255,255,255,0.2)";
+    ctx.font = "15px 'Inter', sans-serif";
+    ctx.fillText("Discover yours \u2192 soulsanctuary.app", POSTER_WIDTH / 2, captionY + 75);
+
     drawGradientLine(ctx, config.accentColor, POSTER_PADDING, 675, POSTER_HEIGHT - 40);
 
     return canvas;
