@@ -6,6 +6,9 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { useCallback, useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ShareSheetProps {
   open: boolean;
@@ -14,29 +17,41 @@ interface ShareSheetProps {
   title?: string;
   text?: string;
   url?: string;
+  publicImageUrl?: string;
 }
 
-const ShareSheet = ({ open, onClose, imageDataUrl, title, text, url }: ShareSheetProps) => {
-  const handleCopyLink = async () => {
-    const shareUrl = url || window.location.href;
-    await navigator.clipboard.writeText(shareUrl);
-    toast.success("Link copied! ✨");
-    onClose();
-  };
+const SHARE_URL = "https://islandai.life";
 
-  const handleDownload = () => {
-    if (!imageDataUrl) return;
-    const a = document.createElement("a");
-    a.href = imageDataUrl;
-    a.download = "soul-sanctuary.png";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    toast.success("Image saved ✨");
-    onClose();
-  };
+const ShareSheet = ({ open, onClose, imageDataUrl, title, text, url, publicImageUrl }: ShareSheetProps) => {
+  const isMobile = useIsMobile();
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(publicImageUrl || null);
 
-  const handleNativeShare = async () => {
+  // Auto-upload poster for social sharing URLs
+  useEffect(() => {
+    if (!open || !imageDataUrl || publicImageUrl) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(imageDataUrl);
+        const blob = await res.blob();
+        const fileName = `poster_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.png`;
+        const { error } = await supabase.storage
+          .from("shared-posters")
+          .upload(fileName, blob, { contentType: "image/png", upsert: false });
+        if (!error && !cancelled) {
+          const { data } = supabase.storage.from("shared-posters").getPublicUrl(fileName);
+          setUploadedUrl(data?.publicUrl || null);
+        }
+      } catch { /* silent */ }
+    })();
+    return () => { cancelled = true; };
+  }, [open, imageDataUrl, publicImageUrl]);
+
+  const shareUrl = url || SHARE_URL;
+  const shareTitle = title || "Soul Sanctuary";
+  const shareText = text || "Discover yours ✨";
+
+  const handleNativeShare = useCallback(async () => {
     if (!imageDataUrl) return;
     try {
       const res = await fetch(imageDataUrl);
@@ -45,8 +60,8 @@ const ShareSheet = ({ open, onClose, imageDataUrl, title, text, url }: ShareShee
 
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
-          title: title || "Soul Sanctuary",
-          text: text || "Discover yours ✨",
+          title: shareTitle,
+          text: shareText,
           files: [file],
         });
         onClose();
@@ -55,19 +70,58 @@ const ShareSheet = ({ open, onClose, imageDataUrl, title, text, url }: ShareShee
     } catch (e) {
       if ((e as Error).name === "AbortError") return;
     }
-    // Fallback: just download
-    handleDownload();
-  };
+    toast.info("System share not available, use options below");
+  }, [imageDataUrl, shareTitle, shareText, onClose]);
 
-  const actions = [
-    { icon: Copy, label: "Copy Link", onClick: handleCopyLink },
-    { icon: Download, label: "Save Image", onClick: handleDownload, disabled: !imageDataUrl },
-    { icon: Share2, label: "Share", onClick: handleNativeShare, disabled: !imageDataUrl },
+  const handleDownload = useCallback(() => {
+    if (!imageDataUrl) return;
+    const a = document.createElement("a");
+    a.href = imageDataUrl;
+    a.download = "soul-sanctuary.png";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    toast.success("Image saved ✨");
+  }, [imageDataUrl]);
+
+  const handleCopyLink = useCallback(async () => {
+    await navigator.clipboard.writeText(shareUrl);
+    toast.success("Link copied! ✨");
+  }, [shareUrl]);
+
+  const openPinterest = useCallback(() => {
+    const media = uploadedUrl || "";
+    const pinUrl = `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(shareUrl)}&media=${encodeURIComponent(media)}&description=${encodeURIComponent(shareText)}`;
+    window.open(pinUrl, "_blank", "noopener");
+  }, [shareUrl, shareText, uploadedUrl]);
+
+  const openX = useCallback(() => {
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
+    window.open(tweetUrl, "_blank", "noopener");
+  }, [shareUrl, shareText]);
+
+  const openFacebook = useCallback(() => {
+    const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`;
+    window.open(fbUrl, "_blank", "noopener");
+  }, [shareUrl]);
+
+  const openWhatsApp = useCallback(() => {
+    const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(`${shareText} ${shareUrl}`)}`;
+    window.open(waUrl, "_blank", "noopener");
+  }, [shareUrl, shareText]);
+
+  const socialChannels = [
+    { label: "Pinterest", icon: "📌", onClick: openPinterest },
+    { label: "X", icon: "𝕏", onClick: openX },
+    { label: "Facebook", icon: "📘", onClick: openFacebook },
+    { label: "WhatsApp", icon: "💬", onClick: openWhatsApp },
+    { label: "Copy Link", icon: "🔗", onClick: handleCopyLink },
+    { label: "Save", icon: "💾", onClick: handleDownload, disabled: !imageDataUrl },
   ];
 
   return (
     <Drawer open={open} onOpenChange={(o) => !o && onClose()}>
-      <DrawerContent className="max-h-[50vh]">
+      <DrawerContent className="max-h-[60vh]">
         <DrawerHeader className="pb-2">
           <div className="flex items-center justify-between">
             <DrawerTitle className="text-base font-semibold">Share</DrawerTitle>
@@ -82,23 +136,37 @@ const ShareSheet = ({ open, onClose, imageDataUrl, title, text, url }: ShareShee
             <img
               src={imageDataUrl}
               alt="Preview"
-              className="max-h-40 rounded-xl shadow-card object-contain"
+              className="max-h-36 rounded-xl shadow-card object-contain"
             />
           </div>
         )}
 
-        <div className="flex justify-center gap-8 px-6 pb-6 pt-2">
-          {actions.map(({ icon: Icon, label, onClick, disabled }) => (
+        {/* Mobile: prominent system share button */}
+        {isMobile && imageDataUrl && (
+          <div className="px-6 pb-3">
+            <button
+              onClick={handleNativeShare}
+              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3.5 text-primary-foreground font-medium transition-all active:scale-[0.98]"
+            >
+              <Share2 className="h-5 w-5" />
+              <span>Share to...</span>
+            </button>
+          </div>
+        )}
+
+        {/* Social channel quick actions */}
+        <div className="flex flex-wrap justify-center gap-4 px-6 pb-6 pt-1">
+          {socialChannels.map(({ icon, label, onClick, disabled }) => (
             <button
               key={label}
               onClick={onClick}
               disabled={disabled}
-              className="flex flex-col items-center gap-2 text-foreground disabled:opacity-40"
+              className="flex flex-col items-center gap-1.5 text-foreground disabled:opacity-40 min-w-[52px]"
             >
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted transition-colors hover:bg-muted/80 active:scale-95">
-                <Icon className="h-5 w-5" />
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-muted transition-colors hover:bg-muted/80 active:scale-95 text-lg">
+                {icon}
               </div>
-              <span className="text-[11px] text-muted-foreground">{label}</span>
+              <span className="text-[10px] text-muted-foreground leading-tight">{label}</span>
             </button>
           ))}
         </div>
