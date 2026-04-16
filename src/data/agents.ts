@@ -18,6 +18,7 @@ export interface Agent {
   name: string;
   title: string;
   description: string;
+  quote: string;
   image: string;
   gradient: string;
   systemPrompt: string;
