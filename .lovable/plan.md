@@ -1,67 +1,37 @@
 
 
-## 创建 SEO 组件并为各页面配置 Meta 标签
+## 角色资料卡弹窗
 
-### 方案概述
-安装 `react-helmet-async`（比 `react-helmet` 更适合 React 18），创建可复用的 `SEO.tsx` 组件，然后在各页面中调用，动态设置 title、description、OG 标签。
+### 交互设计
 
-### 涉及文件
+点击聊天页顶部栏的 **角色头像** 弹出一个 Drawer（从底部滑出），展示角色品牌信息。比 Dialog 更适合移动端，且符合"想接近"的拉近感。
 
-| 文件 | 操作 |
-|------|------|
-| `package.json` | 安装 `react-helmet-async` |
-| `src/components/SEO.tsx` | **新建** — 通用 SEO 组件 |
-| `src/main.tsx` | 包裹 `HelmetProvider` |
-| `src/pages/Welcome.tsx` | 添加 SEO 组件，移除手动 `document.title` |
-| `src/pages/Index.tsx` | 添加 SEO 组件 |
-| `src/pages/Chat.tsx` | 添加 SEO 组件 |
-| `src/pages/Assessment.tsx` | 添加 SEO 组件 |
-| `src/pages/DailyTarot.tsx` | 添加 SEO 组件 |
-| `src/pages/SoulMap.tsx` | 添加 SEO 组件 |
-| `src/pages/Auth.tsx` | 添加 SEO 组件 |
-| `src/pages/Profile.tsx` | 添加 SEO 组件 |
-| `index.html` | 保留基础 fallback meta，清理重复标签 |
+### 弹窗内容（设计为角色名片风格）
 
-### SEO 组件设计
+1. **大头像** + 渐变背景（复用 agent.gradient）
+2. **名字 + 标题**（如 "Chloe · The Barista Who Stays"）
+3. **角色签名语**（新增 `quote` 字段，如 "我曾以为'建议'能救人，后来发现，只有'在场'可以。"）
+4. **角色描述**（agent.description）
+5. **羁绊等级** 进度条 + 当前已解锁的 Lore 条目（已解锁的显示文字，未解锁的显示 🔒 + "Deepen your bond to unlock"）
+6. **钩子文案**：底部一行小字，如 "There's a secret Chloe has never told anyone…" （基于下一条未解锁 lore 生成悬念）
+7. **"Start Chatting" 按钮** 关闭弹窗回到聊天
 
-```tsx
-// src/components/SEO.tsx
-interface SEOProps {
-  title?: string;
-  description?: string;
-  keywords?: string;
-  ogTitle?: string;
-  ogDescription?: string;
-  ogImage?: string;
-  ogType?: string;
-  canonical?: string;
-}
-```
+### 技术实现
 
-组件使用 `<Helmet>` 输出 `<title>`、`<meta name="description">`、`<meta name="keywords">`、OG 标签、Twitter Card 标签。所有属性都有合理默认值（品牌名 + 通用描述）。
+**文件改动：**
 
-### 各页面 SEO 配置方案
+1. **`src/data/agents.ts`** — Agent 接口新增 `quote` 字段，每个角色添加签名语：
+   - Chloe: "I used to think advice could save people. Then I learned — only presence can."
+   - Jax: "The most dangerous thing in a fire isn't the flame. It's the panic."
+   - Luna: "When logic couldn't explain the pain, I chose the stars."
+   - Zoe: "I cheer this loud to drown out the voices that once told me I was nothing."
 
-| 页面 | Title | Description（含关键词） |
-|------|-------|------------------------|
-| **Welcome** | Soul Sanctuary — AI Emotional Companion & Personalized Soul Maps | AI emotional companion for self-discovery. Personalized soul maps, mental wellness AI, MBTI & Enneagram assessments. Your 24/7 healing space. |
-| **Index** | Soul Sanctuary — Your AI Healing Space | Meet AI companions who listen without judgement. Explore personality assessments and build your soul map. |
-| **Chat** | Chat — Soul Sanctuary | Talk with your AI companion. A safe, private space for emotional support and self-reflection. |
-| **Assessment** | Soul Discovery — Soul Sanctuary | Discover yourself through MBTI, Enneagram, Horoscope & Emotion assessments powered by AI. |
-| **DailyTarot** | Daily Tarot — Soul Sanctuary | Draw your daily tarot card for personalized insights and guidance from the universe. |
-| **SoulMap** | Soul Map — Soul Sanctuary | Your personalized soul map — a living constellation of insights from every conversation. |
-| **Auth** | Sign In — Soul Sanctuary | Join Soul Sanctuary. Start your journey of AI-powered self-discovery. |
-| **Profile** | Profile — Soul Sanctuary | Manage your Soul Sanctuary profile and preferences. |
+2. **新建 `src/components/AgentProfileDrawer.tsx`** — Drawer 组件：
+   - 接收 `agent`, `bondLevel`, `totalTurns`, `open`, `onClose`
+   - 顶部渐变区域 + 大头像（80×80）
+   - 签名语用斜体显示
+   - Lore 列表：level ≤ bondLevel 的显示内容，其余显示锁定占位
+   - 底部悬念钩子
 
-### Welcome 落地页特殊关键词
-```
-keywords: "AI emotional companion, personalized soul maps, mental wellness AI, 
-MBTI assessment, Enneagram test, self-discovery, AI therapy, soul sanctuary"
-```
-
-### 技术细节
-- 使用 `react-helmet-async` 而非 `react-helmet`，兼容 React 18 严格模式
-- `main.tsx` 中用 `<HelmetProvider>` 包裹 `<App />`
-- `index.html` 中保留基础 meta 作为 SSR/爬虫 fallback，但移除与页面级 Helmet 冲突的重复 OG 标签
-- Welcome 页面移除现有的 `useEffect` + `document.title` 写法
+3. **`src/pages/Chat.tsx`** — 头像 `<img>` 改为可点击 button，点击打开 AgentProfileDrawer
 
