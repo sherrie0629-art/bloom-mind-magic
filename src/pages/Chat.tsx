@@ -649,7 +649,7 @@ const Chat = () => {
               animate={{ opacity: 1, y: 0 }}
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
-              <div className="flex flex-col max-w-[75%]">
+              <div className="flex flex-col max-w-[75%] md:max-w-[60%]">
                 <div
                   className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed select-none ${
                     msg.role === "user"
@@ -788,6 +788,44 @@ const Chat = () => {
         title={`${agent.name} says...`}
         text={`via Soul Sanctuary`}
       />
+    </div>
+
+    {/* Desktop right panel — Agent Profile */}
+    <aside className="hidden lg:flex w-[280px] shrink-0 flex-col border-l border-border bg-card/50 backdrop-blur-sm h-screen sticky top-0 overflow-y-auto">
+      <div className="p-5 text-center border-b border-border">
+        <img src={agent.image} alt={agent.name} className="mx-auto h-20 w-20 rounded-2xl object-cover shadow-card" />
+        <h3 className="mt-3 font-display text-base font-semibold text-foreground">{agent.name}</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">{agent.title}</p>
+      </div>
+      <div className="p-4 space-y-4">
+        <div>
+          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
+            <span>Bond Level</span>
+            <span className="text-secondary font-medium">{BOND_LABELS[bondLevel - 1]}</span>
+          </div>
+          <BondIndicator level={bondLevel} totalTurns={totalTurns} energyBits={energyBits} />
+        </div>
+        <div className="flex items-center justify-between rounded-xl bg-muted/50 px-3 py-2">
+          <span className="text-xs text-muted-foreground">Energy</span>
+          <div className="flex items-center gap-1"><Zap className="h-3.5 w-3.5 text-secondary" /><span className="text-sm font-bold text-secondary">{energyBits}</span></div>
+        </div>
+        <div>
+          <h4 className="text-xs font-semibold text-foreground mb-2">Story Fragments</h4>
+          <div className="space-y-2">
+            {agent.lore.map((loreEntry, index) => {
+              const isUnlocked = index + 1 <= bondLevel;
+              return (
+                <div key={loreEntry.level} className={`rounded-xl p-3 text-xs leading-relaxed ${isUnlocked ? "bg-secondary/5 text-foreground border border-secondary/10" : "bg-muted/30 text-muted-foreground/40"}`}>
+                  <span className="text-[10px] font-medium text-muted-foreground">Lv.{loreEntry.level}</span>
+                  <p className="mt-1">{isUnlocked ? `"${loreEntry.text.slice(0, 80)}…"` : "???"}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </aside>
+
     </div>
   );
 };
