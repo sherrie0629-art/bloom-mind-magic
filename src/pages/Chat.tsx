@@ -380,6 +380,7 @@ const Chat = () => {
           },
           onError: (error) => {
             setIsStreaming(false);
+            setMessages((prev) => prev.filter((m) => m.id !== "streaming"));
             toast.error(error);
           },
         });
@@ -498,6 +499,7 @@ const Chat = () => {
         },
         onError: (error) => {
           setIsStreaming(false);
+          setMessages((prev) => prev.filter((m) => m.id !== "streaming"));
           toast.error(error);
         },
       });
