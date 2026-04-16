@@ -82,6 +82,10 @@ const Chat = () => {
   const [dynamicBg, setDynamicBg] = useState("");
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { generateQuoteCard } = useQuoteCard();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const { bondLevel, totalTurns, pendingLevelUp, incrementTurn, recordEasterEgg, dismissLevelUp } =
