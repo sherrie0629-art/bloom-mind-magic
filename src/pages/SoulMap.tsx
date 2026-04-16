@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAchievements } from "@/hooks/useAchievements";
 import { ACHIEVEMENTS, type AchievementDef } from "@/data/achievements";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import SEO from "@/components/SEO";
 
 interface SoulFragment { id: string; name: string; description: string | null; icon: string; color: string; source_type: string; source_id: string | null; created_at: string; }
 

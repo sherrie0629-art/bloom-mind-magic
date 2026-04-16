@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Brain, Stars, Target, Flame } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
+import SEO from "@/components/SEO";
 
 const tests = [
   {

@@ -18,6 +18,7 @@ import { useAuth } from "@/contexts/AuthContext";
 const ANON_MSG_LIMIT = 5;
 import { supabase } from "@/integrations/supabase/client";
 import { streamChat, type Msg } from "@/lib/streamChat";
+import SEO from "@/components/SEO";
 import { useBond } from "@/hooks/useBond";
 import { useSubscription } from "@/hooks/useSubscription";
 import { parseGameMarkers, type BranchOption, type Atmosphere } from "@/lib/parseGameMarkers";

@@ -9,6 +9,7 @@ import { useSharePoster } from "@/hooks/useSharePoster";
 import PosterPreviewDialog from "@/components/PosterPreviewDialog";
 import BottomNav from "@/components/BottomNav";
 import { toast } from "sonner";
+import SEO from "@/components/SEO";
 
 type DrawState = "idle" | "drawing" | "result";
 

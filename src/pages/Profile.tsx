@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAchievements } from "@/hooks/useAchievements";
 import { toast } from "sonner";
+import SEO from "@/components/SEO";
 
 // TODO: Replace with your actual Lemon Squeezy checkout URLs
 const LS_MONTHLY_URL = "https://sherrie.lemonsqueezy.com/checkout/buy/3d9841b4-e58e-43c1-a0a7-31608ef980fd";

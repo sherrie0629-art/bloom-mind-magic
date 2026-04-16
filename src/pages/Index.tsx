@@ -6,6 +6,7 @@ import heroBg from "@/assets/hero-bg.jpg";
 import AgentCard from "@/components/AgentCard";
 import BottomNav from "@/components/BottomNav";
 import { agents, BOND_LABELS } from "@/data/agents";
+import SEO from "@/components/SEO";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
