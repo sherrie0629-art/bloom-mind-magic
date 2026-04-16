@@ -387,3 +387,19 @@ function getWrappedLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: 
   if (line) lines.push(line);
   return lines;
 }
+
+async function loadImageViaBlobUrl(url: string): Promise<HTMLImageElement | null> {
+  try {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = objectUrl;
+    });
+  } catch {
+    return null;
+  }
+}
