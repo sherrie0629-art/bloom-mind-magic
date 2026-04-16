@@ -273,7 +273,7 @@ export function useSharePoster() {
     // Brand CTA
     ctx.fillStyle = "rgba(255,255,255,0.2)";
     ctx.font = "15px 'Inter', sans-serif";
-    ctx.fillText("Discover yours \u2192 soulsanctuary.app", POSTER_WIDTH / 2, captionY + 75);
+    ctx.fillText("Discover yours \u2192 islandai.life", POSTER_WIDTH / 2, captionY + 75);
 
     drawGradientLine(ctx, config.accentColor, POSTER_PADDING, 675, POSTER_HEIGHT - 40);
 
