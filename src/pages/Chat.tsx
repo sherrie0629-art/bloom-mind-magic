@@ -6,6 +6,7 @@ import { useQuoteCard } from "@/hooks/useQuoteCard";
 import ShareSheet from "@/components/ShareSheet";
 import ReactMarkdown from "react-markdown";
 import BottomNav from "@/components/BottomNav";
+import DesktopLayout from "@/components/DesktopLayout";
 import BondIndicator from "@/components/BondIndicator";
 import BondLevelUp from "@/components/BondLevelUp";
 import EnergyFloat from "@/components/EnergyFloat";
@@ -579,7 +580,29 @@ const Chat = () => {
   }, []);
 
   return (
-    <div className={`flex h-screen flex-col chat-theme-${agentId} relative`} style={{ background: dynamicBg || 'var(--chat-bg, hsl(40 30% 97%))' }}>
+    <div className="md:ml-[220px] flex">
+    {/* Desktop sidebar nav */}
+    <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-[220px] flex-col border-r border-border bg-card/80 backdrop-blur-xl z-50">
+      <div className="px-5 pt-8 pb-6">
+        <h1 className="font-display text-lg font-bold text-foreground">Soul Sanctuary</h1>
+        <p className="text-[10px] text-muted-foreground mt-0.5">Your AI Healing Space</p>
+      </div>
+      <nav className="flex-1 px-3 space-y-1">
+        {[
+          { icon: "🏠", label: "Home", path: "/" },
+          { icon: "📖", label: "Archive", path: "/archive" },
+          { icon: "✨", label: "Assess", path: "/assessment" },
+          { icon: "👤", label: "Me", path: "/profile" },
+        ].map((item) => (
+          <button key={item.path} onClick={() => navigate(item.path)} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors">
+            <span>{item.icon}</span><span>{item.label}</span>
+          </button>
+        ))}
+      </nav>
+      <div className="px-5 py-4 border-t border-border"><p className="text-[10px] text-muted-foreground">islandai.life</p></div>
+    </aside>
+
+    <div className={`flex h-screen flex-col flex-1 chat-theme-${agentId} relative`} style={{ background: dynamicBg || 'var(--chat-bg, hsl(40 30% 97%))' }}>
       <SEO title="Chat — Soul Sanctuary" description="Talk with your AI companion. A safe, private space for emotional support and self-reflection." />
       <ChatParticles atmosphere={atmosphere} onBgChange={setDynamicBg} />
       <div className="border-b border-border backdrop-blur-xl px-4 py-3" style={{ backgroundColor: 'var(--chat-header-bg, hsl(0 0% 0% / 0.03))' }}>
@@ -626,7 +649,7 @@ const Chat = () => {
               animate={{ opacity: 1, y: 0 }}
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
-              <div className="flex flex-col max-w-[75%]">
+              <div className="flex flex-col max-w-[75%] md:max-w-[60%]">
                 <div
                   className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed select-none ${
                     msg.role === "user"
@@ -765,6 +788,44 @@ const Chat = () => {
         title={`${agent.name} says...`}
         text={`via Soul Sanctuary`}
       />
+    </div>
+
+    {/* Desktop right panel — Agent Profile */}
+    <aside className="hidden lg:flex w-[280px] shrink-0 flex-col border-l border-border bg-card/50 backdrop-blur-sm h-screen sticky top-0 overflow-y-auto">
+      <div className="p-5 text-center border-b border-border">
+        <img src={agent.image} alt={agent.name} className="mx-auto h-20 w-20 rounded-2xl object-cover shadow-card" />
+        <h3 className="mt-3 font-display text-base font-semibold text-foreground">{agent.name}</h3>
+        <p className="text-xs text-muted-foreground mt-0.5">{agent.title}</p>
+      </div>
+      <div className="p-4 space-y-4">
+        <div>
+          <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
+            <span>Bond Level</span>
+            <span className="text-secondary font-medium">{BOND_LABELS[bondLevel - 1]}</span>
+          </div>
+          <BondIndicator level={bondLevel} totalTurns={totalTurns} energyBits={energyBits} />
+        </div>
+        <div className="flex items-center justify-between rounded-xl bg-muted/50 px-3 py-2">
+          <span className="text-xs text-muted-foreground">Energy</span>
+          <div className="flex items-center gap-1"><Zap className="h-3.5 w-3.5 text-secondary" /><span className="text-sm font-bold text-secondary">{energyBits}</span></div>
+        </div>
+        <div>
+          <h4 className="text-xs font-semibold text-foreground mb-2">Story Fragments</h4>
+          <div className="space-y-2">
+            {agent.lore.map((loreEntry, index) => {
+              const isUnlocked = index + 1 <= bondLevel;
+              return (
+                <div key={loreEntry.level} className={`rounded-xl p-3 text-xs leading-relaxed ${isUnlocked ? "bg-secondary/5 text-foreground border border-secondary/10" : "bg-muted/30 text-muted-foreground/40"}`}>
+                  <span className="text-[10px] font-medium text-muted-foreground">Lv.{loreEntry.level}</span>
+                  <p className="mt-1">{isUnlocked ? `"${loreEntry.text.slice(0, 80)}…"` : "???"}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </aside>
+
     </div>
   );
 };

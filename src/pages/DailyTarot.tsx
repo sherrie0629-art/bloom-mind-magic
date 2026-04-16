@@ -8,6 +8,7 @@ import { tarotCards, drawRandomCard } from "@/data/tarotCards";
 import { useSharePoster } from "@/hooks/useSharePoster";
 import ShareSheet from "@/components/ShareSheet";
 import BottomNav from "@/components/BottomNav";
+import DesktopLayout from "@/components/DesktopLayout";
 import { toast } from "sonner";
 import SEO from "@/components/SEO";
 
@@ -170,7 +171,8 @@ const DailyTarot = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-calm pb-24">
+    <DesktopLayout>
+    <div className="min-h-screen bg-gradient-calm pb-24 md:pb-8">
       <SEO title="Daily Tarot — Soul Sanctuary" description="Draw your daily tarot card for personalized insights and guidance from the universe." />
       {/* Header */}
       <div className="px-6 pt-14 pb-4">
@@ -294,6 +296,7 @@ const DailyTarot = () => {
       />
       <BottomNav />
     </div>
+    </DesktopLayout>
   );
 };
 

@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Download, Sparkles } from "lucide-react";
+import DesktopLayout from "@/components/DesktopLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
@@ -102,6 +103,7 @@ const AssessmentFlow = () => {
 
   if (!started) {
     return (
+      <DesktopLayout>
       <div className="min-h-screen bg-gradient-calm flex flex-col">
         <div className="flex items-center gap-3 px-4 py-3">
           <button onClick={() => navigate("/assessment")} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></button>
@@ -116,11 +118,13 @@ const AssessmentFlow = () => {
           </motion.div>
         </div>
       </div>
+      </DesktopLayout>
     );
   }
 
   if (result) {
     return (
+      <DesktopLayout>
       <div className="min-h-screen bg-gradient-calm pb-8">
         <div className="flex items-center gap-3 px-4 py-3">
           <button onClick={() => navigate("/assessment")} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></button>
@@ -166,6 +170,7 @@ const AssessmentFlow = () => {
         </motion.div>
         <PosterPreviewDialog open={showPosterPreview} dataUrl={posterDataUrl} onClose={closePosterPreview} onDownload={downloadPoster} />
       </div>
+      </DesktopLayout>
     );
   }
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ArrowLeft, Heart, ChevronRight, Plus } from "lucide-react";
+import DesktopLayout from "@/components/DesktopLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -38,7 +39,8 @@ const CompatibilityReports = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-calm pb-24">
+    <DesktopLayout>
+    <div className="min-h-screen bg-gradient-calm pb-24 md:pb-8">
       <div className="flex items-center justify-between px-4 py-3 pt-14">
         <div className="flex items-center gap-3">
           <button onClick={() => navigate("/profile")} className="text-muted-foreground">
@@ -112,6 +114,7 @@ const CompatibilityReports = () => {
         )}
       </div>
     </div>
+    </DesktopLayout>
   );
 };
 

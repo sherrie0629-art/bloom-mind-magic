@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Brain, Compass, Stars, Flame, Share2, Crown, Sparkles, Loader2 } from "lucide-react";
+import DesktopLayout from "@/components/DesktopLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -220,6 +221,7 @@ const AssessmentDetail = () => {
   };
 
   return (
+    <DesktopLayout>
     <div className="min-h-screen bg-gradient-calm pb-12">
       <div className="flex items-center justify-between px-4 py-3 pt-14">
         <div className="flex items-center gap-3">
@@ -419,6 +421,7 @@ const AssessmentDetail = () => {
         text="Discover yours at Soul Sanctuary ✨"
       />
     </div>
+    </DesktopLayout>
   );
 };
 
