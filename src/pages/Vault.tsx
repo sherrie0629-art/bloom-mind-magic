@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { agents } from "@/data/agents";
 import BottomNav from "@/components/BottomNav";
+import DesktopLayout from "@/components/DesktopLayout";
 
 interface VaultItem { id: string; agent_id: string; type: string; title: string; content: string; icon: string; unlocked_at: string; }
 
@@ -39,7 +40,8 @@ const Vault = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-calm pb-20">
+    <DesktopLayout>
+    <div className="min-h-screen bg-gradient-calm pb-20 md:pb-8">
       <div className="flex items-center gap-3 px-4 pt-12 pb-4"><button onClick={() => navigate(-1)} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></button><h1 className="font-display text-lg font-bold text-foreground">Collection</h1></div>
       <div className="flex gap-2 px-4 mb-4">{TABS.map((t) => (<button key={t.key} onClick={() => setTab(t.key)} className={`flex items-center gap-1.5 rounded-2xl px-3.5 py-2 text-xs font-medium transition-all active:scale-95 ${tab === t.key ? "bg-secondary text-primary-foreground shadow-sm" : "bg-card text-muted-foreground border border-border"}`}><t.icon className="h-3.5 w-3.5" />{t.label}</button>))}</div>
       <div className="px-4 space-y-3">
@@ -58,6 +60,7 @@ const Vault = () => {
       </div>
       <BottomNav />
     </div>
+    </DesktopLayout>
   );
 };
 

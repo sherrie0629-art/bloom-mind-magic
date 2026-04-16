@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MessageCircle, Trash2 } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
+import DesktopLayout from "@/components/DesktopLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { agents } from "@/data/agents";
@@ -20,7 +21,8 @@ const ConversationHistory = () => {
   const handleDelete = async (id: string, e: React.MouseEvent) => { e.stopPropagation(); await supabase.from("conversations").delete().eq("id", id); setConversations((prev) => prev.filter((c) => c.id !== id)); };
 
   return (
-    <div className="min-h-screen bg-gradient-calm pb-24">
+    <DesktopLayout>
+    <div className="min-h-screen bg-gradient-calm pb-24 md:pb-8">
       <div className="px-6 pt-14"><h1 className="font-display text-2xl font-bold text-foreground">Chat History</h1><p className="mt-1 text-sm text-muted-foreground">Your journey so far</p></div>
       <div className="mt-6 px-6 space-y-3">
         {loading ? <p className="text-center text-sm text-muted-foreground py-8">Loading...</p>
@@ -35,6 +37,7 @@ const ConversationHistory = () => {
       </div>
       <BottomNav />
     </div>
+    </DesktopLayout>
   );
 };
 

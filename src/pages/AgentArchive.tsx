@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Lock, Unlock, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
+import DesktopLayout from "@/components/DesktopLayout";
 import { agents, BOND_LABELS, BOND_THRESHOLDS } from "@/data/agents";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,15 +35,16 @@ const AgentArchive = () => {
   const progressInLevel = nextThreshold ? ((totalTurns - prevThreshold) / (nextThreshold - prevThreshold)) * 100 : 100;
 
   if (!user) {
-    return (<div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 pb-20">
+    return (<DesktopLayout><div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 pb-20">
       <p className="text-muted-foreground text-sm">Please sign in to view character profiles 🌙</p>
       <button onClick={() => navigate("/auth")} className="mt-3 text-sm text-secondary underline">Sign In</button>
       <BottomNav />
-    </div>);
+    </div></DesktopLayout>);
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <DesktopLayout>
+    <div className="min-h-screen bg-background pb-20 md:pb-8">
       <div className="flex items-center gap-3 border-b border-border bg-card/80 backdrop-blur-xl px-4 py-3">
         <button onClick={() => navigate(-1)} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></button>
         <h1 className="font-display text-base font-semibold text-foreground">Character Archive</h1>
@@ -99,6 +101,7 @@ const AgentArchive = () => {
       </div>
       <BottomNav />
     </div>
+    </DesktopLayout>
   );
 };
 
