@@ -544,6 +544,38 @@ const Chat = () => {
 
   const levelUpLore = pendingLevelUp ? agent.lore.find((l) => l.level === pendingLevelUp)?.text || "" : "";
 
+  const handleLongPressStart = useCallback((content: string) => {
+    longPressTimer.current = setTimeout(async () => {
+      toast.info("Generating quote card...");
+      const accentMap: Record<string, string> = {
+        barista: "#e8a87c",
+        jax: "#f59e0b",
+        mystic: "#8b5cf6",
+        bestie: "#6366f1",
+      };
+      try {
+        const dataUrl = await generateQuoteCard({
+          quote: content.slice(0, 200),
+          agentName: agent.name,
+          agentTitle: agent.title,
+          agentImage: agent.image,
+          accentColor: accentMap[agentId] || "#8b5cf6",
+        });
+        setShareImageUrl(dataUrl);
+        setShareOpen(true);
+      } catch {
+        toast.error("Failed to generate card");
+      }
+    }, 600);
+  }, [agent, agentId, generateQuoteCard]);
+
+  const handleLongPressEnd = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
   return (
     <div className={`flex h-screen flex-col chat-theme-${agentId} relative`} style={{ background: dynamicBg || 'var(--chat-bg, hsl(40 30% 97%))' }}>
       <SEO title="Chat — Soul Sanctuary" description="Talk with your AI companion. A safe, private space for emotional support and self-reflection." />
