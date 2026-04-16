@@ -755,6 +755,14 @@ const Chat = () => {
         open={profileOpen}
         onClose={() => setProfileOpen(false)}
       />
+
+      <ShareSheet
+        open={shareOpen}
+        onClose={() => { setShareOpen(false); setShareImageUrl(null); }}
+        imageDataUrl={shareImageUrl}
+        title={`${agent.name} says...`}
+        text={`via Soul Sanctuary`}
+      />
     </div>
   );
 };
