@@ -698,6 +698,14 @@ const Chat = () => {
       />
 
       <AchievementUnlock achievement={newlyUnlocked} onClose={dismissAchievement} />
+
+      <AgentProfileDrawer
+        agent={agent}
+        bondLevel={bondLevel}
+        totalTurns={totalTurns}
+        open={profileOpen}
+        onClose={() => setProfileOpen(false)}
+      />
     </div>
   );
 };
