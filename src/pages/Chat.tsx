@@ -6,6 +6,7 @@ import { useQuoteCard } from "@/hooks/useQuoteCard";
 import ShareSheet from "@/components/ShareSheet";
 import ReactMarkdown from "react-markdown";
 import BottomNav from "@/components/BottomNav";
+import DesktopLayout from "@/components/DesktopLayout";
 import BondIndicator from "@/components/BondIndicator";
 import BondLevelUp from "@/components/BondLevelUp";
 import EnergyFloat from "@/components/EnergyFloat";
