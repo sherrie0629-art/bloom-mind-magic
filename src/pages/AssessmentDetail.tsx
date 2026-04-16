@@ -5,6 +5,8 @@ import { ArrowLeft, Brain, Compass, Stars, Flame, Share2, Crown, Sparkles, Loade
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useSharePoster } from "@/hooks/useSharePoster";
+import ShareSheet from "@/components/ShareSheet";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 
