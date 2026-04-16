@@ -5,6 +5,7 @@ import { Mail, Lock, User, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
+import SEO from "@/components/SEO";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -54,6 +55,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-calm flex flex-col items-center justify-center px-6">
+      <SEO title="Sign In — Soul Sanctuary" description="Join Soul Sanctuary. Start your journey of AI-powered self-discovery." />
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="font-display text-3xl font-bold text-gradient-mystic">Soul Sanctuary</h1>

@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Brain, Stars, Target, Flame } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import BottomNav from "@/components/BottomNav";
+import SEO from "@/components/SEO";
 
 const tests = [
   {
@@ -47,6 +48,7 @@ const Assessment = () => {
 
   return (
     <div className="min-h-screen bg-gradient-calm pb-24">
+      <SEO title="Soul Discovery — Soul Sanctuary" description="Discover yourself through MBTI, Enneagram, Horoscope & Emotion assessments powered by AI." />
       <div className="px-6 pt-14">
         <motion.h1
           initial={{ opacity: 0, y: 16 }}

@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAchievements } from "@/hooks/useAchievements";
 import { toast } from "sonner";
+import SEO from "@/components/SEO";
 
 // TODO: Replace with your actual Lemon Squeezy checkout URLs
 const LS_MONTHLY_URL = "https://sherrie.lemonsqueezy.com/checkout/buy/3d9841b4-e58e-43c1-a0a7-31608ef980fd";
@@ -94,6 +95,7 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen bg-gradient-calm pb-24">
+      <SEO title="Profile — Soul Sanctuary" description="Manage your Soul Sanctuary profile and preferences." />
       <div className="px-6 pt-14 text-center">
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="mx-auto h-20 w-20 rounded-full bg-gradient-mystic p-0.5">
           <div className="flex h-full w-full items-center justify-center rounded-full bg-card">

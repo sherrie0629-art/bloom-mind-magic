@@ -9,6 +9,7 @@ import { useSharePoster } from "@/hooks/useSharePoster";
 import PosterPreviewDialog from "@/components/PosterPreviewDialog";
 import BottomNav from "@/components/BottomNav";
 import { toast } from "sonner";
+import SEO from "@/components/SEO";
 
 type DrawState = "idle" | "drawing" | "result";
 
@@ -161,6 +162,7 @@ const DailyTarot = () => {
 
   return (
     <div className="min-h-screen bg-gradient-calm pb-24">
+      <SEO title="Daily Tarot — Soul Sanctuary" description="Draw your daily tarot card for personalized insights and guidance from the universe." />
       {/* Header */}
       <div className="px-6 pt-14 pb-4">
         <div className="flex items-center gap-3">

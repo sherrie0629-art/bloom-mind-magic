@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Heart, Shield, Sparkles, MessageCircleHeart, Compass, Map } from "lucide-react";
 import { agents } from "@/data/agents";
-import { useEffect } from "react";
+import SEO from "@/components/SEO";
 
 const fadeUp = {
   hidden: { opacity: 0, y: 30 },
@@ -35,9 +35,6 @@ const Stars = () => (
 const Welcome = () => {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    document.title = "Soul Sanctuary — Find Your Soul Sanctuary";
-  }, []);
 
   const features = [
     {
@@ -73,6 +70,11 @@ const Welcome = () => {
 
   return (
     <div className="relative min-h-screen text-white" style={{ background: "linear-gradient(180deg, hsl(225 50% 8%) 0%, hsl(260 40% 12%) 50%, hsl(225 45% 10%) 100%)" }}>
+      <SEO
+        title="Soul Sanctuary — AI Emotional Companion & Personalized Soul Maps"
+        description="AI emotional companion for self-discovery. Personalized soul maps, mental wellness AI, MBTI & Enneagram assessments. Your 24/7 healing space."
+        keywords="AI emotional companion, personalized soul maps, mental wellness AI, MBTI assessment, Enneagram test, self-discovery, AI therapy, soul sanctuary"
+      />
       <Stars />
 
       {/* Soft radial glows */}
