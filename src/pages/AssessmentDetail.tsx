@@ -221,11 +221,16 @@ const AssessmentDetail = () => {
 
   return (
     <div className="min-h-screen bg-gradient-calm pb-12">
-      <div className="flex items-center gap-3 px-4 py-3 pt-14">
-        <button onClick={() => navigate("/assessment-reports")} className="text-muted-foreground">
-          <ArrowLeft className="h-5 w-5" />
+      <div className="flex items-center justify-between px-4 py-3 pt-14">
+        <div className="flex items-center gap-3">
+          <button onClick={() => navigate("/assessment-reports")} className="text-muted-foreground">
+            <ArrowLeft className="h-5 w-5" />
+          </button>
+          <h2 className="font-display text-sm font-semibold text-foreground">{cfg.label}</h2>
+        </div>
+        <button onClick={handleShare} className="text-muted-foreground hover:text-foreground transition-colors">
+          <Share2 className="h-5 w-5" />
         </button>
-        <h2 className="font-display text-sm font-semibold text-foreground">{cfg.label}</h2>
       </div>
 
       <div className="px-6 mt-2">
