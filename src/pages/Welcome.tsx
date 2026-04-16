@@ -48,7 +48,7 @@ const Welcome = () => {
     {
       icon: Compass,
       title: "Soul Discovery",
-      desc: "MBTI, Enneagram, Bazi & more — uncover the hidden layers of who you truly are.",
+      desc: "MBTI, Enneagram, Horoscope & more — uncover the hidden layers of who you truly are.",
     },
     {
       icon: Map,
@@ -84,7 +84,7 @@ const Welcome = () => {
       <div className="relative z-10 mx-auto max-w-3xl px-5">
         {/* Hero */}
         <motion.section
-          className="flex min-h-[85vh] flex-col items-center justify-center text-center"
+          className="flex min-h-[70vh] flex-col items-center justify-center text-center"
           initial="hidden"
           animate="visible"
           variants={stagger}
@@ -106,7 +106,7 @@ const Welcome = () => {
             variants={fadeUp}
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/")}
             className="mt-8 rounded-full px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg"
             style={{
               background: "linear-gradient(135deg, hsl(38 75% 55%), hsl(25 85% 60%))",
@@ -234,7 +234,7 @@ const Welcome = () => {
             variants={fadeUp}
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.97 }}
-            onClick={() => navigate("/auth")}
+            onClick={() => navigate("/")}
             className="mt-10 rounded-full px-10 py-4 text-sm font-semibold text-primary-foreground shadow-lg"
             style={{
               background: "linear-gradient(135deg, hsl(38 75% 55%), hsl(25 85% 60%))",
