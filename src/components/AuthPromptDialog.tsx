@@ -24,13 +24,18 @@ const AuthPromptDialog = ({ open, reason, onClose }: AuthPromptDialogProps) => {
         redirect_uri: window.location.origin,
       });
       if (result.error) {
-        toast.error("Google 登录失败，请重试");
+        const msg = (result.error as any)?.message || String(result.error);
+        if (/not supported|not enabled|disabled/i.test(msg)) {
+          toast.error("Google 登录暂未启用，请稍后再试或使用邮箱登录");
+        } else {
+          toast.error(msg || "Google 登录失败，请重试");
+        }
         return;
       }
       if (result.redirected) return;
       onClose();
-    } catch {
-      toast.error("Google 登录失败，请重试");
+    } catch (err: any) {
+      toast.error(err?.message || "Google 登录失败，请重试");
     }
   };
 

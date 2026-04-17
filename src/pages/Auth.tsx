@@ -20,13 +20,21 @@ const Auth = () => {
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri: window.location.origin,
       });
-      if (result.error) { toast.error("Google sign-in failed. Please try again."); return; }
+      if (result.error) {
+        const msg = (result.error as any)?.message || String(result.error);
+        if (/not supported|not enabled|disabled/i.test(msg)) {
+          toast.error("Google 登录暂未启用，请稍后再试或使用邮箱登录");
+        } else {
+          toast.error(msg || "Google sign-in failed. Please try again.");
+        }
+        return;
+      }
       if (result.redirected) return; // browser is leaving — AuthContext handles callback on return
       // Tokens already set on supabase client (rare path)
       toast.success("Welcome back ✨");
       navigate("/");
-    } catch {
-      toast.error("Google sign-in failed. Please try again.");
+    } catch (err: any) {
+      toast.error(err?.message || "Google sign-in failed. Please try again.");
     }
   };
 
