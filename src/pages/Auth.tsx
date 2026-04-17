@@ -21,7 +21,8 @@ const Auth = () => {
         redirect_uri: window.location.origin,
       });
       if (result.error) { toast.error("Google sign-in failed. Please try again."); return; }
-      if (result.redirected) return;
+      if (result.redirected) return; // browser is leaving — AuthContext handles callback on return
+      // Tokens already set on supabase client (rare path)
       toast.success("Welcome back ✨");
       navigate("/");
     } catch {
