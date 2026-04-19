@@ -1,43 +1,47 @@
 
 
-## 全局 Footer + 三个法务页面
+## Paddle 切换方案（更新版）
 
-### 思路调整
-按用户要求改为**全局 Footer**（不只是首页），所以放在 `App.tsx` 的路由外层，所有页面共享。
+### 调整点
+仅更新方案中**产品定位措辞**，让 Paddle 资格审核更易过：
+- 旧：AI 心理陪伴 / 占卜订阅
+- 新：**情感陪伴 AI（AI Companion）+ 游戏化自我探索体验（Gamified Self-Discovery）+ 灵感启发内容（Inspirational Content）**
 
-### 改动清单
+> 原则：不出现"占卜 / fortune telling / divination / psychic"等敏感词；强调 AI 陪伴、人格测评（MBTI/Enneagram/Bazi 文化解读）、灵感日签、互动叙事等中性、合规表达。
 
-| 文件 | 改动 |
+### 用户决策已确认
+- 存量用户：**目前没有付费用户** → 直接清理 Lemon Squeezy，无兼容负担
+- 是否建产品：**是，沿用现有定价**
+  - Plus 月付 **$4.99 / month**
+  - Plus 年付 **$47.99 / year**
+
+### 实施步骤
+
+| 阶段 | 动作 |
 |------|------|
-| `src/components/SiteFooter.tsx` | 新建。三个链接 + 版权，浅灰色小字号 |
-| `src/pages/Contact.tsx` | 新建。联系邮箱 `islandai_life@outlook.com` + mailto |
-| `src/pages/PrivacyPolicy.tsx` | 新建。重点说明 Google 账号信息收集 + 对话数据保护 |
-| `src/pages/TermsOfService.tsx` | 新建。重点写订阅续费、取消、退款政策 |
-| `src/App.tsx` | 注册 `/contact`、`/privacy`、`/terms` 路由；在 `<Routes>` 之后渲染 `<SiteFooter />` |
+| 1 | 调用 `payments--recommend_payment_provider` 审核（提交时按"情感陪伴 AI + 游戏化自我探索 + 灵感启发"定位） |
+| 2 | 通过后调用 `payments--enable_paddle_payments` 启用沙盒 |
+| 3 | 删除 `supabase/functions/lemon-webhook/`，调用 `supabase--delete_edge_functions` 解除部署 |
+| 4 | `index.html` 移除 lemon.js；`src/vite-env.d.ts` 移除 `Window.LemonSqueezy` 类型 |
+| 5 | `src/pages/Profile.tsx` 替换 `openCheckout` 为 `Paddle.Checkout.open({ items, customData: { user_id } })`；移除 `LS_MONTHLY_URL` / `LS_YEARLY_URL` |
+| 6 | 用 `batch_create_product` 创建：Plus Monthly $4.99、Plus Yearly $47.99 |
+| 7 | 新建 `supabase/functions/paddle-webhook/` 处理 `subscription.created/updated/canceled`，仍 upsert 到 `user_subscriptions`（字段不变，`useSubscription` 零改动） |
+| 8 | 提示你在 Cloud 后台手动删除 `LEMON_SQUEEZY_WEBHOOK_SECRET` |
 
-### Footer 设计
-- 位置：`App.tsx` 路由之后，作为全局组件
-- 样式：`text-xs text-muted-foreground/70`，分隔符 `·`
-- 移动端：避开 `BottomNav`，加 `pb-20 md:pb-4`
-- 在 `/auth` 页面也展示，符合"全站通用"
+### 提交给 Paddle 的产品描述（建议文案）
 
-### 内容要点
+> **Island AI** is an AI companion app for emotional well-being and self-reflection. Users chat with AI characters for supportive conversation, complete gamified personality assessments (MBTI, Enneagram, Big Five, cultural archetypes), and receive daily inspirational prompts. The Plus subscription unlocks unlimited AI chats, unlimited assessments, and in-depth personality reports. The product is **entertainment and self-discovery only**, not medical, psychological, or fortune-telling advice — clearly disclaimed in the Terms of Service.
 
-**Privacy Policy**（英文）：
-- Google OAuth 收集：email, name, avatar URL（仅用于账号识别，不读取 Gmail/Drive）
-- 对话数据：加密存储于 Lovable Cloud (Supabase)，不用于训练第三方模型
-- 用户权利：随时删除账号 / 导出数据 / 联系邮箱
-- Cookie / 本地存储说明
+### 不会改动
+- `user_subscriptions` 表 / RLS / `useSubscription`
+- 鉴权与业务页面
+- 数据库 schema
 
-**Terms of Service**（英文）：
-- 服务说明 + AI 输出免责（非医疗/心理咨询替代）
-- **Subscription**：自动续订规则、计费周期、如何在 Profile 页取消
-- **Refund Policy**：明确写"As a digital subscription service, all purchases are final and non-refundable except where required by law"，并说明 7 天内未使用可申请退款的窗口（如适用）
-- 知识产权 / 终止 / 变更条款
+### 风险
+- 即使措辞严谨，Paddle 仍可能要求补充材料；若被拒，回退方案是改用内置 Stripe（`payments--enable_stripe_payments`），同样无需用户自有账号即可沙盒测试
 
-**Contact**：`islandai_life@outlook.com` + 简短说明 + mailto 按钮
-
-### 不改动
-- 数据库 / RLS / 鉴权
-- BottomNav / 现有页面布局
+### 切换后预期
+1. Profile 页点击订阅 → Paddle 沙盒结账弹窗
+2. 支付完成 → `paddle-webhook` → `user_subscriptions` 升级 plus
+3. `useSubscription` 立即识别为付费
 
