@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Settings, ChevronRight, BookOpen, Star, Bell, LogOut, Crown, Heart, Sparkles, FileText, ShoppingBag, Shield, Gem } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
@@ -9,12 +9,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useAchievements } from "@/hooks/useAchievements";
+import { usePaddleCheckout } from "@/hooks/usePaddleCheckout";
 import { toast } from "sonner";
 import SEO from "@/components/SEO";
-
-// TODO: Replace with your actual Lemon Squeezy checkout URLs
-const LS_MONTHLY_URL = "https://sherrie.lemonsqueezy.com/checkout/buy/3d9841b4-e58e-43c1-a0a7-31608ef980fd";
-const LS_YEARLY_URL = "https://sherrie.lemonsqueezy.com/checkout/buy/cea09e6c-699d-43be-aad0-6561f6624654";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -26,25 +23,19 @@ const Profile = () => {
   const [billingToggle, setBillingToggle] = useState<"monthly" | "yearly">("monthly");
   const { plan, chatCount, chatLimit, assessmentCount, assessmentLimit, deepReportCount, deepReportLimit, expiresAt, freeTrialExpired, freeTrialDaysLeft, isLoading: subLoading, refresh } = useSubscription(user?.id, user?.created_at);
   const { unlockedIds } = useAchievements(user?.id);
+  const { openCheckout, loading: checkoutLoading } = usePaddleCheckout();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  // Initialize Lemon Squeezy + listen for checkout success
+  // Detect Paddle checkout success redirect
   useEffect(() => {
-    if (typeof window !== "undefined" && window.createLemonSqueezy) {
-      window.createLemonSqueezy();
+    if (searchParams.get("checkout") === "success") {
+      toast.success("升级成功！🎉");
+      // Webhook needs a moment to process
+      setTimeout(() => refresh(), 3000);
+      searchParams.delete("checkout");
+      setSearchParams(searchParams, { replace: true });
     }
-
-    const handler = (event: any) => {
-      if (event?.event === "Checkout.Success") {
-        toast.success("Upgrade successful! 🎉");
-        // Give webhook a moment to process, then refresh
-        setTimeout(() => refresh(), 3000);
-      }
-    };
-
-    if (window.LemonSqueezy) {
-      window.LemonSqueezy.Setup({ eventHandler: handler });
-    }
-  }, [refresh]);
+  }, [searchParams, setSearchParams, refresh]);
 
   useEffect(() => {
     if (!user) return;
@@ -64,18 +55,20 @@ const Profile = () => {
     load();
   }, [user]);
 
-  const openCheckout = useCallback(() => {
+  const handleUpgrade = useCallback(async () => {
     if (!user) return;
-    const baseUrl = billingToggle === "yearly" ? LS_YEARLY_URL : LS_MONTHLY_URL;
-    const url = `${baseUrl}?checkout[custom][user_id]=${user.id}&checkout[email]=${encodeURIComponent(user.email || "")}`;
-    
-    if (window.LemonSqueezy) {
-      window.LemonSqueezy.Url.Open(url);
-    } else {
-      // Fallback: open in new tab
-      window.open(url, "_blank");
+    try {
+      await openCheckout({
+        priceId: billingToggle === "yearly" ? "plus_yearly" : "plus_monthly",
+        customerEmail: user.email,
+        customData: { userId: user.id },
+        successUrl: `${window.location.origin}/profile?checkout=success`,
+      });
+    } catch (e) {
+      console.error(e);
+      toast.error("无法打开结账，请稍后重试");
     }
-  }, [user, billingToggle]);
+  }, [user, billingToggle, openCheckout]);
 
   const menuItems = [
     { icon: Star, label: "Reports", count: stats.assessments, action: () => navigate("/assessment-reports") },
