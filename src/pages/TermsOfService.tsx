@@ -75,19 +75,25 @@ const Terms = () => {
           <section>
             <h2 className="font-display text-lg font-semibold text-foreground mb-2">6. Refund Policy</h2>
             <p>
-              Island AI is a digital subscription service delivering content immediately upon purchase. As such,
-              <strong> all purchases are final and non-refundable</strong>, except where required by applicable law
-              (e.g. statutory consumer rights in your jurisdiction).
+              We offer a <strong>14-day money-back guarantee for accounts with zero consumption</strong>. If you
+              have not utilized any AI features or consumed any tokens (e.g., AI chats, personality reports, tarot
+              insights, or deep reports) after your purchase, you may request a full refund within 14 days of your
+              initial order date.
             </p>
             <p className="mt-2">
-              <strong>Goodwill window.</strong> If you have not used any paid feature within 7 days of your initial
-              purchase, you may request a full refund by emailing
-              <a className="text-secondary" href={`mailto:${SUPPORT_EMAIL}`}> {SUPPORT_EMAIL}</a>. Renewal payments,
-              partial periods, and accounts that have consumed paid features are not eligible for refund.
+              Once any AI services have been generated or tokens have been consumed, the order becomes
+              <strong> non-refundable</strong> due to the immediate resource costs incurred (compute, third-party
+              AI inference, and storage).
             </p>
             <p className="mt-2">
-              We do not provide pro-rated refunds for cancellations made mid-period. Refund decisions are made at
-              our reasonable discretion in line with this policy and applicable law.
+              Refunds are processed by our payment provider, <strong>Paddle</strong>, who is the Merchant of
+              Record. To request a refund, visit <a className="text-secondary" href="https://paddle.net" target="_blank" rel="noopener noreferrer">paddle.net</a> or
+              contact us at <a className="text-secondary" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
+            </p>
+            <p className="mt-2">
+              Renewal payments follow the same rule: a renewal is refundable only if no paid features have been
+              used in the new billing period. We do not provide pro-rated refunds for cancellations made mid-period
+              — you keep access until the end of the paid period.
             </p>
           </section>
 
