@@ -26,7 +26,11 @@ import Vault from "./pages/Vault.tsx";
 import SoulMap from "./pages/SoulMap.tsx";
 import Admin from "./pages/Admin.tsx";
 import Welcome from "./pages/Welcome.tsx";
+import Contact from "./pages/Contact.tsx";
+import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
+import TermsOfService from "./pages/TermsOfService.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import SiteFooter from "./components/SiteFooter.tsx";
 
 const queryClient = new QueryClient();
 
@@ -62,8 +66,12 @@ const App = () => (
             <Route path="/soul-map" element={<SoulMap />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="/welcome" element={<Welcome />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <SiteFooter />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
