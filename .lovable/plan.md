@@ -1,75 +1,51 @@
 
 
-## 法务页面合规改造（Paddle 上线审核）
+## 修复"管理订阅"点击无反应（弹窗被浏览器拦截）
 
-卖家：**Qian Wang (trading as Island AI)**
-当前 `TermsOfService.tsx` 和 `PrivacyPolicy.tsx` 已存在，但缺少 Paddle 必需的若干条款。退款政策已是合规版本，保留不动。
+### 根本原因
+`handleManageSubscription` 是 async：先 `await supabase.functions.invoke(...)`（耗时 1–3s），再 `window.open(url)`。Chrome/Safari 在异步等待之后调用 `window.open` 时**已经脱离了用户手势上下文**，会静默拦截。所以表现为"按钮闪一下，什么都没发生"，控制台和 edge logs 都正常。
 
-### 改动清单
+证据：
+- Edge function 最近 4 次调用全是 200，已成功返回 `urls.general.overview`
+- 没有 toast 报错（说明 `data.url` 存在）
+- Session replay 显示按钮 loading 后恢复，无新窗口
 
-| 文件 | 改动 |
-|------|------|
-| `src/pages/TermsOfService.tsx` | 在第 1 节加入卖家身份（Qian Wang trading as Island AI）；新增"AI 产品专属条款"小节（Paddle 对生成式 AI 强制要求）；保留现有第 6 节退款政策 |
-| `src/pages/PrivacyPolicy.tsx` | 加入 data controller 身份；新增 Paddle 作为 MoR 的数据共享条款；补全 GDPR 用户权利与国际数据传输声明；明确数据保留期 |
+### 修复方案
+**点击瞬间先 `window.open('about:blank', '_blank')` 占位拿到 window 引用**（此时还在用户手势内，不会被拦截），异步拿到真正的 URL 后再 `popup.location.href = url` 跳转。这是处理"异步拿 URL 再开新窗口"的标准模式。
 
-### Terms 关键新增内容
+### 改动
+仅修改 `src/pages/Profile.tsx` 中 `handleManageSubscription`：
 
-**第 1 节 Introduction 增补**：
-> "Island AI is operated by **Qian Wang (trading as Island AI)** ('we', 'our', 'the Service'). By using the Service you are entering into an agreement with Qian Wang."
-
-**新增第 7 节 — AI Content & Acceptable Use**（Paddle 对生成式 AI 强制项）：
-- 用户对自己的 prompts 和如何使用输出负责
-- 必须对输入内容拥有合法权利
-- AI 输出可能不准确、不完整，不可作为医疗/法律/金融/心理专业建议
-- 我们保留过滤输出、移除内容、暂停违规账号的权利
-- IP 侵权投诉路径：发邮件到 `islandai_life@outlook.com`，重复侵权账号将被终止
-- 禁止用途细化：deepfakes、仇恨言论、恶意软件、jailbreak、未成年人色情、impersonation
-
-**第 8 节 IP Ownership** 强化：
-- 明确服务、软件、agent 角色、品牌资产归 Qian Wang (trading as Island AI) 所有
-- 用户保留对自己输入内容的所有权，授予我们有限托管/处理许可
-
-后续章节序号顺延。
-
-### Privacy 关键新增内容
-
-**第 1 节 Introduction 增补**：
-> "Island AI ('we', 'our', 'the Service') is operated by **Qian Wang (trading as Island AI)**, who acts as the **data controller** for personal data processed through the Service."
-
-**第 3 节 How We Use Your Data** 增补每类数据的法律依据：
-- Account info → contract performance
-- Conversation/assessment data → contract performance
-- Technical logs → legitimate interest（安全与防滥用）
-- Marketing（如有）→ consent
-
-**新增独立小节 — Sharing With Paddle (Merchant of Record)**：
-> "We share order and billing-related data (name, email, billing country, transaction details) with **Paddle.com Market Limited**, our Merchant of Record. Paddle processes payments, calculates and remits sales tax, issues invoices, and handles refund requests on our behalf. Paddle acts as an independent data controller for this purpose. See Paddle's privacy policy at https://www.paddle.com/legal/privacy."
-
-**新增小节 — Other Recipients**：
-- Hosting/backend infrastructure (Lovable Cloud)
-- AI inference providers (用于生成回复)
-- Authorities where legally required
-
-**新增小节 — Data Retention**：
-- Account data：账号存续期间 + 删除请求后 30 天清理
-- Conversation data：删除账号时一并清理
-- Logs：90 天
-
-**第 6 节 Your Rights 改写为 GDPR 完整版**：
-- access / rectification / erasure / restriction / portability / objection / withdraw consent
-- 1 个月响应期
-- 有权向主管监管机构投诉
-
-**新增小节 — International Transfers**：
-> "Personal data may be processed outside the UK/EEA by our service providers. Where this happens, we rely on Standard Contractual Clauses or adequacy decisions to safeguard your data."
-
-**更新 LAST_UPDATED 日期**为今天。
+```ts
+const handleManageSubscription = useCallback(async () => {
+  if (!user) return;
+  // 1. 同步打开占位窗口（用户手势内，不会被拦截）
+  const popup = window.open("about:blank", "_blank", "noopener,noreferrer");
+  setPortalLoading(true);
+  try {
+    const { data, error } = await supabase.functions.invoke("paddle-customer-portal");
+    if (error) throw error;
+    if (!data?.url) throw new Error("No portal URL returned");
+    if (popup) {
+      popup.location.href = data.url;        // 跳转占位窗口
+    } else {
+      // 兜底：用户禁用了 popup，原地跳转
+      window.location.href = data.url;
+    }
+  } catch (e: any) {
+    popup?.close();                           // 失败时关掉空白页
+    console.error(e);
+    toast.error(e?.message || "无法打开管理页面，请稍后重试");
+  } finally {
+    setPortalLoading(false);
+  }
+}, [user]);
+```
 
 ### 不会改动
-- Terms 第 6 节退款政策（已是合规版本）
-- 数据库 / RLS / 订阅逻辑 / Paddle 接入
-- Privacy 第 4/5 节（Storage/Cookies 措辞已合规）
+- Edge function（已正常工作）
+- 数据库 / RLS / 订阅逻辑
 
-### 后续建议
-更新完成后可运行 `payments--get_go_live_status` 让 Paddle 重新扫描站点，进入 verification 阶段。
+### 备注
+修复后建议再次点 Manage Subscription 验证 Paddle 客户中心能正常打开。如果用户浏览器完全禁止了弹窗，会自动 fallback 到当前标签跳转。
 
