@@ -184,6 +184,10 @@ const Profile = () => {
                   <Sparkles className="h-3.5 w-3.5" />
                   {checkoutLoading ? "Loading…" : billingToggle === "monthly" ? "Get Plus · $4.99/mo" : "Get Plus · $47.99/yr"}
                 </button>
+                <p className="mt-2 text-[10px] text-muted-foreground text-center leading-relaxed">
+                  14-day refund available if no AI features have been used. See{" "}
+                  <button onClick={() => navigate("/terms")} className="text-secondary underline">Terms</button> for details.
+                </p>
               </motion.div>
             )}
 
