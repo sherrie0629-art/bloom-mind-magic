@@ -1,43 +1,75 @@
-## 更新退款政策为"零消耗 30 天退款"
 
-### 背景与合规检查
 
-当前 `TermsOfService.tsx` 第 6 节是旧版"概不退款 + 7 天善意窗口"措辞，**会被 Paddle 上线审核拒绝**。新文案改为"14天 + 零消耗条件"既符合 Paddle 要求（14–90 天窗口、引导 paddle.net），又能防止 AI 资源被白嫖。
+## 法务页面合规改造（Paddle 上线审核）
 
-> Paddle 政策原文允许 seller 自定义退款条款，只要不出现 "all sales final / no refunds" 这类绝对化措辞。"零消耗才退"属于合理资格条件，可以接受。
+卖家：**Qian Wang (trading as Island AI)**
+当前 `TermsOfService.tsx` 和 `PrivacyPolicy.tsx` 已存在，但缺少 Paddle 必需的若干条款。退款政策已是合规版本，保留不动。
 
 ### 改动清单
 
+| 文件 | 改动 |
+|------|------|
+| `src/pages/TermsOfService.tsx` | 在第 1 节加入卖家身份（Qian Wang trading as Island AI）；新增"AI 产品专属条款"小节（Paddle 对生成式 AI 强制要求）；保留现有第 6 节退款政策 |
+| `src/pages/PrivacyPolicy.tsx` | 加入 data controller 身份；新增 Paddle 作为 MoR 的数据共享条款；补全 GDPR 用户权利与国际数据传输声明；明确数据保留期 |
 
-| 文件                             | 改动                                                                                  |
-| ------------------------------ | ----------------------------------------------------------------------------------- |
-| `src/pages/TermsOfService.tsx` | 重写第 6 节 "Refund Policy"，套用用户给的文案 + Paddle MoR 引导                                    |
-| Pricing 页                      | **当前项目没有独立 Pricing 页**（订阅入口在 `/profile`），改为更新 `src/pages/Profile.tsx` 订阅卡片下方的退款说明小字 |
+### Terms 关键新增内容
 
+**第 1 节 Introduction 增补**：
+> "Island AI is operated by **Qian Wang (trading as Island AI)** ('we', 'our', 'the Service'). By using the Service you are entering into an agreement with Qian Wang."
 
-### Terms of Service 第 6 节新内容
+**新增第 7 节 — AI Content & Acceptable Use**（Paddle 对生成式 AI 强制项）：
+- 用户对自己的 prompts 和如何使用输出负责
+- 必须对输入内容拥有合法权利
+- AI 输出可能不准确、不完整，不可作为医疗/法律/金融/心理专业建议
+- 我们保留过滤输出、移除内容、暂停违规账号的权利
+- IP 侵权投诉路径：发邮件到 `islandai_life@outlook.com`，重复侵权账号将被终止
+- 禁止用途细化：deepfakes、仇恨言论、恶意软件、jailbreak、未成年人色情、impersonation
 
-> **6. Refund Policy**
->
-> We offer a **14-day money-back guarantee for accounts with zero consumption**. If you have not utilized any AI features or consumed any tokens (e.g., AI chats, personality reports, tarot insights, or deep reports) after your purchase, you may request a full refund within 14 days of your initial order date.
->
-> Once any AI services have been generated or tokens have been consumed, the order becomes **non-refundable** due to the immediate resource costs incurred (compute, third-party AI inference, and storage).
->
-> Refunds are processed by our payment provider, **Paddle**, who is the Merchant of Record. To request a refund, visit **paddle.net** or contact us at [islandai_life@outlook.com](mailto:islandai_life@outlook.com).
->
-> Renewal payments follow the same rule: a renewal is refundable only if no paid features have been used in the new billing period. We do not provide pro-rated refunds for cancellations made mid-period — you keep access until the end of the paid period.
+**第 8 节 IP Ownership** 强化：
+- 明确服务、软件、agent 角色、品牌资产归 Qian Wang (trading as Island AI) 所有
+- 用户保留对自己输入内容的所有权，授予我们有限托管/处理许可
 
-### Profile 页改动
+后续章节序号顺延。
 
-在订阅 CTA 下方加一行 12px 灰字：
+### Privacy 关键新增内容
 
-> "14-day refund available if no AI features have been used. See [Terms](/terms) for details."
+**第 1 节 Introduction 增补**：
+> "Island AI ('we', 'our', 'the Service') is operated by **Qian Wang (trading as Island AI)**, who acts as the **data controller** for personal data processed through the Service."
+
+**第 3 节 How We Use Your Data** 增补每类数据的法律依据：
+- Account info → contract performance
+- Conversation/assessment data → contract performance
+- Technical logs → legitimate interest（安全与防滥用）
+- Marketing（如有）→ consent
+
+**新增独立小节 — Sharing With Paddle (Merchant of Record)**：
+> "We share order and billing-related data (name, email, billing country, transaction details) with **Paddle.com Market Limited**, our Merchant of Record. Paddle processes payments, calculates and remits sales tax, issues invoices, and handles refund requests on our behalf. Paddle acts as an independent data controller for this purpose. See Paddle's privacy policy at https://www.paddle.com/legal/privacy."
+
+**新增小节 — Other Recipients**：
+- Hosting/backend infrastructure (Lovable Cloud)
+- AI inference providers (用于生成回复)
+- Authorities where legally required
+
+**新增小节 — Data Retention**：
+- Account data：账号存续期间 + 删除请求后 30 天清理
+- Conversation data：删除账号时一并清理
+- Logs：90 天
+
+**第 6 节 Your Rights 改写为 GDPR 完整版**：
+- access / rectification / erasure / restriction / portability / objection / withdraw consent
+- 1 个月响应期
+- 有权向主管监管机构投诉
+
+**新增小节 — International Transfers**：
+> "Personal data may be processed outside the UK/EEA by our service providers. Where this happens, we rely on Standard Contractual Clauses or adequacy decisions to safeguard your data."
+
+**更新 LAST_UPDATED 日期**为今天。
 
 ### 不会改动
-
-- Privacy Policy / 其他 Terms 章节
+- Terms 第 6 节退款政策（已是合规版本）
 - 数据库 / RLS / 订阅逻辑 / Paddle 接入
+- Privacy 第 4/5 节（Storage/Cookies 措辞已合规）
 
-### 备注
+### 后续建议
+更新完成后可运行 `payments--get_go_live_status` 让 Paddle 重新扫描站点，进入 verification 阶段。
 
-更新后建议尽快推进 Paddle live 上线流程（`payments--get_go_live_status`），让审核扫描到合规文案。
