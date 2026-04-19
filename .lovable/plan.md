@@ -1,47 +1,43 @@
+## 更新退款政策为"零消耗 30 天退款"
+
+### 背景与合规检查
+
+当前 `TermsOfService.tsx` 第 6 节是旧版"概不退款 + 7 天善意窗口"措辞，**会被 Paddle 上线审核拒绝**。新文案改为"14天 + 零消耗条件"既符合 Paddle 要求（14–90 天窗口、引导 paddle.net），又能防止 AI 资源被白嫖。
+
+> Paddle 政策原文允许 seller 自定义退款条款，只要不出现 "all sales final / no refunds" 这类绝对化措辞。"零消耗才退"属于合理资格条件，可以接受。
+
+### 改动清单
 
 
-## Paddle 切换方案（更新版）
+| 文件                             | 改动                                                                                  |
+| ------------------------------ | ----------------------------------------------------------------------------------- |
+| `src/pages/TermsOfService.tsx` | 重写第 6 节 "Refund Policy"，套用用户给的文案 + Paddle MoR 引导                                    |
+| Pricing 页                      | **当前项目没有独立 Pricing 页**（订阅入口在 `/profile`），改为更新 `src/pages/Profile.tsx` 订阅卡片下方的退款说明小字 |
 
-### 调整点
-仅更新方案中**产品定位措辞**，让 Paddle 资格审核更易过：
-- 旧：AI 心理陪伴 / 占卜订阅
-- 新：**情感陪伴 AI（AI Companion）+ 游戏化自我探索体验（Gamified Self-Discovery）+ 灵感启发内容（Inspirational Content）**
 
-> 原则：不出现"占卜 / fortune telling / divination / psychic"等敏感词；强调 AI 陪伴、人格测评（MBTI/Enneagram/Bazi 文化解读）、灵感日签、互动叙事等中性、合规表达。
+### Terms of Service 第 6 节新内容
 
-### 用户决策已确认
-- 存量用户：**目前没有付费用户** → 直接清理 Lemon Squeezy，无兼容负担
-- 是否建产品：**是，沿用现有定价**
-  - Plus 月付 **$4.99 / month**
-  - Plus 年付 **$47.99 / year**
+> **6. Refund Policy**
+>
+> We offer a **14-day money-back guarantee for accounts with zero consumption**. If you have not utilized any AI features or consumed any tokens (e.g., AI chats, personality reports, tarot insights, or deep reports) after your purchase, you may request a full refund within 14 days of your initial order date.
+>
+> Once any AI services have been generated or tokens have been consumed, the order becomes **non-refundable** due to the immediate resource costs incurred (compute, third-party AI inference, and storage).
+>
+> Refunds are processed by our payment provider, **Paddle**, who is the Merchant of Record. To request a refund, visit **paddle.net** or contact us at [islandai_life@outlook.com](mailto:islandai_life@outlook.com).
+>
+> Renewal payments follow the same rule: a renewal is refundable only if no paid features have been used in the new billing period. We do not provide pro-rated refunds for cancellations made mid-period — you keep access until the end of the paid period.
 
-### 实施步骤
+### Profile 页改动
 
-| 阶段 | 动作 |
-|------|------|
-| 1 | 调用 `payments--recommend_payment_provider` 审核（提交时按"情感陪伴 AI + 游戏化自我探索 + 灵感启发"定位） |
-| 2 | 通过后调用 `payments--enable_paddle_payments` 启用沙盒 |
-| 3 | 删除 `supabase/functions/lemon-webhook/`，调用 `supabase--delete_edge_functions` 解除部署 |
-| 4 | `index.html` 移除 lemon.js；`src/vite-env.d.ts` 移除 `Window.LemonSqueezy` 类型 |
-| 5 | `src/pages/Profile.tsx` 替换 `openCheckout` 为 `Paddle.Checkout.open({ items, customData: { user_id } })`；移除 `LS_MONTHLY_URL` / `LS_YEARLY_URL` |
-| 6 | 用 `batch_create_product` 创建：Plus Monthly $4.99、Plus Yearly $47.99 |
-| 7 | 新建 `supabase/functions/paddle-webhook/` 处理 `subscription.created/updated/canceled`，仍 upsert 到 `user_subscriptions`（字段不变，`useSubscription` 零改动） |
-| 8 | 提示你在 Cloud 后台手动删除 `LEMON_SQUEEZY_WEBHOOK_SECRET` |
+在订阅 CTA 下方加一行 12px 灰字：
 
-### 提交给 Paddle 的产品描述（建议文案）
-
-> **Island AI** is an AI companion app for emotional well-being and self-reflection. Users chat with AI characters for supportive conversation, complete gamified personality assessments (MBTI, Enneagram, Big Five, cultural archetypes), and receive daily inspirational prompts. The Plus subscription unlocks unlimited AI chats, unlimited assessments, and in-depth personality reports. The product is **entertainment and self-discovery only**, not medical, psychological, or fortune-telling advice — clearly disclaimed in the Terms of Service.
+> "14-day refund available if no AI features have been used. See [Terms](/terms) for details."
 
 ### 不会改动
-- `user_subscriptions` 表 / RLS / `useSubscription`
-- 鉴权与业务页面
-- 数据库 schema
 
-### 风险
-- 即使措辞严谨，Paddle 仍可能要求补充材料；若被拒，回退方案是改用内置 Stripe（`payments--enable_stripe_payments`），同样无需用户自有账号即可沙盒测试
+- Privacy Policy / 其他 Terms 章节
+- 数据库 / RLS / 订阅逻辑 / Paddle 接入
 
-### 切换后预期
-1. Profile 页点击订阅 → Paddle 沙盒结账弹窗
-2. 支付完成 → `paddle-webhook` → `user_subscriptions` 升级 plus
-3. `useSubscription` 立即识别为付费
+### 备注
 
+更新后建议尽快推进 Paddle live 上线流程（`payments--get_go_live_status`），让审核扫描到合规文案。
