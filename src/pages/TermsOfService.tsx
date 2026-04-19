@@ -22,8 +22,15 @@ const Terms = () => {
           <section>
             <h2 className="font-display text-lg font-semibold text-foreground mb-2">1. Acceptance of Terms</h2>
             <p>
-              By accessing or using Island AI ("the Service"), you agree to these Terms of Service. If you do not
-              agree, please do not use the Service.
+              Island AI ("the Service") is operated by <strong>Qian Wang (trading as Island AI)</strong> ("we", "our", "us").
+              By accessing or using the Service, you are entering into an agreement with Qian Wang and agree to these
+              Terms of Service. If you do not agree, please do not use the Service.
+            </p>
+            <p className="mt-2">
+              <strong>Merchant of Record.</strong> Our order process is conducted by our online reseller{" "}
+              <a className="text-secondary" href="https://www.paddle.com/legal/checkout-buyer-terms" target="_blank" rel="noopener noreferrer">Paddle.com</a>.
+              Paddle.com is the Merchant of Record for all our orders. Paddle provides all customer service inquiries
+              and handles returns.
             </p>
           </section>
 
