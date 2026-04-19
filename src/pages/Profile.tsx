@@ -70,6 +70,23 @@ const Profile = () => {
     }
   }, [user, billingToggle, openCheckout]);
 
+  const [portalLoading, setPortalLoading] = useState(false);
+  const handleManageSubscription = useCallback(async () => {
+    if (!user) return;
+    setPortalLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("paddle-customer-portal");
+      if (error) throw error;
+      if (!data?.url) throw new Error("No portal URL returned");
+      window.open(data.url, "_blank", "noopener,noreferrer");
+    } catch (e: any) {
+      console.error(e);
+      toast.error(e?.message || "无法打开管理页面，请稍后重试");
+    } finally {
+      setPortalLoading(false);
+    }
+  }, [user]);
+
   const menuItems = [
     { icon: Star, label: "Reports", count: stats.assessments, action: () => navigate("/assessment-reports") },
     { icon: Gem, label: "Vault", action: () => navigate("/vault") },
