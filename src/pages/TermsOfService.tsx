@@ -105,20 +105,56 @@ const Terms = () => {
           </section>
 
           <section>
-            <h2 className="font-display text-lg font-semibold text-foreground mb-2">7. AI Output Disclaimer</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground mb-2">7. AI Content & Acceptable Use</h2>
             <p>
-              AI responses are generated automatically and may be inaccurate, incomplete, or inappropriate. You are
-              responsible for how you act on AI output. We do not guarantee any specific outcome from using the
-              Service.
+              The Service uses generative AI to produce text, interpretations, and reports. By using AI features you
+              acknowledge and agree that:
+            </p>
+            <ul className="list-disc pl-5 mt-2 space-y-1 text-muted-foreground">
+              <li>You are responsible for the prompts and inputs you submit, and for how you use the outputs.</li>
+              <li>You must have the legal right to any content you submit (text, names, photos, partner information, etc.).</li>
+              <li>AI outputs may be inaccurate, incomplete, biased, or inappropriate, and must not be relied on as medical, psychological, psychiatric, legal, financial, or other professional advice.</li>
+              <li>We may filter, restrict, or remove outputs and inputs, and suspend or terminate accounts that violate these Terms.</li>
+            </ul>
+            <p className="mt-2"><strong>Prohibited uses include:</strong></p>
+            <ul className="list-disc pl-5 mt-2 space-y-1 text-muted-foreground">
+              <li>Generating sexual content involving minors, or any content that exploits or endangers children</li>
+              <li>Deepfakes or impersonation of real people without consent</li>
+              <li>Hate speech, harassment, threats, or content that incites violence</li>
+              <li>Malware, phishing, fraud, or attempts to jailbreak or bypass safety filters</li>
+              <li>Generating non-consensual intimate imagery, defamation, or unlawful content</li>
+              <li>Content that infringes intellectual property rights of others</li>
+            </ul>
+            <p className="mt-2">
+              <strong>IP infringement / takedown:</strong> If you believe content generated or hosted on the Service
+              infringes your intellectual property rights, send a notice to{" "}
+              <a className="text-secondary" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> identifying the
+              content and your rights. We will review promptly and may remove infringing material. Accounts of repeat
+              infringers will be terminated.
             </p>
           </section>
 
           <section>
-            <h2 className="font-display text-lg font-semibold text-foreground mb-2">8. Intellectual Property</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground mb-2">8. AI Output Disclaimer</h2>
             <p>
-              The Service, including software, design, agent characters, and brand assets, is owned by Island AI.
-              You retain ownership of content you submit, and grant us a limited license to host and process it
-              solely to operate the Service.
+              AI responses are generated automatically and may be inaccurate, incomplete, or inappropriate. You are
+              responsible for how you act on AI output. We do not guarantee any specific outcome from using the
+              Service, and do not warrant uninterrupted or error-free performance.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-display text-lg font-semibold text-foreground mb-2">9. Intellectual Property</h2>
+            <p>
+              The Service — including software, design, agent characters, illustrations, written content, and brand
+              assets — is owned by <strong>Qian Wang (trading as Island AI)</strong> and protected by applicable IP
+              laws. You may not copy, modify, reverse engineer, resell, or redistribute any part of the Service
+              without our written permission.
+            </p>
+            <p className="mt-2">
+              You retain ownership of content you submit (your messages, inputs, and answers), and grant us a
+              limited, non-exclusive, worldwide license to host, store, process, and display that content solely to
+              operate and improve the Service.
             </p>
           </section>
 
