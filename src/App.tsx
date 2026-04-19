@@ -31,6 +31,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
 import TermsOfService from "./pages/TermsOfService.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import SiteFooter from "./components/SiteFooter.tsx";
+import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner.tsx";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <PaymentTestModeBanner />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
