@@ -22,17 +22,16 @@ const Privacy = () => {
           <section>
             <h2 className="font-display text-lg font-semibold text-foreground mb-2">1. Introduction</h2>
             <p>
-              Island AI ("we", "our", "the Service") provides AI companion conversations and personality assessments.
-              This policy explains what we collect, how we use it, and the choices you have.
+              Island AI ("we", "our", "the Service") is operated by <strong>Qian Wang (trading as Island AI)</strong>,
+              who acts as the <strong>data controller</strong> for personal data processed through the Service.
+              This policy explains what we collect, how we use it, who we share it with, and the choices you have.
             </p>
           </section>
 
           <section>
             <h2 className="font-display text-lg font-semibold text-foreground mb-2">2. Information We Collect</h2>
             <h3 className="text-sm font-semibold mt-3 mb-1">a) Account Information</h3>
-            <p>
-              When you sign in with email or Google, we collect:
-            </p>
+            <p>When you sign in with email or Google, we collect:</p>
             <ul className="list-disc pl-5 mt-2 space-y-1 text-muted-foreground">
               <li>Email address</li>
               <li>Display name (from Google profile, if applicable)</li>
@@ -53,17 +52,26 @@ const Privacy = () => {
 
             <h3 className="text-sm font-semibold mt-4 mb-1">c) Technical Data</h3>
             <p>
-              Standard logs (IP, user agent, timestamps) for security and abuse prevention.
+              Standard logs (IP address, user agent, timestamps, device identifiers) for security, debugging, and
+              abuse prevention.
+            </p>
+
+            <h3 className="text-sm font-semibold mt-4 mb-1">d) Billing Data</h3>
+            <p>
+              When you subscribe, our payment processor Paddle collects your name, billing country, and payment
+              details directly. We receive only the order confirmation, plan, and limited transaction metadata —
+              we do <strong>not</strong> see or store your full card number.
             </p>
           </section>
 
           <section>
-            <h2 className="font-display text-lg font-semibold text-foreground mb-2">3. How We Use Your Data</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground mb-2">3. How We Use Your Data & Legal Basis</h2>
             <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-              <li>To provide and personalize AI conversations and assessment results</li>
-              <li>To authenticate you and secure your account</li>
-              <li>To improve product quality and fix issues</li>
-              <li>To process subscription payments (via our payment processor)</li>
+              <li><strong>Account information</strong> — to authenticate you and operate your account (legal basis: performance of contract).</li>
+              <li><strong>Conversation & assessment data</strong> — to provide and personalize AI conversations and results (performance of contract).</li>
+              <li><strong>Technical logs</strong> — for security, fraud prevention, and reliability (legitimate interests).</li>
+              <li><strong>Billing data</strong> — to process subscription payments and comply with tax/accounting obligations (contract and legal obligation).</li>
+              <li><strong>Optional marketing emails</strong>, if you opt in — to inform you about new features (consent; you may withdraw at any time).</li>
             </ul>
             <p className="mt-2">
               <strong>We do not sell your data.</strong> We do <strong>not</strong> use your conversations to train
@@ -76,7 +84,8 @@ const Privacy = () => {
             <h2 className="font-display text-lg font-semibold text-foreground mb-2">4. Data Storage & Security</h2>
             <p>
               All data is stored in our managed cloud backend (Supabase / Lovable Cloud) with row-level security so
-              that only you can access your own records. Data is encrypted in transit (TLS) and at rest.
+              that only you can access your own records. Data is encrypted in transit (TLS) and at rest. We apply
+              appropriate technical and organisational measures to protect your data.
             </p>
           </section>
 
@@ -89,36 +98,86 @@ const Privacy = () => {
           </section>
 
           <section>
-            <h2 className="font-display text-lg font-semibold text-foreground mb-2">6. Your Rights</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground mb-2">6. Sharing With Paddle (Merchant of Record)</h2>
+            <p>
+              We share order and billing-related data (name, email, billing country, transaction details) with{" "}
+              <strong>Paddle.com Market Limited</strong>, our Merchant of Record. Paddle processes payments,
+              calculates and remits sales tax, issues invoices, and handles refund requests on our behalf. Paddle
+              acts as an independent data controller for this purpose. See Paddle's privacy policy at{" "}
+              <a className="text-secondary" href="https://www.paddle.com/legal/privacy" target="_blank" rel="noopener noreferrer">paddle.com/legal/privacy</a>.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-display text-lg font-semibold text-foreground mb-2">7. Other Recipients</h2>
             <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-              <li>Access or export your data on request</li>
-              <li>Correct inaccurate profile information</li>
-              <li>Delete your account and associated data</li>
-              <li>Withdraw consent at any time</li>
+              <li><strong>Hosting & backend infrastructure</strong> (Supabase / Lovable Cloud) — to store and serve your data.</li>
+              <li><strong>AI inference providers</strong> — to generate replies, interpretations, and reports based on your inputs.</li>
+              <li><strong>Email/auth providers</strong> — to deliver login and notification emails.</li>
+              <li><strong>Professional advisers</strong> (legal, accounting) where necessary.</li>
+              <li><strong>Authorities</strong> where disclosure is required by law.</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="font-display text-lg font-semibold text-foreground mb-2">8. Data Retention</h2>
+            <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+              <li><strong>Account data</strong> — retained while your account is active; deleted within 30 days of an account-deletion request.</li>
+              <li><strong>Conversation, assessment, and tarot data</strong> — retained while your account is active; deleted with your account.</li>
+              <li><strong>Technical logs</strong> — retained for up to 90 days, then deleted or anonymised.</li>
+              <li><strong>Billing/transaction records</strong> — retained by Paddle and by us for the period required by tax and accounting law (typically up to 7 years).</li>
+            </ul>
+          </section>
+
+          <section>
+            <h2 className="font-display text-lg font-semibold text-foreground mb-2">9. Your Rights</h2>
+            <p>Subject to applicable law, you have the right to:</p>
+            <ul className="list-disc pl-5 mt-2 space-y-1 text-muted-foreground">
+              <li><strong>Access</strong> the personal data we hold about you</li>
+              <li><strong>Rectify</strong> inaccurate or incomplete data</li>
+              <li><strong>Erase</strong> your account and associated data</li>
+              <li><strong>Restrict</strong> or <strong>object</strong> to certain processing</li>
+              <li><strong>Data portability</strong> — receive your data in a structured, machine-readable format</li>
+              <li><strong>Withdraw consent</strong> at any time where processing is based on consent</li>
+              <li><strong>Lodge a complaint</strong> with your local data protection supervisory authority</li>
             </ul>
             <p className="mt-2">
-              To exercise any of these rights, email <a className="text-secondary" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
+              To exercise any of these rights, email{" "}
+              <a className="text-secondary" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. We will respond
+              within one month.
             </p>
           </section>
 
           <section>
-            <h2 className="font-display text-lg font-semibold text-foreground mb-2">7. Children's Privacy</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground mb-2">10. International Transfers</h2>
             <p>
-              The Service is not directed to children under 13. We do not knowingly collect data from children.
+              Personal data may be processed outside the UK/EEA by our service providers (for example, hosting and
+              AI inference providers based in the United States). Where this happens, we rely on Standard
+              Contractual Clauses, adequacy decisions, or other lawful safeguards to protect your data.
             </p>
           </section>
 
           <section>
-            <h2 className="font-display text-lg font-semibold text-foreground mb-2">8. Changes to This Policy</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground mb-2">11. Children's Privacy</h2>
+            <p>
+              The Service is not directed to children under 13. We do not knowingly collect data from children. If
+              you believe a child has provided us with personal data, please contact us and we will delete it.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-display text-lg font-semibold text-foreground mb-2">12. Changes to This Policy</h2>
             <p>
               We may update this policy from time to time. Material changes will be announced in-app or by email.
             </p>
           </section>
 
           <section>
-            <h2 className="font-display text-lg font-semibold text-foreground mb-2">9. Contact</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground mb-2">13. Contact</h2>
             <p>
-              Questions? Email <a className="text-secondary" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
+              <strong>Data controller:</strong> Qian Wang (trading as Island AI).<br />
+              Questions or privacy requests? Email{" "}
+              <a className="text-secondary" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
             </p>
           </section>
         </div>
