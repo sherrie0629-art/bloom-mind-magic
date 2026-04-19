@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
     const admin = createClient(supabaseUrl, serviceKey);
     const { data: sub, error: subErr } = await admin
       .from("user_subscriptions")
-      .select("paddle_customer_id, paddle_subscription_id, environment")
+      .select("paddle_customer_id, paddle_subscription_id, environment, plan, expires_at")
       .eq("user_id", user.id)
       .maybeSingle();
 
@@ -66,19 +66,96 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (!sub?.paddle_customer_id) {
+    const isActive =
+      sub?.plan === "plus" && sub?.expires_at && new Date(sub.expires_at) > new Date();
+
+    if (!sub || !isActive) {
       return new Response(
         JSON.stringify({ error: "No active subscription found for this account." }),
         { status: 404, headers: jsonHeaders }
       );
     }
 
-    const env = ((sub.environment as PaddleEnv) || "sandbox") as PaddleEnv;
-    const paddle = getPaddleClient(env);
+    // Determine environment: prefer stored value, otherwise try sandbox first then live.
+    const envCandidates: PaddleEnv[] = sub.environment
+      ? [sub.environment as PaddleEnv]
+      : ["sandbox", "live"];
 
-    const subscriptionIds = sub.paddle_subscription_id ? [sub.paddle_subscription_id] : [];
+    let resolvedCustomerId = sub.paddle_customer_id as string | null;
+    let resolvedSubscriptionId = sub.paddle_subscription_id as string | null;
+    let resolvedEnv: PaddleEnv = (sub.environment as PaddleEnv) || "sandbox";
+
+    // Backfill: subscription was created before we tracked Paddle IDs. Look up by email.
+    if (!resolvedCustomerId && user.email) {
+      for (const candidate of envCandidates) {
+        try {
+          const custRes = await fetch(
+            `https://connector-gateway.lovable.dev/paddle/customers?email=${encodeURIComponent(user.email)}`,
+            {
+              headers: {
+                "X-Connection-Api-Key":
+                  candidate === "sandbox"
+                    ? Deno.env.get("PADDLE_SANDBOX_API_KEY")!
+                    : Deno.env.get("PADDLE_LIVE_API_KEY")!,
+                "Lovable-API-Key": Deno.env.get("LOVABLE_API_KEY")!,
+              },
+            }
+          );
+          const custJson = await custRes.json();
+          const customer = custJson?.data?.[0];
+          if (!customer?.id) continue;
+
+          resolvedCustomerId = customer.id;
+          resolvedEnv = candidate;
+
+          // Also try to find the active subscription for this customer
+          const subRes = await fetch(
+            `https://connector-gateway.lovable.dev/paddle/subscriptions?customer_id=${customer.id}&status=active`,
+            {
+              headers: {
+                "X-Connection-Api-Key":
+                  candidate === "sandbox"
+                    ? Deno.env.get("PADDLE_SANDBOX_API_KEY")!
+                    : Deno.env.get("PADDLE_LIVE_API_KEY")!,
+                "Lovable-API-Key": Deno.env.get("LOVABLE_API_KEY")!,
+              },
+            }
+          );
+          const subJson = await subRes.json();
+          resolvedSubscriptionId = subJson?.data?.[0]?.id || null;
+          break;
+        } catch (e) {
+          console.warn(`Lookup in ${candidate} failed:`, e);
+        }
+      }
+
+      if (resolvedCustomerId) {
+        await admin
+          .from("user_subscriptions")
+          .update({
+            paddle_customer_id: resolvedCustomerId,
+            paddle_subscription_id: resolvedSubscriptionId,
+            environment: resolvedEnv,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("user_id", user.id);
+      }
+    }
+
+    if (!resolvedCustomerId) {
+      return new Response(
+        JSON.stringify({
+          error:
+            "Could not locate your billing record. Please contact support at islandai_life@outlook.com.",
+        }),
+        { status: 404, headers: jsonHeaders }
+      );
+    }
+
+    const paddle = getPaddleClient(resolvedEnv);
+    const subscriptionIds = resolvedSubscriptionId ? [resolvedSubscriptionId] : [];
     const portalSession = await paddle.customerPortalSessions.create(
-      sub.paddle_customer_id,
+      resolvedCustomerId,
       subscriptionIds
     );
 
