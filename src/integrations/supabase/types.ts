@@ -490,8 +490,11 @@ export type Database = {
         Row: {
           billing_period: string
           created_at: string
+          environment: string | null
           expires_at: string | null
           id: string
+          paddle_customer_id: string | null
+          paddle_subscription_id: string | null
           plan: string
           updated_at: string
           user_id: string
@@ -499,8 +502,11 @@ export type Database = {
         Insert: {
           billing_period?: string
           created_at?: string
+          environment?: string | null
           expires_at?: string | null
           id?: string
+          paddle_customer_id?: string | null
+          paddle_subscription_id?: string | null
           plan?: string
           updated_at?: string
           user_id: string
@@ -508,8 +514,11 @@ export type Database = {
         Update: {
           billing_period?: string
           created_at?: string
+          environment?: string | null
           expires_at?: string | null
           id?: string
+          paddle_customer_id?: string | null
+          paddle_subscription_id?: string | null
           plan?: string
           updated_at?: string
           user_id?: string
