@@ -32,10 +32,10 @@ Deno.serve(async (req) => {
     switch (event.eventType) {
       case EventName.SubscriptionCreated:
       case EventName.SubscriptionUpdated:
-        await upsertSubscription(event.data);
+        await upsertSubscription(event.data, env);
         break;
       case EventName.SubscriptionCanceled:
-        await cancelSubscription(event.data);
+        await cancelSubscription(event.data, env);
         break;
       case EventName.TransactionCompleted:
         console.log("Transaction completed:", (event.data as any).id);
@@ -57,8 +57,8 @@ Deno.serve(async (req) => {
   }
 });
 
-async function upsertSubscription(data: any) {
-  const { items, status, currentBillingPeriod, customData, scheduledChange } = data;
+async function upsertSubscription(data: any, env: PaddleEnv) {
+  const { id: subscriptionId, customerId, items, status, currentBillingPeriod, customData, scheduledChange } = data;
 
   const userId = customData?.userId;
   if (!userId) {
@@ -73,7 +73,6 @@ async function upsertSubscription(data: any) {
   const billingPeriod = billingPeriodFromPriceId(priceExternalId);
   const plan = planFromStatus(status);
 
-  // If user scheduled cancel, expires_at = period end; otherwise next renewal date.
   const expiresAt =
     scheduledChange?.action === "cancel"
       ? scheduledChange?.effectiveAt || currentBillingPeriod?.endsAt
@@ -87,6 +86,9 @@ async function upsertSubscription(data: any) {
         plan,
         billing_period: billingPeriod,
         expires_at: expiresAt,
+        paddle_subscription_id: subscriptionId,
+        paddle_customer_id: customerId,
+        environment: env,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "user_id" }
@@ -96,8 +98,8 @@ async function upsertSubscription(data: any) {
   else console.log(`user ${userId} → plan=${plan}, period=${billingPeriod}, expires=${expiresAt}`);
 }
 
-async function cancelSubscription(data: any) {
-  const { customData, currentBillingPeriod } = data;
+async function cancelSubscription(data: any, env: PaddleEnv) {
+  const { id: subscriptionId, customerId, customData, currentBillingPeriod } = data;
   const userId = customData?.userId;
   if (!userId) {
     console.error("No userId in customData; skipping cancel");
@@ -106,7 +108,6 @@ async function cancelSubscription(data: any) {
 
   const endsAt = currentBillingPeriod?.endsAt || null;
 
-  // Keep "plus" until period end so useSubscription gates correctly via expires_at.
   const { error } = await supabase
     .from("user_subscriptions")
     .upsert(
@@ -114,6 +115,9 @@ async function cancelSubscription(data: any) {
         user_id: userId,
         plan: endsAt ? "plus" : "free",
         expires_at: endsAt,
+        paddle_subscription_id: subscriptionId,
+        paddle_customer_id: customerId,
+        environment: env,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "user_id" }
