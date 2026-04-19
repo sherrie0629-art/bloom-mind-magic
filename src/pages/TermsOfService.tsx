@@ -159,30 +159,32 @@ const Terms = () => {
           </section>
 
           <section>
-            <h2 className="font-display text-lg font-semibold text-foreground mb-2">9. Termination</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground mb-2">10. Termination</h2>
             <p>
-              We may suspend or terminate your access if you violate these Terms. You may stop using the Service at
-              any time and delete your account from the Profile page or by emailing us.
+              We may suspend or terminate your access if you violate these Terms, fail to pay, or pose a security or
+              fraud risk. You may stop using the Service at any time and delete your account from the Profile page
+              or by emailing us.
             </p>
           </section>
 
           <section>
-            <h2 className="font-display text-lg font-semibold text-foreground mb-2">10. Limitation of Liability</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground mb-2">11. Limitation of Liability</h2>
             <p>
-              To the maximum extent permitted by law, Island AI is not liable for indirect, incidental, special, or
-              consequential damages arising from your use of the Service.
+              To the maximum extent permitted by law, Qian Wang (trading as Island AI) is not liable for indirect,
+              incidental, special, or consequential damages arising from your use of the Service. Nothing in these
+              Terms excludes liability for fraud, death, or personal injury where such exclusion is prohibited by law.
             </p>
           </section>
 
           <section>
-            <h2 className="font-display text-lg font-semibold text-foreground mb-2">11. Changes to These Terms</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground mb-2">12. Changes to These Terms</h2>
             <p>
               We may update these Terms from time to time. Continued use after changes constitutes acceptance.
             </p>
           </section>
 
           <section>
-            <h2 className="font-display text-lg font-semibold text-foreground mb-2">12. Contact</h2>
+            <h2 className="font-display text-lg font-semibold text-foreground mb-2">13. Contact</h2>
             <p>
               Questions about these Terms? Email <a className="text-secondary" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
             </p>
