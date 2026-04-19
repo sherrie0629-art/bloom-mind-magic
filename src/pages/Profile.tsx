@@ -180,9 +180,9 @@ const Profile = () => {
                   </button>
                 </div>
 
-                <button onClick={openCheckout} className="w-full rounded-xl bg-gradient-golden py-2.5 text-xs font-semibold text-primary-foreground flex items-center justify-center gap-1.5">
+                <button onClick={handleUpgrade} disabled={checkoutLoading} className="w-full rounded-xl bg-gradient-golden py-2.5 text-xs font-semibold text-primary-foreground flex items-center justify-center gap-1.5 disabled:opacity-60">
                   <Sparkles className="h-3.5 w-3.5" />
-                  {billingToggle === "monthly" ? "Get Plus · $4.99/mo" : "Get Plus · $47.99/yr"}
+                  {checkoutLoading ? "Loading…" : billingToggle === "monthly" ? "Get Plus · $4.99/mo" : "Get Plus · $47.99/yr"}
                 </button>
               </motion.div>
             )}
