@@ -165,6 +165,15 @@ const Profile = () => {
                     </div>
                   )}
                 </div>
+                {plan === "plus" && (
+                  <button
+                    onClick={handleManageSubscription}
+                    disabled={portalLoading}
+                    className="mt-1 w-full rounded-xl border border-secondary/30 bg-secondary/5 py-2 text-[11px] font-semibold text-secondary hover:bg-secondary/10 transition-colors disabled:opacity-60"
+                  >
+                    {portalLoading ? "Opening…" : "Manage Subscription / Cancel"}
+                  </button>
+                )}
               </motion.div>
             )}
 
