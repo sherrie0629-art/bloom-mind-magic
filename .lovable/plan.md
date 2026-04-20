@@ -1,29 +1,30 @@
 
-将首页 hero 区域的 logo 文字从 "Soul Sanctuary" 改为 "Island AI"，与底部 footer 的 "© Island AI" 品牌一致。
+## 添加 Pricing 计费页面（14 天退款）
 
-### 改动范围
+### 改动内容
 
-**1. `src/pages/Index.tsx`（第 64 行）**
-- Hero 标题：`Soul Sanctuary` → `Island AI`
-- 副标题保留 "In a noisy world, find the soul that gets you"（贴合 Island AI 安静港湾的品牌感）
+**1. 新建 `src/pages/Pricing.tsx`**
+- 复用 `DesktopLayout` + `SEO`，与现有页面风格一致
+- 顶部标题 "Choose Your Plan" + 副标题
+- 月/年切换 toggle（年付标 "Save 20%"）
+- 两张卡片网格（桌面 2 列居中，移动 1 列）：
+  - **Free**：$0，列出 20 chats/day、5 quizzes/day、基础功能；按钮 "Current Plan"（已登录免费用户）/"Get Started"（未登录跳 `/auth`）
+  - **Plus**（推荐，高亮边框 + Crown 图标 + "Most Popular" 角标）：$4.99/mo 或 $47.99/yr，列出 Unlimited chats、Unlimited quizzes、1 Deep Report/day、所有 agents 解锁；按钮 "Upgrade to Plus"，调用 `usePaddleCheckout`
+- 已是 Plus 用户访问时，Plus 卡按钮显示 "Manage Subscription"，点击走 `paddle-customer-portal`
+- 未登录点 Upgrade → 跳 `/auth`
+- 卡片底部一行小字（居中、muted）：**"针对无付费使用记录的账号提供 14 天退款保障"**
+- 集成 `SEO`：`title="Pricing — Island AI"`
 
-**2. `src/components/SEO.tsx`（第 4 行）**
-- `SITE_NAME` 常量：`"Soul Sanctuary"` → `"Island AI"`
-- 这会自动更新所有页面默认 `<title>` 后缀和 `og:site_name`
+**2. `src/App.tsx`**
+- 引入 `Pricing` 并加路由 `<Route path="/pricing" element={<Pricing />} />`
 
-**3. `src/pages/Index.tsx`（第 56 行 SEO 调用）**
-- `title="Soul Sanctuary — Your AI Healing Space"` → `title="Island AI — Your AI Healing Space"`
-
-**4. `index.html`**
-- `<title>Soul Sanctuary — AI Companions for Self-Discovery</title>` → `Island AI — AI Companions for Self-Discovery`
-- `<meta name="author" content="Soul Sanctuary" />` → `Island AI`
-- `og:title` 和 `twitter:title` meta 标签同步更新
+**3. `src/components/SiteFooter.tsx`**
+- 在导航链接中加一项 `Pricing`（位于 Contact 前）
 
 ### 不会改动
-- Footer（已经是 "Island AI"）
-- Contact 页面（已经是 "Island AI"）
-- 数据库、品牌色、logo 图标、agent 数据
-- 中文文案（项目内 UI 固定文案为英文，符合现有规则）
+- 数据库、Edge functions、Paddle 产品/价格（沿用现有 `plus_monthly` / `plus_yearly`）
+- Profile 页升级卡（保留作为快捷入口）
+- 品牌色与现有设计 token
 
 ### 验证
-刷新首页 → hero 显示 "Island AI"；浏览器标签页标题显示 "Island AI — ..."；底部 footer 与顶部 logo 品牌一致。
+访问 `/pricing` → 看到两栏（Free / Plus + 月年切换）→ 点 "Upgrade to Plus" 弹出 Paddle 结账 → 底部显示 14 天退款小字。
