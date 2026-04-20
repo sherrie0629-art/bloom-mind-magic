@@ -39,14 +39,14 @@ const Index = () => {
   return (
     <DesktopLayout maxWidth="4xl">
       <div className="min-h-screen bg-gradient-calm pb-20 md:pb-8">
-        <SEO title="Soul Sanctuary — Your AI Healing Space" description="Meet AI companions who listen without judgement. Explore personality assessments and build your soul map." />
+        <SEO title="Island AI — Your AI Healing Space" description="Meet AI companions who listen without judgement. Explore personality assessments and build your soul map." />
         {/* Hero */}
         <div className="relative overflow-hidden">
           <img src={heroBg} alt="" className="absolute inset-0 h-full w-full object-cover opacity-60" />
           <div className="relative px-6 pb-10 pt-14 md:pt-10 text-center md:text-left md:flex md:items-center md:gap-8 md:px-8 md:py-12">
             <div className="md:flex-1">
               <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                Soul Sanctuary
+                Island AI
               </motion.h1>
               <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-2 text-sm md:text-base text-muted-foreground">
                 In a noisy world, find the soul that gets you
