@@ -83,8 +83,12 @@ const Terms = () => {
             <h2 className="font-display text-lg font-semibold text-foreground mb-2">6. Refund Policy</h2>
             <p>
               We offer a <strong>14-day money-back guarantee</strong>. If you are not satisfied with your purchase,
-              you may request a full refund within 14 days of your initial order date, even if you have already
-              tried some of the AI features. We want you to feel comfortable exploring the Service.
+              you may request a full refund within 14 days of your initial order date.
+            </p>
+            <p className="mt-2">
+              Even if you have lightly tried the Service — for example, sent fewer than 5 chat messages or
+              completed up to 1 basic assessment — you remain eligible for a full refund within the 14-day window.
+              We want you to feel comfortable exploring Island AI before committing.
             </p>
             <p className="mt-2">
               Refunds are processed by our payment provider, <strong>Paddle</strong>, who is the Merchant of
@@ -93,8 +97,9 @@ const Terms = () => {
             </p>
             <p className="mt-2">
               We may decline refund requests in cases of clear abuse — for example, repeated refund requests across
-              multiple accounts, or usage patterns consistent with extracting bulk AI output and then requesting a
-              refund. These decisions are made by Paddle in line with their{" "}
+              multiple accounts, or usage patterns consistent with extracting bulk AI output (such as generating
+              many deep reports or large volumes of chat content) and then requesting a refund. These decisions are
+              made by Paddle in line with their{" "}
               <a className="text-secondary" href="https://www.paddle.com/legal/refund-policy" target="_blank" rel="noopener noreferrer">refund policy</a>.
             </p>
             <p className="mt-2">
