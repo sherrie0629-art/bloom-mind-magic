@@ -1,42 +1,29 @@
 
+将首页 hero 区域的 logo 文字从 "Soul Sanctuary" 改为 "Island AI"，与底部 footer 的 "© Island AI" 品牌一致。
 
-## 修复"管理订阅"在 COOP 环境下无法打开
+### 改动范围
 
-### 根本原因
+**1. `src/pages/Index.tsx`（第 64 行）**
+- Hero 标题：`Soul Sanctuary` → `Island AI`
+- 副标题保留 "In a noisy world, find the soul that gets you"（贴合 Island AI 安静港湾的品牌感）
 
-Lovable 预览（以及部署后的站点）运行在设置了 `Cross-Origin-Opener-Policy` 响应头的环境中。当代码用 `window.open("about:blank", "_blank")` 打开空白标签后，再把它导航到 Paddle 的跨域 URL 时，浏览器的 COOP 策略直接拦截了这次跨域导航。
+**2. `src/components/SEO.tsx`（第 4 行）**
+- `SITE_NAME` 常量：`"Soul Sanctuary"` → `"Island AI"`
+- 这会自动更新所有页面默认 `<title>` 后缀和 `og:site_name`
 
-`window.open` + 异步填 URL 的模式在 COOP 环境下行不通。
+**3. `src/pages/Index.tsx`（第 56 行 SEO 调用）**
+- `title="Soul Sanctuary — Your AI Healing Space"` → `title="Island AI — Your AI Healing Space"`
 
-### 修复方案
-
-**放弃新标签页，改为当前标签页直接跳转。** 用户在 Paddle 客户中心操作完后，用浏览器返回键回到 Profile 页。
-
-只改 `src/pages/Profile.tsx` 中 `handleManageSubscription`：
-
-```ts
-const handleManageSubscription = useCallback(async () => {
-  if (!user) return;
-  setPortalLoading(true);
-  try {
-    const { data, error } = await supabase.functions.invoke("paddle-customer-portal");
-    if (error) throw error;
-    if (!data?.url) throw new Error("No portal URL returned");
-    // 当前标签直接跳转，避免 COOP 拦截
-    window.location.href = data.url;
-  } catch (e: any) {
-    console.error(e);
-    toast.error(e?.message || "无法打开管理页面，请稍后重试");
-  } finally {
-    setPortalLoading(false);
-  }
-}, [user]);
-```
+**4. `index.html`**
+- `<title>Soul Sanctuary — AI Companions for Self-Discovery</title>` → `Island AI — AI Companions for Self-Discovery`
+- `<meta name="author" content="Soul Sanctuary" />` → `Island AI`
+- `og:title` 和 `twitter:title` meta 标签同步更新
 
 ### 不会改动
-- Edge function（已正常返回 URL）
-- 数据库 / RLS / 订阅逻辑
+- Footer（已经是 "Island AI"）
+- Contact 页面（已经是 "Island AI"）
+- 数据库、品牌色、logo 图标、agent 数据
+- 中文文案（项目内 UI 固定文案为英文，符合现有规则）
 
 ### 验证
-点击 Manage Subscription → 当前页面跳转到 Paddle 客户中心 → 操作完后浏览器返回键回到 Profile。
-
+刷新首页 → hero 显示 "Island AI"；浏览器标签页标题显示 "Island AI — ..."；底部 footer 与顶部 logo 品牌一致。
