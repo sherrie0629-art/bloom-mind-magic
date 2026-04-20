@@ -12,6 +12,10 @@ const SiteFooter = () => {
           © {new Date().getFullYear()} Island AI · All rights reserved
         </p>
         <nav className="flex items-center gap-3 text-[11px] text-muted-foreground/70">
+          <Link to="/pricing" className="hover:text-secondary transition-colors">
+            Pricing
+          </Link>
+          <span aria-hidden>·</span>
           <Link to="/contact" className="hover:text-secondary transition-colors">
             Contact Us
           </Link>
