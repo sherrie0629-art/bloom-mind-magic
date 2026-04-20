@@ -82,15 +82,9 @@ const Terms = () => {
           <section>
             <h2 className="font-display text-lg font-semibold text-foreground mb-2">6. Refund Policy</h2>
             <p>
-              We offer a <strong>14-day money-back guarantee for accounts with zero consumption</strong>. If you
-              have not utilized any AI features or consumed any tokens (e.g., AI chats, personality reports, tarot
-              insights, or deep reports) after your purchase, you may request a full refund within 14 days of your
-              initial order date.
-            </p>
-            <p className="mt-2">
-              Once any AI services have been generated or tokens have been consumed, the order becomes
-              <strong> non-refundable</strong> due to the immediate resource costs incurred (compute, third-party
-              AI inference, and storage).
+              We offer a <strong>14-day money-back guarantee</strong>. If you are not satisfied with your purchase,
+              you may request a full refund within 14 days of your initial order date, even if you have already
+              tried some of the AI features. We want you to feel comfortable exploring the Service.
             </p>
             <p className="mt-2">
               Refunds are processed by our payment provider, <strong>Paddle</strong>, who is the Merchant of
@@ -98,9 +92,14 @@ const Terms = () => {
               contact us at <a className="text-secondary" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>.
             </p>
             <p className="mt-2">
-              Renewal payments follow the same rule: a renewal is refundable only if no paid features have been
-              used in the new billing period. We do not provide pro-rated refunds for cancellations made mid-period
-              — you keep access until the end of the paid period.
+              We may decline refund requests in cases of clear abuse — for example, repeated refund requests across
+              multiple accounts, or usage patterns consistent with extracting bulk AI output and then requesting a
+              refund. These decisions are made by Paddle in line with their{" "}
+              <a className="text-secondary" href="https://www.paddle.com/legal/refund-policy" target="_blank" rel="noopener noreferrer">refund policy</a>.
+            </p>
+            <p className="mt-2">
+              For subscription renewals, the same 14-day window applies from the renewal date. We do not provide
+              pro-rated refunds for cancellations made mid-period — you keep access until the end of the paid period.
             </p>
           </section>
 

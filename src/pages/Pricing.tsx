@@ -264,7 +264,7 @@ const Pricing = () => {
 
             {/* Refund note */}
             <p className="mt-8 text-center text-xs text-muted-foreground/80">
-              针对无付费使用记录的账号提供 14 天退款保障
+              14-day money-back guarantee · Cancel anytime
             </p>
           </div>
         </div>
