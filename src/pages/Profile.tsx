@@ -74,7 +74,7 @@ const Profile = () => {
   const handleManageSubscription = useCallback(async () => {
     if (!user) return;
     // Open placeholder synchronously (within user gesture) to avoid popup blockers
-    const popup = window.open("about:blank", "_blank", "noopener,noreferrer");
+    const popup = window.open("about:blank", "_blank");
     setPortalLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("paddle-customer-portal");
