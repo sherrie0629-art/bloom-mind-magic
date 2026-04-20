@@ -73,23 +73,16 @@ const Profile = () => {
   const [portalLoading, setPortalLoading] = useState(false);
   const handleManageSubscription = useCallback(async () => {
     if (!user) return;
-    // Open placeholder synchronously (within user gesture) to avoid popup blockers
-    const popup = window.open("about:blank", "_blank");
     setPortalLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke("paddle-customer-portal");
       if (error) throw error;
       if (!data?.url) throw new Error("No portal URL returned");
-      if (popup) {
-        popup.location.href = data.url;
-      } else {
-        window.location.href = data.url;
-      }
+      // Same-tab redirect avoids COOP blocking on cross-origin navigation
+      window.location.href = data.url;
     } catch (e: any) {
-      popup?.close();
       console.error(e);
       toast.error(e?.message || "无法打开管理页面，请稍后重试");
-    } finally {
       setPortalLoading(false);
     }
   }, [user]);
