@@ -12,7 +12,6 @@ import AssessmentFlow from "./pages/AssessmentFlow.tsx";
 import AssessmentDetail from "./pages/AssessmentDetail.tsx";
 import AssessmentReports from "./pages/AssessmentReports.tsx";
 import EnneagramFlow from "./pages/EnneagramFlow.tsx";
-import ZodiacFlow from "./pages/ZodiacFlow.tsx";
 import EmotionFlow from "./pages/EmotionFlow.tsx";
 import CompatibilityFlow from "./pages/CompatibilityFlow.tsx";
 import CompatibilityReports from "./pages/CompatibilityReports.tsx";
@@ -20,7 +19,6 @@ import CompatibilityDetail from "./pages/CompatibilityDetail.tsx";
 import Profile from "./pages/Profile.tsx";
 import Auth from "./pages/Auth.tsx";
 import ConversationHistory from "./pages/ConversationHistory.tsx";
-import DailyTarot from "./pages/DailyTarot.tsx";
 import AgentArchive from "./pages/AgentArchive.tsx";
 import Vault from "./pages/Vault.tsx";
 import SoulMap from "./pages/SoulMap.tsx";
@@ -55,14 +53,14 @@ const App = () => (
             <Route path="/assessment-reports/:id" element={<AssessmentDetail />} />
             <Route path="/assessment/mbti" element={<AssessmentFlow />} />
             <Route path="/assessment/enneagram" element={<EnneagramFlow />} />
-            <Route path="/assessment/bazi" element={<EnneagramFlow />} />
-            <Route path="/assessment/zodiac" element={<ZodiacFlow />} />
+            <Route path="/assessment/bazi" element={<Navigate to="/" replace />} />
+            <Route path="/assessment/zodiac" element={<Navigate to="/" replace />} />
             <Route path="/assessment/emotion" element={<EmotionFlow />} />
             <Route path="/assessment/compatibility" element={<CompatibilityFlow />} />
             <Route path="/compatibility-reports" element={<CompatibilityReports />} />
             <Route path="/compatibility-reports/:id" element={<CompatibilityDetail />} />
-            <Route path="/daily-tarot" element={<DailyTarot />} />
-            <Route path="/daily-whisper" element={<Navigate to="/daily-tarot" replace />} />
+            <Route path="/daily-tarot" element={<Navigate to="/" replace />} />
+            <Route path="/daily-whisper" element={<Navigate to="/" replace />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/archive" element={<AgentArchive />} />
             <Route path="/vault" element={<Vault />} />

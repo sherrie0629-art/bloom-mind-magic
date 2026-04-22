@@ -12,10 +12,10 @@ import SEO from "@/components/SEO";
 
 interface SoulFragment { id: string; name: string; description: string | null; icon: string; color: string; source_type: string; source_id: string | null; created_at: string; }
 
-const sourceLabels: Record<string, string> = { mbti: "MBTI", enneagram: "Enneagram", zodiac: "Horoscope", emotion: "Wellness Check", chat: "Deep Chat" };
+const sourceLabels: Record<string, string> = { mbti: "MBTI", enneagram: "Enneagram", emotion: "Wellness Check", chat: "Deep Chat" };
 const SOURCE_GROUPS = [
-  { key: "assessment", label: "Assessment Stars", sources: ["mbti", "enneagram", "zodiac", "emotion"] },
-  { key: "chat", label: "Conversation Stars", sources: ["chat"] },
+  { key: "assessment", label: "Assessment Insights", sources: ["mbti", "enneagram", "emotion"] },
+  { key: "chat", label: "Conversation Insights", sources: ["chat"] },
 ];
 
 const SoulMap = () => {
@@ -26,7 +26,7 @@ const SoulMap = () => {
   const [selectedFragment, setSelectedFragment] = useState<SoulFragment | null>(null);
   const [selectedConstellation, setSelectedConstellation] = useState<AchievementDef | null>(null);
 
-  useEffect(() => { if (!user) { promptLogin("登录后查看灵魂星图 🌟"); navigate("/"); return; } (supabase as any).from("soul_fragments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).then(({ data }: any) => { if (data) setFragments(data); }); }, [user, promptLogin, navigate]);
+  useEffect(() => { if (!user) { promptLogin("Sign in to view your insight map ✨"); navigate("/"); return; } (supabase as any).from("soul_fragments").select("*").eq("user_id", user.id).order("created_at", { ascending: false }).then(({ data }: any) => { if (data) setFragments(data); }); }, [user, promptLogin, navigate]);
 
   const unlocked = ACHIEVEMENTS.filter((a) => unlockedIds.includes(a.id));
   const locked = ACHIEVEMENTS.filter((a) => !unlockedIds.includes(a.id));
@@ -35,16 +35,16 @@ const SoulMap = () => {
   return (
     <DesktopLayout maxWidth="4xl">
     <div className="min-h-screen pb-12" style={{ background: "linear-gradient(180deg, hsl(225 50% 8%), hsl(260 40% 12%), hsl(225 45% 10%))" }}>
-      <SEO title="Soul Map — Soul Sanctuary" description="Your personalized soul map — a living constellation of insights from every conversation." />
+      <SEO title="Insight Map — Island AI" description="Your personalized insight map — a living view of reflections from every assessment and conversation." />
       <div className="flex items-center gap-3 px-5 pt-12 pb-4">
         <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80 active:scale-95 transition-transform"><ArrowLeft className="h-4 w-4" /></button>
-        <h1 className="font-display text-lg font-semibold text-white/90">Soul Map</h1>
-        <span className="ml-auto text-[11px] text-white/40">{fragments.length} stars · {unlocked.length} constellations</span>
+        <h1 className="font-display text-lg font-semibold text-white/90">Insight Map</h1>
+        <span className="ml-auto text-[11px] text-white/40">{fragments.length} insights · {unlocked.length} milestones</span>
       </div>
       {groupedFragments.map((group) => (
         <div key={group.key} className="px-5 mt-6">
           <h3 className="text-xs font-semibold text-white/50 mb-3 flex items-center gap-1.5"><span>{group.key === "assessment" ? "📐" : "💬"}</span>{group.label}<span className="text-[10px] text-white/30 ml-1">({group.items.length})</span></h3>
-          {group.items.length === 0 ? (<div className="rounded-2xl border border-white/10 p-5 text-center"><p className="text-xs text-white/30">{group.key === "assessment" ? "Complete assessments to earn stars ✨" : "Have deep conversations to earn stars 💫"}</p></div>) : (
+          {group.items.length === 0 ? (<div className="rounded-2xl border border-white/10 p-5 text-center"><p className="text-xs text-white/30">{group.key === "assessment" ? "Complete assessments to earn insights ✨" : "Have deep conversations to earn insights 💫"}</p></div>) : (
             <div className="flex flex-wrap gap-3">{group.items.map((f, i) => (
               <motion.button key={f.id} initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: i * 0.04, type: "spring", stiffness: 300, damping: 22 }} onClick={() => setSelectedFragment(f)} className="relative flex h-14 w-14 items-center justify-center rounded-full" style={{ backgroundColor: f.color + "18", boxShadow: `0 0 20px -4px ${f.color}60`, border: `1px solid ${f.color}30` }}>
                 <motion.span animate={{ y: [0, -2, 0] }} transition={{ duration: 2.5 + i * 0.3, repeat: Infinity, ease: "easeInOut" }} className="text-xl">{f.icon}</motion.span>
@@ -52,7 +52,7 @@ const SoulMap = () => {
         </div>
       ))}
       <div className="px-5 mt-8">
-        <h3 className="text-xs font-semibold text-white/50 mb-3 flex items-center gap-1.5"><span>⭐</span>Constellation Guide<span className="text-[10px] text-white/30 ml-1">({unlocked.length}/{ACHIEVEMENTS.length})</span></h3>
+        <h3 className="text-xs font-semibold text-white/50 mb-3 flex items-center gap-1.5"><span>⭐</span>Milestones<span className="text-[10px] text-white/30 ml-1">({unlocked.length}/{ACHIEVEMENTS.length})</span></h3>
         <div className="grid grid-cols-2 gap-3">
           {unlocked.map((ach, i) => (<motion.button key={ach.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} onClick={() => setSelectedConstellation(ach)} className="rounded-2xl p-4 text-left" style={{ background: "linear-gradient(135deg, hsl(38 75% 55% / 0.12), hsl(25 85% 60% / 0.06))", border: "1px solid hsl(38 75% 55% / 0.25)" }}>
             <div className="flex items-center gap-2 mb-1.5"><span className="text-xl">{ach.icon}</span><span className="text-[10px] text-white/40">Unlocked</span></div>
