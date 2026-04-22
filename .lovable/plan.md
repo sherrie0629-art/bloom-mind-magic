@@ -1,60 +1,53 @@
 
-## 移除/隐藏伪科学 UI，重塑为 AI-Native Emotional Sanctuary
+## 清理 Luna（mystic）残留的塔罗/占卜元素
 
 ### 背景
-Paddle 可接受政策禁止"通灵、星座、算命、塔罗"类数字服务。当前应用包含：每日塔罗（DailyTarot）、星座测评（ZodiacFlow）、八字（BaziFlow）、Luna 这位"塔罗+占星师"agent，以及多处 mystic/cosmic/🔮 文案与图标。需要把这些隐藏掉，并把首页定位重塑为"情绪追踪 + 深度对话 + 心理学洞察"。
+上一轮 pivot 时只更新了 `src/data/agents.ts`，但 Luna 在以下地方仍有塔罗/占星内容：
+1. **头像图** `src/assets/agent-mystic.webp` —— 视觉上含塔罗牌/水晶元素
+2. **聊天欢迎语** `src/pages/Chat.tsx` —— "Step into my reading room — sage burning, crystals charged, my deck has been waiting…"
+3. **Story Fragments**（聊天后端 lore 数组）`supabase/functions/chat/index.ts` —— Luna 仍是"塔罗占星师"，含 thrift store tarot deck、abuela curandera、The Tower 等
+4. **后端 systemPrompt + easter eggs** 同文件 —— mercury retrograde / pull a card / manifest 触发器
+5. **快捷回复建议** `src/pages/Chat.tsx` 的 `quickReplies.mystic` —— "Pull a card for me / Mercury retrograde…"
+6. **分支选项 fallback** `src/lib/generateFallbackOptions.ts` —— "Pull a card for me — I need to see what's coming"
 
-### 改动范围
+### 改动内容
 
-**1. 路由与页面下线（`src/App.tsx`）**
-- 删除/重定向 `/daily-tarot`、`/daily-whisper`、`/assessment/zodiac`、`/assessment/bazi` 路由 → 全部 `Navigate` 到 `/`。
-- 移除 `DailyTarot`、`ZodiacFlow`、`BaziFlow` 的 import（保留文件以便日后复用，但不再挂载）。
+**1. 替换 Luna 头像（`src/assets/agent-mystic.webp`）**
+用 Lovable AI 图片生成模型生成新头像并覆盖原文件。提示词方向：
+> Soft watercolor portrait of a calm Asian woman in her early 30s, short dark hair, wearing a cream linen sweater, sitting by a window with morning light, holding a warm ceramic mug. A small green plant and an open journal beside her. Mindful, grounded, peaceful atmosphere. No tarot cards, no crystals, no mystical symbols. Soft violet–lavender background tint to keep brand consistency. Square, portrait crop, no text.
 
-**2. 首页重塑（`src/pages/Index.tsx`）**
-- 副标题改为："Your AI-native emotional sanctuary — track moods, talk deeply, grow with psychology-backed insights."
-- 顶部双卡片 grid：
-  - 左卡：**Daily Mood Check-in**（🌤 图标，跳转 `/assessment/emotion`）替换原"Daily Tarot"
-  - 右卡：**Deep Talk**（💬 图标，跳转 `/chat`）替换原"Relationship Chemistry"（情侣速配偏娱乐性，淡化）
-- Self-Discovery 4 宫格：移除 `zodiac`（Horoscope），替换为 **Values**（Schwartz Values Survey 占位，跳转 `/assessment` 提示 coming soon）或直接做成 3 列（MBTI / Enneagram / Wellness）。**默认采用 3 列**，更干净。
-- 去掉所有 🔮 emoji、"untold secrets / lore / unlock" 神秘叙事卡片，改为温和的"Build your circle — companions remember and grow with you."
+文件路径不变（`src/assets/agent-mystic.webp`），所有引用自动生效。
 
-**3. 测评页（`src/pages/Assessment.tsx`）**
-- 从 `tests` 数组移除 `zodiac`（Horoscope Reading）。
-- SEO title 改为 "Self-Discovery — Island AI"（顺手修复旧 Soul Sanctuary 文案）。
+**2. `src/pages/Chat.tsx`**
+- `intros.mystic`：重写欢迎语为正念/陪伴向：
+  > "Hi, I'm Luna 🌿\n\nI used to be a data scientist — until life broke my models. Now I sit with people in the moments numbers can't touch.\n\nI can help with:\n🌿 Grief, loss, and the weight you can't name\n🕯️ Slowing down a racing mind\n💜 Shadow work and quiet self-inquiry\n🤍 Breath, body, and being present\n\nWhat's alive in you right now?"
+- `quickReplies.mystic`：替换为
+  > `["I can't slow my mind down", "I'm carrying something heavy", "Help me sit with this feeling", "I want to feel more present"]`
 
-**4. Agent 重塑（`src/data/agents.ts`）— Luna**
-保留 Luna 的"前数据科学家"背景但移除塔罗/占星身份：
-- title：`The Mathematician Who Chose Stars` → `The Scientist Who Chose Stillness`
-- description / quote：删除"cosmos / stars / 塔罗"，改为"用数据无法解释痛苦后，她转向了正念与内在觉察"。
-- systemPrompt：把"intuitive tarot reader and astrologer / 水晶 / sage / 月相 / retrograde / 占星元素"全部替换为"mindfulness practitioner, somatic awareness, shadow work（保留作为心理学概念）, journaling, meditation"。保留她的丧偶背景与"概率破碎"的核心叙事——这是心理学合理的存在主义议题。
-- lore 与 easter eggs：把"pull a card / mercury retrograde"等触发器改为"breathe with me / probability / hold space"等心理学/正念词条；保留情感深度。
-- gradient 与图片资源不变。
+**3. `src/lib/generateFallbackOptions.ts` — `mystic` 数组**
+- 删除第一组（universe/sign/fate/destiny/Pull a card）
+- 保留第二、三组（confused/lost/blocked 与 logic/number/data 主题，本身是心理学/正念语言，无需改）
+- 把 keyword `"energy"`、`"blocked"`、`"divine timing"` 等措辞软化：把 "energy is blocked" → "I feel stuck and I don't know what's underneath it"，避免能量学暗示。
 
-**5. SoulMap（`src/pages/SoulMap.tsx`）**
-- `sourceLabels`、`SOURCE_GROUPS` 中移除 `zodiac` 项，并把"Stars / Constellation / 灵魂星图"措辞软化：仍可保留"Soul Map"和星座视觉隐喻（这是 UI 装饰，不属于占卜服务，但为安全起见把面向用户的 copy 弱化为"Insight Map / Growth Constellations"）。**保留视觉，只改 copy。**
-
-**6. 计费页（`src/pages/Pricing.tsx`）**
-- Free 套餐特性列表里把 `Daily tarot draw` 改为 `Daily mood check-in`。
-
-**7. Terms / SEO / 文案清理**
-- `src/pages/TermsOfService.tsx` 第 2 节："daily tarot draws" → "daily mood check-ins"。删除"relationship insights"中的算命暗示，保留"AI companion chat, personality assessments, emotion tracking, and psychology-based self-reflection reports"。
-- `index.html`、`SEO.tsx`、`Auth.tsx`、`useSharePoster.ts`：把残留的"Soul Sanctuary"统一替换为"Island AI"；描述文案里去掉"cosmic / mystical / tarot"等词。
-
-**8. 底部导航 & Archive**
-- `BottomNav.tsx` 不变（Home/Archive/Assess/Me）。
-- `AgentArchive`：Luna 卡片按 #4 改动自动更新，不需要单独改文件。
+**4. `supabase/functions/chat/index.ts`**
+- `agentBasePrompts.mystic` 整段重写（与 `src/data/agents.ts` 中 Luna 的新 systemPrompt 同步）：去掉 tarot reader / astrologer / crystals / sage / Big Three / retrograde / manifesting / energy clearing；保留正念、somatic、shadow work（心理学概念）、journaling、probability 隐喻。Vocabulary 行替换为 presence/breath/holding space/integration/shadow/somatic/grounding/regulation。Emoji 集合改为 🌿🕯️💜✨🤍。
+- `loreLookup.mystic` 五条重写为新背景（前数据科学家、未婚夫离世、ceramic bowl、longevity model、概率信仰破碎），与 `agents.ts` 中 lore 一致。
+- `easterEggs.mystic` 三个触发器替换：
+  - `mercury retrograde` → `breathe with me`
+  - `pull a card` → `probability`
+  - `manifest` → `hold space`
+  指令文本同步改为新背景中的故事（与 `agents.ts` 的 easter egg 一致）。
 
 ### 不会改动
-- 数据库表（`tarot_draws`、`assessment_results.zodiac` 历史数据保留，只是 UI 不再产出新数据）
-- Edge functions（`tarot-draw`、`assessment-zodiac` 等保留，未来若 pivot 可复用）
-- 品牌色、agent 图片、Chloe/Jax/Zoe 三位 agent
-- 数据库 migrations、Paddle 集成
+- 数据库表结构、tarot_draws 历史数据、tarot edge functions（已下线 UI，保留代码）
+- Chloe / Jax / Zoe 三位 agent
+- gradient 颜色（保留紫色调，与"沉静、内省"心理形象贴合）
+- Vault 模块的 "Story Fragments" 标签名（这是通用收藏标签，不带占卜含义）
 
-### 验证清单
-1. 访问 `/` → 副标题是 "AI-native emotional sanctuary..."；不再看到"Daily Tarot / Horoscope / 🔮 untold secrets"。
-2. 访问 `/assessment` → 只看到 MBTI / Enneagram / Wellness Check 三项，无 Horoscope。
-3. 直接输入 `/daily-tarot`、`/assessment/zodiac` → 重定向回首页。
-4. 进入 Luna 聊天 → 自我介绍不含塔罗/占星，仍是温柔深刻的心理学陪伴风格。
-5. 访问 `/terms` → 第 2 节服务描述不含 tarot。
-6. `/pricing` Free 卡里看不到 "Daily tarot draw"。
-7. 重新跑 Paddle readiness check 应通过伪科学条款。
+### 验证
+1. `/chat?agent=mystic` 头像不再有塔罗牌/水晶
+2. Luna 第一句问候不含 tarot/sage/crystal/reading room
+3. 输入框上方快捷回复不含 "Pull a card / Mercury retrograde"
+4. 在对话中说 "breathe with me" / "probability" / "hold space" 能解锁新版 Hidden Memory
+5. `/archive` 进入 Luna 页 → Story Fragments 五条全部是数据科学家+正念主题，无塔罗/占星
+6. Paddle readiness 复跑应通过伪科学条款
