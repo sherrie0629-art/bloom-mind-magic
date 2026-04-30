@@ -303,7 +303,7 @@ const BaziFlow = () => {
       title="八字命理分析"
       backPath="/assessment"
       questionNumber={history.length + 1}
-      totalQuestions={5}
+      totalQuestions={10}
       loading={loading}
       loadingMessage={loadingMsg}
       question={currentQuestion}

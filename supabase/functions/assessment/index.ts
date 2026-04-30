@@ -98,17 +98,17 @@ serve(async (req) => {
     if (body.action === "batch-questions") {
       const response = await fetchAI(model, {
         messages: [
-          { role: "system", content: `You are a professional MBTI personality assessment expert. Generate 5 MBTI personality quiz questions.
+          { role: "system", content: `You are a professional MBTI personality assessment expert. Generate 10 MBTI personality quiz questions.
 Questions should cover E/I, S/N, T/F, J/P dimensions. Make them scenario-based, natural, and engaging.
 Each question has 4 options (A/B/C/D). All content in English.
 You must call the batch_questions tool to return all questions.` },
-          { role: "user", content: "Generate 5 MBTI personality assessment questions covering different personality dimensions." },
+          { role: "user", content: "Generate 10 MBTI personality assessment questions covering different personality dimensions." },
         ],
         tools: [{
           type: "function" as const,
           function: {
             name: "batch_questions",
-            description: "Return 5 MBTI assessment questions",
+            description: "Return 10 MBTI assessment questions",
             parameters: {
               type: "object",
               properties: {
@@ -123,7 +123,7 @@ You must call the batch_questions tool to return all questions.` },
                     },
                     required: ["question", "options", "dimension"],
                   },
-                  minItems: 5, maxItems: 5,
+                  minItems: 10, maxItems: 10,
                 },
               },
               required: ["questions"],

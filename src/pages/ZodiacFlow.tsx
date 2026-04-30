@@ -269,7 +269,7 @@ const ZodiacFlow = () => {
   }
 
   return (
-    <AssessmentQuestionLayout title="Horoscope Reading" backPath="/assessment" questionNumber={history.length + 1} totalQuestions={5} loading={loading} loadingMessage={loadingMsg} question={currentQuestion} onAnswer={handleAnswer} />
+    <AssessmentQuestionLayout title="Horoscope Reading" backPath="/assessment" questionNumber={history.length + 1} totalQuestions={10} loading={loading} loadingMessage={loadingMsg} question={currentQuestion} onAnswer={handleAnswer} />
   );
 };
 

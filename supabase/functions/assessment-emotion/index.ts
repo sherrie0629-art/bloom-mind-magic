@@ -44,12 +44,12 @@ serve(async (req) => {
       const response = await fetchAI(model, {
         messages: [
           { role: "system", content: `You are a warm, empathetic wellness coach specializing in burnout recovery and boundary-setting.
-Generate 5 questions covering: burnout level, energy management, boundary-setting, sleep quality, and emotional regulation.
+Generate 10 questions covering: burnout level, energy management, boundary-setting, sleep quality, and emotional regulation.
 Questions should feel supportive and non-clinical. Use therapy-speak concepts like "boundaries", "holding space", "emotional labor".
 Each has 4 options (A/B/C/D). All in English. Call batch_questions tool.` },
-          { role: "user", content: "Generate 5 burnout & wellness check questions." },
+          { role: "user", content: "Generate 10 burnout & wellness check questions." },
         ],
-        tools: [{ type: "function" as const, function: { name: "batch_questions", description: "Return 5 wellness questions", parameters: { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { question: { type: "string" }, options: { type: "array", items: { type: "object", properties: { label: { type: "string" }, text: { type: "string" } }, required: ["label", "text"] } }, dimension: { type: "string", description: "Aspect: burnout/energy/boundaries/sleep/regulation" } }, required: ["question", "options", "dimension"] }, minItems: 5, maxItems: 5 } }, required: ["questions"] } } }],
+        tools: [{ type: "function" as const, function: { name: "batch_questions", description: "Return 10 wellness questions", parameters: { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { question: { type: "string" }, options: { type: "array", items: { type: "object", properties: { label: { type: "string" }, text: { type: "string" } }, required: ["label", "text"] } }, dimension: { type: "string", description: "Aspect: burnout/energy/boundaries/sleep/regulation" } }, required: ["question", "options", "dimension"] }, minItems: 10, maxItems: 10 } }, required: ["questions"] } } }],
         tool_choice: { type: "function" as const, function: { name: "batch_questions" } },
         temperature: 0.7, max_tokens: 2048,
       });
