@@ -37,9 +37,8 @@ const Terms = () => {
           <section>
             <h2 className="font-display text-lg font-semibold text-foreground mb-2">2. The Service</h2>
             <p>
-              Island AI provides AI companion chat, personality assessments (such as MBTI and Enneagram),
-              daily mood check-ins, emotion tracking, and psychology-based self-reflection reports. The Service is
-              intended for personal self-reflection and emotional well-being.
+              Island AI provides AI-powered companion chat, personality assessments, daily tarot draws, and
+              relationship insights for entertainment and self-reflection.
             </p>
             <p className="mt-2">
               <strong>Not professional advice.</strong> The Service is not a substitute for medical, psychological,

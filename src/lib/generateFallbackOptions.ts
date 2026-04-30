@@ -63,11 +63,19 @@ const agentOptionPools: Record<string, { keywords: string[]; options: BranchOpti
   ],
   mystic: [
     {
-      keywords: ["confused", "lost", "stuck", "stuck in", "heavy"],
+      keywords: ["universe", "sign", "fate", "meant to be", "destiny"],
       options: [
-        { text: "I feel stuck and I don't know what's underneath it", emotion: "sad" },
+        { text: "I want to trust the universe but I'm scared it's not listening", emotion: "brave" },
+        { text: "Pull a card for me — I need to see what's coming", emotion: "curious" },
+        { text: "Maybe this is divine timing and I just can't see the pattern yet", emotion: "hopeful" },
+      ],
+    },
+    {
+      keywords: ["confused", "lost", "stuck", "energy", "blocked"],
+      options: [
+        { text: "I feel like my energy is blocked and I don't know how to clear it", emotion: "sad" },
         { text: "What if I'm the one standing in my own way?", emotion: "brave" },
-        { text: "I need to sit with this before I try to fix it", emotion: "gentle" },
+        { text: "I need to sit with this darkness before I can find the light", emotion: "gentle" },
       ],
     },
     {

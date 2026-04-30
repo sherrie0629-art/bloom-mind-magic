@@ -19,7 +19,7 @@ const FREE_FEATURES = [
   "20 chats per day",
   "5 assessments per day",
   "Basic agent access",
-  "Daily mood check-in",
+  "Daily tarot draw",
 ];
 
 const PLUS_FEATURES = [
