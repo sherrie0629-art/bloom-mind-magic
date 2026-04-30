@@ -113,7 +113,7 @@ const AssessmentFlow = () => {
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}>
             <div className="mx-auto mb-6 h-24 w-24 rounded-full bg-gradient-mystic flex items-center justify-center"><span className="text-4xl">🧠</span></div>
             <h1 className="font-display text-2xl font-bold text-foreground">Decode Your Personality</h1>
-            <p className="mt-3 text-sm text-muted-foreground leading-relaxed">AI dynamically adjusts questions based on your answers.<br />About 5 questions to pinpoint your MBTI type.</p>
+            <p className="mt-3 text-sm text-muted-foreground leading-relaxed">AI dynamically adjusts questions based on your answers.<br />About 10 questions to pinpoint your MBTI type.</p>
             <button onClick={handleStart} className="mt-8 rounded-xl bg-gradient-golden px-8 py-3 text-sm font-semibold text-primary-foreground shadow-glow">Start Quiz ✨</button>
           </motion.div>
         </div>
@@ -174,7 +174,7 @@ const AssessmentFlow = () => {
     );
   }
 
-  return <AssessmentQuestionLayout title="MBTI Quiz" backPath="/assessment" questionNumber={history.length + 1} totalQuestions={5} loading={loading} loadingMessage={loadingMsg} question={currentQuestion} onAnswer={handleAnswer} />;
+  return <AssessmentQuestionLayout title="MBTI Quiz" backPath="/assessment" questionNumber={history.length + 1} totalQuestions={10} loading={loading} loadingMessage={loadingMsg} question={currentQuestion} onAnswer={handleAnswer} />;
 };
 
 export default AssessmentFlow;

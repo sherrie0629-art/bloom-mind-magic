@@ -43,13 +43,13 @@ serve(async (req) => {
     if (body.action === "batch-questions") {
       const response = await fetchAI(model, {
         messages: [
-          { role: "system", content: `You are an Enneagram personality expert. Generate 5 scenario-based questions to determine a person's Enneagram type (1-9).
+          { role: "system", content: `You are an Enneagram personality expert. Generate 10 scenario-based questions to determine a person's Enneagram type (1-9).
 Questions should explore core motivations, fears, desires, and behavioral patterns across different life situations.
 Each question has 4 options (A/B/C/D). All content in English.
 You must call the batch_questions tool to return all questions.` },
-          { role: "user", content: "Generate 5 Enneagram personality assessment questions." },
+          { role: "user", content: "Generate 10 Enneagram personality assessment questions." },
         ],
-        tools: [{ type: "function" as const, function: { name: "batch_questions", description: "Return 5 Enneagram questions", parameters: { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { question: { type: "string" }, options: { type: "array", items: { type: "object", properties: { label: { type: "string" }, text: { type: "string" } }, required: ["label", "text"] } }, dimension: { type: "string", description: "Aspect: motivation/fear/relationship/stress/growth" } }, required: ["question", "options", "dimension"] }, minItems: 5, maxItems: 5 } }, required: ["questions"] } } }],
+        tools: [{ type: "function" as const, function: { name: "batch_questions", description: "Return 10 Enneagram questions", parameters: { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { question: { type: "string" }, options: { type: "array", items: { type: "object", properties: { label: { type: "string" }, text: { type: "string" } }, required: ["label", "text"] } }, dimension: { type: "string", description: "Aspect: motivation/fear/relationship/stress/growth" } }, required: ["question", "options", "dimension"] }, minItems: 10, maxItems: 10 } }, required: ["questions"] } } }],
         tool_choice: { type: "function" as const, function: { name: "batch_questions" } },
         temperature: 0.7, max_tokens: 2048,
       });

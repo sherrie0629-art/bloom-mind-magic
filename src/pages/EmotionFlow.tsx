@@ -226,7 +226,7 @@ const EmotionFlow = () => {
   }
 
   return (
-    <AssessmentQuestionLayout title="Burnout & Wellness Check" backPath="/assessment" questionNumber={history.length + 1} totalQuestions={5} loading={loading} loadingMessage={loadingMsg} question={currentQuestion} onAnswer={handleAnswer} />
+    <AssessmentQuestionLayout title="Burnout & Wellness Check" backPath="/assessment" questionNumber={history.length + 1} totalQuestions={10} loading={loading} loadingMessage={loadingMsg} question={currentQuestion} onAnswer={handleAnswer} />
   );
 };
 

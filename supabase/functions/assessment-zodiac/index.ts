@@ -44,13 +44,13 @@ serve(async (req) => {
       const response = await fetchAI(model, {
         messages: [
           { role: "system", content: `You are a professional Western astrologer. The user's zodiac sign is: ${body.zodiacSign || "unknown"}.
-Generate 5 questions about their current life situation, feelings, and energy to personalize their horoscope reading.
+Generate 10 questions about their current life situation, feelings, and energy to personalize their horoscope reading.
 Cover overall energy, love life, career, and finances. Make them fun and relatable. Each has 4 options (A/B/C/D). All in English.
 Consider current astrological themes like Mercury Retrograde, eclipse seasons, etc.
 You must call the batch_questions tool.` },
-          { role: "user", content: "Generate 5 horoscope reading questions." },
+          { role: "user", content: "Generate 10 horoscope reading questions." },
         ],
-        tools: [{ type: "function" as const, function: { name: "batch_questions", description: "Return 5 horoscope questions", parameters: { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { question: { type: "string" }, options: { type: "array", items: { type: "object", properties: { label: { type: "string" }, text: { type: "string" } }, required: ["label", "text"] } }, dimension: { type: "string", description: "Aspect: overall/love/career/fortune" } }, required: ["question", "options", "dimension"] }, minItems: 5, maxItems: 5 } }, required: ["questions"] } } }],
+        tools: [{ type: "function" as const, function: { name: "batch_questions", description: "Return 10 horoscope questions", parameters: { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { question: { type: "string" }, options: { type: "array", items: { type: "object", properties: { label: { type: "string" }, text: { type: "string" } }, required: ["label", "text"] } }, dimension: { type: "string", description: "Aspect: overall/love/career/fortune" } }, required: ["question", "options", "dimension"] }, minItems: 10, maxItems: 10 } }, required: ["questions"] } } }],
         tool_choice: { type: "function" as const, function: { name: "batch_questions" } },
         temperature: 0.7, max_tokens: 2048,
       });
