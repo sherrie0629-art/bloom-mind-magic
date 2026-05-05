@@ -43,6 +43,7 @@ const Admin = () => {
   const [purchases, setPurchases] = useState<PurchaseRow[]>([]);
   const [search, setSearch] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
@@ -115,35 +116,34 @@ const Admin = () => {
     loadDashboard();
   }, [isAdmin, users.length, loadDashboard]);
 
-  const setPlus = async (userId: string, months: number) => {
+  const applySubscription = async (
+    userId: string,
+    opts: { plan: "free" | "plus"; billingPeriod: "monthly" | "yearly"; expiresAt: string | null }
+  ) => {
     setUpdatingId(userId);
-    const expiresAt = new Date();
-    expiresAt.setMonth(expiresAt.getMonth() + months);
-    const billingPeriod = months >= 12 ? "yearly" : "monthly";
-
     const { data: existing } = await supabase
-      .from("user_subscriptions").select("id").eq("user_id", userId).single();
+      .from("user_subscriptions").select("id").eq("user_id", userId).maybeSingle();
+
+    const payload = {
+      plan: opts.plan,
+      expires_at: opts.plan === "free" ? null : opts.expiresAt,
+      billing_period: opts.billingPeriod,
+    };
 
     if (existing) {
-      await (supabase as any).from("user_subscriptions").update({
-        plan: "plus", expires_at: expiresAt.toISOString(), billing_period: billingPeriod,
-      }).eq("user_id", userId);
+      await (supabase as any).from("user_subscriptions").update(payload).eq("user_id", userId);
     } else {
-      await (supabase as any).from("user_subscriptions").insert({
-        user_id: userId, plan: "plus", expires_at: expiresAt.toISOString(), billing_period: billingPeriod,
-      });
+      await (supabase as any).from("user_subscriptions").insert({ user_id: userId, ...payload });
     }
-    toast({ title: "Updated", description: `Plus membership valid until ${expiresAt.toLocaleDateString("en-US")}` });
+    toast({
+      title: "已更新",
+      description: opts.plan === "plus"
+        ? `Plus 有效期至 ${new Date(opts.expiresAt!).toLocaleDateString("zh-CN")}`
+        : "已切换为免费用户",
+    });
     await loadUsers();
     setUpdatingId(null);
-  };
-
-  const removePlus = async (userId: string) => {
-    setUpdatingId(userId);
-    await supabase.from("user_subscriptions").update({ plan: "free", expires_at: null }).eq("user_id", userId);
-    toast({ title: "Removed", description: "Reverted to free user" });
-    await loadUsers();
-    setUpdatingId(null);
+    setEditingUserId(null);
   };
 
   const updatePurchaseStatus = async (id: string, status: string) => {
