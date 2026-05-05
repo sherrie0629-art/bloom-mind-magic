@@ -4,13 +4,14 @@ import { ArrowLeft, Crown, Search, UserCheck, ShoppingBag, RefreshCw, BarChart3,
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { PLAN_LIMITS, type PlanKey } from "@/lib/limits";
 
 interface UserRow {
   user_id: string;
   display_name: string | null;
   created_at: string;
-  subscription?: { plan: string; expires_at: string | null };
-  usage?: { chat_count: number; assessment_count: number };
+  subscription?: { plan: string; expires_at: string | null; billing_period?: string };
+  usage?: { chat_count: number; assessment_count: number; deep_report_count: number };
 }
 
 interface PurchaseRow {
@@ -55,8 +56,8 @@ const Admin = () => {
   const loadUsers = useCallback(async () => {
     const [profilesRes, subsRes, usageRes] = await Promise.all([
       supabase.from("profiles").select("user_id, display_name, created_at").order("created_at", { ascending: false }),
-      supabase.from("user_subscriptions").select("user_id, plan, expires_at"),
-      supabase.from("usage_tracking").select("user_id, chat_count, assessment_count").eq("track_date", new Date().toISOString().split("T")[0]),
+      supabase.from("user_subscriptions").select("user_id, plan, expires_at, billing_period"),
+      supabase.from("usage_tracking").select("user_id, chat_count, assessment_count, deep_report_count").eq("track_date", new Date().toISOString().split("T")[0]),
     ]);
 
     const subMap = new Map((subsRes.data || []).map(s => [s.user_id, s]));
