@@ -4,13 +4,14 @@ import { ArrowLeft, Crown, Search, UserCheck, ShoppingBag, RefreshCw, BarChart3,
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
+import { PLAN_LIMITS, type PlanKey } from "@/lib/limits";
 
 interface UserRow {
   user_id: string;
   display_name: string | null;
   created_at: string;
-  subscription?: { plan: string; expires_at: string | null };
-  usage?: { chat_count: number; assessment_count: number };
+  subscription?: { plan: string; expires_at: string | null; billing_period?: string };
+  usage?: { chat_count: number; assessment_count: number; deep_report_count: number };
 }
 
 interface PurchaseRow {
@@ -42,6 +43,7 @@ const Admin = () => {
   const [purchases, setPurchases] = useState<PurchaseRow[]>([]);
   const [search, setSearch] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
@@ -55,8 +57,8 @@ const Admin = () => {
   const loadUsers = useCallback(async () => {
     const [profilesRes, subsRes, usageRes] = await Promise.all([
       supabase.from("profiles").select("user_id, display_name, created_at").order("created_at", { ascending: false }),
-      supabase.from("user_subscriptions").select("user_id, plan, expires_at"),
-      supabase.from("usage_tracking").select("user_id, chat_count, assessment_count").eq("track_date", new Date().toISOString().split("T")[0]),
+      supabase.from("user_subscriptions").select("user_id, plan, expires_at, billing_period"),
+      supabase.from("usage_tracking").select("user_id, chat_count, assessment_count, deep_report_count").eq("track_date", new Date().toISOString().split("T")[0]),
     ]);
 
     const subMap = new Map((subsRes.data || []).map(s => [s.user_id, s]));
@@ -114,35 +116,34 @@ const Admin = () => {
     loadDashboard();
   }, [isAdmin, users.length, loadDashboard]);
 
-  const setPlus = async (userId: string, months: number) => {
+  const applySubscription = async (
+    userId: string,
+    opts: { plan: "free" | "plus"; billingPeriod: "monthly" | "yearly"; expiresAt: string | null }
+  ) => {
     setUpdatingId(userId);
-    const expiresAt = new Date();
-    expiresAt.setMonth(expiresAt.getMonth() + months);
-    const billingPeriod = months >= 12 ? "yearly" : "monthly";
-
     const { data: existing } = await supabase
-      .from("user_subscriptions").select("id").eq("user_id", userId).single();
+      .from("user_subscriptions").select("id").eq("user_id", userId).maybeSingle();
+
+    const payload = {
+      plan: opts.plan,
+      expires_at: opts.plan === "free" ? null : opts.expiresAt,
+      billing_period: opts.billingPeriod,
+    };
 
     if (existing) {
-      await (supabase as any).from("user_subscriptions").update({
-        plan: "plus", expires_at: expiresAt.toISOString(), billing_period: billingPeriod,
-      }).eq("user_id", userId);
+      await (supabase as any).from("user_subscriptions").update(payload).eq("user_id", userId);
     } else {
-      await (supabase as any).from("user_subscriptions").insert({
-        user_id: userId, plan: "plus", expires_at: expiresAt.toISOString(), billing_period: billingPeriod,
-      });
+      await (supabase as any).from("user_subscriptions").insert({ user_id: userId, ...payload });
     }
-    toast({ title: "Updated", description: `Plus membership valid until ${expiresAt.toLocaleDateString("en-US")}` });
+    toast({
+      title: "已更新",
+      description: opts.plan === "plus"
+        ? `Plus 有效期至 ${new Date(opts.expiresAt!).toLocaleDateString("zh-CN")}`
+        : "已切换为免费用户",
+    });
     await loadUsers();
     setUpdatingId(null);
-  };
-
-  const removePlus = async (userId: string) => {
-    setUpdatingId(userId);
-    await supabase.from("user_subscriptions").update({ plan: "free", expires_at: null }).eq("user_id", userId);
-    toast({ title: "Removed", description: "Reverted to free user" });
-    await loadUsers();
-    setUpdatingId(null);
+    setEditingUserId(null);
   };
 
   const updatePurchaseStatus = async (id: string, status: string) => {
@@ -252,6 +253,17 @@ const Admin = () => {
           <div className="space-y-2">
             {filteredUsers.map(u => {
               const isPlus = u.subscription?.plan === "plus" && u.subscription.expires_at && new Date(u.subscription.expires_at) > new Date();
+              const planKey: PlanKey = isPlus ? "plus" : "free";
+              const limits = PLAN_LIMITS[planKey];
+              const usage = u.usage || { chat_count: 0, assessment_count: 0, deep_report_count: 0 };
+              const isEditing = editingUserId === u.user_id;
+
+              const usageRows = [
+                { label: "对话", count: usage.chat_count, limit: limits.chat },
+                { label: "测评", count: usage.assessment_count, limit: limits.assessment },
+                { label: "深度报告", count: usage.deep_report_count, limit: limits.deepReport },
+              ];
+
               return (
                 <div key={u.user_id} className="rounded-2xl bg-card shadow-card p-3">
                   <div className="flex items-center gap-2 mb-2">
@@ -264,47 +276,60 @@ const Admin = () => {
                     </div>
                     {isPlus && (
                       <span className="rounded-full bg-secondary/20 px-2 py-0.5 text-[10px] font-medium text-secondary">
-                        Plus
+                        {u.subscription?.billing_period === "yearly" ? "Plus · 年" : "Plus · 月"}
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground mb-2">
-                    <span>Joined: {new Date(u.created_at).toLocaleDateString("en-US")}</span>
-                    {u.usage && <span>· Today: {u.usage.chat_count} chats, {u.usage.assessment_count} assessments</span>}
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground mb-2">
+                    <span>注册：{new Date(u.created_at).toLocaleDateString("zh-CN")}</span>
                     {isPlus && u.subscription?.expires_at && (
-                      <span>· Expires: {new Date(u.subscription.expires_at).toLocaleDateString("en-US")}</span>
+                      <span>· 到期：{new Date(u.subscription.expires_at).toLocaleDateString("zh-CN")}</span>
                     )}
                   </div>
 
-                  <div className="flex gap-2">
-                    {!isPlus ? (
-                      <>
-                        <button
-                          disabled={updatingId === u.user_id}
-                          onClick={() => setPlus(u.user_id, 1)}
-                          className="flex-1 rounded-lg bg-gradient-golden py-1.5 text-[10px] font-semibold text-primary-foreground disabled:opacity-50"
-                        >
-                          <Crown className="inline h-3 w-3 mr-0.5" />1 Month
-                        </button>
-                        <button
-                          disabled={updatingId === u.user_id}
-                          onClick={() => setPlus(u.user_id, 12)}
-                          className="flex-1 rounded-lg bg-secondary/20 py-1.5 text-[10px] font-semibold text-secondary disabled:opacity-50"
-                        >
-                          1 Year
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        disabled={updatingId === u.user_id}
-                        onClick={() => removePlus(u.user_id)}
-                        className="flex-1 rounded-lg bg-destructive/10 py-1.5 text-[10px] font-medium text-destructive disabled:opacity-50"
-                      >
-                        Remove Plus
-                      </button>
-                    )}
+                  {/* 今日使用额度 */}
+                  <div className="space-y-1.5 mb-3 rounded-lg bg-muted/30 p-2">
+                    <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">今日额度</p>
+                    {usageRows.map(row => {
+                      const unlimited = row.limit >= 9999;
+                      const pct = row.limit === 0 ? 0 : Math.min(100, (row.count / row.limit) * 100);
+                      return (
+                        <div key={row.label}>
+                          <div className="flex justify-between text-[10px] mb-0.5">
+                            <span className="text-foreground">{row.label}</span>
+                            <span className="text-muted-foreground">
+                              {row.count} / {unlimited ? "无限" : row.limit}
+                            </span>
+                          </div>
+                          <div className="h-1 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${isPlus ? "bg-gradient-golden" : "bg-secondary"}`}
+                              style={{ width: `${unlimited ? 8 : pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
+
+                  {!isEditing ? (
+                    <button
+                      onClick={() => setEditingUserId(u.user_id)}
+                      className="w-full rounded-lg bg-secondary/15 py-1.5 text-[10px] font-semibold text-secondary"
+                    >
+                      <Crown className="inline h-3 w-3 mr-0.5" />管理订阅
+                    </button>
+                  ) : (
+                    <SubscriptionEditor
+                      currentPlan={planKey}
+                      currentBilling={(u.subscription?.billing_period as "monthly" | "yearly") || "monthly"}
+                      currentExpiresAt={u.subscription?.expires_at || null}
+                      saving={updatingId === u.user_id}
+                      onCancel={() => setEditingUserId(null)}
+                      onSave={(opts) => applySubscription(u.user_id, opts)}
+                    />
+                  )}
                 </div>
               );
             })}
@@ -370,6 +395,92 @@ const Admin = () => {
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+interface EditorProps {
+  currentPlan: PlanKey;
+  currentBilling: "monthly" | "yearly";
+  currentExpiresAt: string | null;
+  saving: boolean;
+  onCancel: () => void;
+  onSave: (opts: { plan: "free" | "plus"; billingPeriod: "monthly" | "yearly"; expiresAt: string | null }) => void;
+}
+
+const SubscriptionEditor = ({ currentPlan, currentBilling, currentExpiresAt, saving, onCancel, onSave }: EditorProps) => {
+  const defaultExpiry = (billing: "monthly" | "yearly") => {
+    const d = new Date();
+    d.setDate(d.getDate() + (billing === "yearly" ? 365 : 30));
+    return d.toISOString().split("T")[0];
+  };
+  const [plan, setPlan] = useState<"free" | "plus">(currentPlan);
+  const [billing, setBilling] = useState<"monthly" | "yearly">(currentBilling);
+  const [expires, setExpires] = useState<string>(
+    currentExpiresAt ? currentExpiresAt.split("T")[0] : defaultExpiry(currentBilling)
+  );
+
+  const handleBillingChange = (b: "monthly" | "yearly") => {
+    setBilling(b);
+    if (!currentExpiresAt) setExpires(defaultExpiry(b));
+  };
+
+  return (
+    <div className="space-y-2 rounded-lg border border-border p-2.5">
+      <div className="grid grid-cols-2 gap-2">
+        <label className="block">
+          <span className="text-[9px] text-muted-foreground">套餐</span>
+          <select
+            value={plan}
+            onChange={e => setPlan(e.target.value as "free" | "plus")}
+            className="mt-0.5 w-full rounded-md bg-card border border-border px-2 py-1 text-[11px] text-foreground"
+          >
+            <option value="free">Free</option>
+            <option value="plus">Plus</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="text-[9px] text-muted-foreground">计费周期</span>
+          <select
+            value={billing}
+            disabled={plan === "free"}
+            onChange={e => handleBillingChange(e.target.value as "monthly" | "yearly")}
+            className="mt-0.5 w-full rounded-md bg-card border border-border px-2 py-1 text-[11px] text-foreground disabled:opacity-50"
+          >
+            <option value="monthly">月付 Monthly</option>
+            <option value="yearly">年付 Yearly</option>
+          </select>
+        </label>
+      </div>
+      <label className="block">
+        <span className="text-[9px] text-muted-foreground">到期时间</span>
+        <input
+          type="date"
+          value={expires}
+          disabled={plan === "free"}
+          onChange={e => setExpires(e.target.value)}
+          className="mt-0.5 w-full rounded-md bg-card border border-border px-2 py-1 text-[11px] text-foreground disabled:opacity-50"
+        />
+      </label>
+      <div className="flex gap-2 pt-1">
+        <button
+          disabled={saving || (plan === "plus" && !expires)}
+          onClick={() => onSave({
+            plan,
+            billingPeriod: billing,
+            expiresAt: plan === "plus" ? new Date(expires).toISOString() : null,
+          })}
+          className="flex-1 rounded-lg bg-gradient-golden py-1.5 text-[10px] font-semibold text-primary-foreground disabled:opacity-50"
+        >
+          {saving ? "保存中..." : "保存"}
+        </button>
+        <button
+          onClick={onCancel}
+          className="flex-1 rounded-lg bg-muted py-1.5 text-[10px] font-medium text-muted-foreground"
+        >
+          取消
+        </button>
+      </div>
     </div>
   );
 };

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { PLAN_LIMITS as LIMITS } from "@/lib/limits";
 
 interface SubscriptionState {
   plan: "free" | "plus";
@@ -15,11 +16,6 @@ interface SubscriptionState {
   freeTrialDaysLeft: number;
   isLoading: boolean;
 }
-
-const LIMITS = {
-  free: { chat: 20, assessment: 5, deepReport: 0 },
-  plus: { chat: 9999, assessment: 9999, deepReport: 1 },
-};
 
 const FREE_TRIAL_DAYS = 30;
 
