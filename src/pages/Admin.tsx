@@ -253,6 +253,17 @@ const Admin = () => {
           <div className="space-y-2">
             {filteredUsers.map(u => {
               const isPlus = u.subscription?.plan === "plus" && u.subscription.expires_at && new Date(u.subscription.expires_at) > new Date();
+              const planKey: PlanKey = isPlus ? "plus" : "free";
+              const limits = PLAN_LIMITS[planKey];
+              const usage = u.usage || { chat_count: 0, assessment_count: 0, deep_report_count: 0 };
+              const isEditing = editingUserId === u.user_id;
+
+              const usageRows = [
+                { label: "对话", count: usage.chat_count, limit: limits.chat },
+                { label: "测评", count: usage.assessment_count, limit: limits.assessment },
+                { label: "深度报告", count: usage.deep_report_count, limit: limits.deepReport },
+              ];
+
               return (
                 <div key={u.user_id} className="rounded-2xl bg-card shadow-card p-3">
                   <div className="flex items-center gap-2 mb-2">
@@ -265,47 +276,60 @@ const Admin = () => {
                     </div>
                     {isPlus && (
                       <span className="rounded-full bg-secondary/20 px-2 py-0.5 text-[10px] font-medium text-secondary">
-                        Plus
+                        {u.subscription?.billing_period === "yearly" ? "Plus · 年" : "Plus · 月"}
                       </span>
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 text-[10px] text-muted-foreground mb-2">
-                    <span>Joined: {new Date(u.created_at).toLocaleDateString("en-US")}</span>
-                    {u.usage && <span>· Today: {u.usage.chat_count} chats, {u.usage.assessment_count} assessments</span>}
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground mb-2">
+                    <span>注册：{new Date(u.created_at).toLocaleDateString("zh-CN")}</span>
                     {isPlus && u.subscription?.expires_at && (
-                      <span>· Expires: {new Date(u.subscription.expires_at).toLocaleDateString("en-US")}</span>
+                      <span>· 到期：{new Date(u.subscription.expires_at).toLocaleDateString("zh-CN")}</span>
                     )}
                   </div>
 
-                  <div className="flex gap-2">
-                    {!isPlus ? (
-                      <>
-                        <button
-                          disabled={updatingId === u.user_id}
-                          onClick={() => setPlus(u.user_id, 1)}
-                          className="flex-1 rounded-lg bg-gradient-golden py-1.5 text-[10px] font-semibold text-primary-foreground disabled:opacity-50"
-                        >
-                          <Crown className="inline h-3 w-3 mr-0.5" />1 Month
-                        </button>
-                        <button
-                          disabled={updatingId === u.user_id}
-                          onClick={() => setPlus(u.user_id, 12)}
-                          className="flex-1 rounded-lg bg-secondary/20 py-1.5 text-[10px] font-semibold text-secondary disabled:opacity-50"
-                        >
-                          1 Year
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        disabled={updatingId === u.user_id}
-                        onClick={() => removePlus(u.user_id)}
-                        className="flex-1 rounded-lg bg-destructive/10 py-1.5 text-[10px] font-medium text-destructive disabled:opacity-50"
-                      >
-                        Remove Plus
-                      </button>
-                    )}
+                  {/* 今日使用额度 */}
+                  <div className="space-y-1.5 mb-3 rounded-lg bg-muted/30 p-2">
+                    <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">今日额度</p>
+                    {usageRows.map(row => {
+                      const unlimited = row.limit >= 9999;
+                      const pct = row.limit === 0 ? 0 : Math.min(100, (row.count / row.limit) * 100);
+                      return (
+                        <div key={row.label}>
+                          <div className="flex justify-between text-[10px] mb-0.5">
+                            <span className="text-foreground">{row.label}</span>
+                            <span className="text-muted-foreground">
+                              {row.count} / {unlimited ? "无限" : row.limit}
+                            </span>
+                          </div>
+                          <div className="h-1 rounded-full bg-muted overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${isPlus ? "bg-gradient-golden" : "bg-secondary"}`}
+                              style={{ width: `${unlimited ? 8 : pct}%` }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
+
+                  {!isEditing ? (
+                    <button
+                      onClick={() => setEditingUserId(u.user_id)}
+                      className="w-full rounded-lg bg-secondary/15 py-1.5 text-[10px] font-semibold text-secondary"
+                    >
+                      <Crown className="inline h-3 w-3 mr-0.5" />管理订阅
+                    </button>
+                  ) : (
+                    <SubscriptionEditor
+                      currentPlan={planKey}
+                      currentBilling={(u.subscription?.billing_period as "monthly" | "yearly") || "monthly"}
+                      currentExpiresAt={u.subscription?.expires_at || null}
+                      saving={updatingId === u.user_id}
+                      onCancel={() => setEditingUserId(null)}
+                      onSave={(opts) => applySubscription(u.user_id, opts)}
+                    />
+                  )}
                 </div>
               );
             })}
