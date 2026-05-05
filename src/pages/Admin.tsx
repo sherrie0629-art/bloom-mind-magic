@@ -399,4 +399,90 @@ const Admin = () => {
   );
 };
 
+interface EditorProps {
+  currentPlan: PlanKey;
+  currentBilling: "monthly" | "yearly";
+  currentExpiresAt: string | null;
+  saving: boolean;
+  onCancel: () => void;
+  onSave: (opts: { plan: "free" | "plus"; billingPeriod: "monthly" | "yearly"; expiresAt: string | null }) => void;
+}
+
+const SubscriptionEditor = ({ currentPlan, currentBilling, currentExpiresAt, saving, onCancel, onSave }: EditorProps) => {
+  const defaultExpiry = (billing: "monthly" | "yearly") => {
+    const d = new Date();
+    d.setDate(d.getDate() + (billing === "yearly" ? 365 : 30));
+    return d.toISOString().split("T")[0];
+  };
+  const [plan, setPlan] = useState<"free" | "plus">(currentPlan);
+  const [billing, setBilling] = useState<"monthly" | "yearly">(currentBilling);
+  const [expires, setExpires] = useState<string>(
+    currentExpiresAt ? currentExpiresAt.split("T")[0] : defaultExpiry(currentBilling)
+  );
+
+  const handleBillingChange = (b: "monthly" | "yearly") => {
+    setBilling(b);
+    if (!currentExpiresAt) setExpires(defaultExpiry(b));
+  };
+
+  return (
+    <div className="space-y-2 rounded-lg border border-border p-2.5">
+      <div className="grid grid-cols-2 gap-2">
+        <label className="block">
+          <span className="text-[9px] text-muted-foreground">套餐</span>
+          <select
+            value={plan}
+            onChange={e => setPlan(e.target.value as "free" | "plus")}
+            className="mt-0.5 w-full rounded-md bg-card border border-border px-2 py-1 text-[11px] text-foreground"
+          >
+            <option value="free">Free</option>
+            <option value="plus">Plus</option>
+          </select>
+        </label>
+        <label className="block">
+          <span className="text-[9px] text-muted-foreground">计费周期</span>
+          <select
+            value={billing}
+            disabled={plan === "free"}
+            onChange={e => handleBillingChange(e.target.value as "monthly" | "yearly")}
+            className="mt-0.5 w-full rounded-md bg-card border border-border px-2 py-1 text-[11px] text-foreground disabled:opacity-50"
+          >
+            <option value="monthly">月付 Monthly</option>
+            <option value="yearly">年付 Yearly</option>
+          </select>
+        </label>
+      </div>
+      <label className="block">
+        <span className="text-[9px] text-muted-foreground">到期时间</span>
+        <input
+          type="date"
+          value={expires}
+          disabled={plan === "free"}
+          onChange={e => setExpires(e.target.value)}
+          className="mt-0.5 w-full rounded-md bg-card border border-border px-2 py-1 text-[11px] text-foreground disabled:opacity-50"
+        />
+      </label>
+      <div className="flex gap-2 pt-1">
+        <button
+          disabled={saving || (plan === "plus" && !expires)}
+          onClick={() => onSave({
+            plan,
+            billingPeriod: billing,
+            expiresAt: plan === "plus" ? new Date(expires).toISOString() : null,
+          })}
+          className="flex-1 rounded-lg bg-gradient-golden py-1.5 text-[10px] font-semibold text-primary-foreground disabled:opacity-50"
+        >
+          {saving ? "保存中..." : "保存"}
+        </button>
+        <button
+          onClick={onCancel}
+          className="flex-1 rounded-lg bg-muted py-1.5 text-[10px] font-medium text-muted-foreground"
+        >
+          取消
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export default Admin;
