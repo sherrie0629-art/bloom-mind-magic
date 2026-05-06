@@ -17,7 +17,8 @@ const AgentArchive = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [bonds, setBonds] = useState<Record<string, BondData>>({});
-  const [selectedAgent, setSelectedAgent] = useState<string>(agents[0].id);
+  const [selectedAgent, setSelectedAgent] = useState<string>(RAW_AGENTS[0].id);
+  const agents = RAW_AGENTS.map((a) => localizeAgent(a, t));
 
   const bondLabels = [
     t("home.bondLabels.stranger"),
