@@ -267,19 +267,19 @@ const CompatibilityFlow = () => {
               <p className="text-xs text-muted-foreground leading-relaxed">{result.loveLanguage.tip}</p>
             </div>
             <div className="rounded-2xl bg-card p-5 shadow-card">
-              <h4 className="font-display text-sm font-semibold text-foreground mb-3">📖 Deep Analysis</h4>
+              <h4 className="font-display text-sm font-semibold text-foreground mb-3">{t("assessmentFlow.compatibility.deepAnalysis")}</h4>
               {deepAnalysis ? (
                 <div className="prose prose-sm max-w-none text-foreground prose-p:text-sm prose-p:leading-relaxed">
                   <ReactMarkdown>{deepAnalysis}</ReactMarkdown>
                   {!deepAnalysisDone && <span className="inline-block w-1.5 h-4 bg-secondary animate-pulse ml-0.5 align-middle rounded-sm" />}
                 </div>
               ) : (
-                <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /><span className="text-xs">Generating deep analysis…</span></div>
+                <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /><span className="text-xs">{t("assessmentFlow.compatibility.deepAnalysisLoading")}</span></div>
               )}
             </div>
             <div className="flex gap-3">
-              <button onClick={handleSharePoster} className="flex-1 rounded-xl bg-gradient-golden py-3 text-sm font-semibold text-white flex items-center justify-center gap-2"><Download className="h-4 w-4" /> Save Poster</button>
-              <button onClick={() => { setStep("input"); setResult(null); setDeepAnalysis(""); }} className="flex-1 rounded-xl bg-card py-3 text-sm font-semibold text-foreground shadow-card flex items-center justify-center gap-2 border border-border"><Users className="h-4 w-4" /> Try Again</button>
+              <button onClick={handleSharePoster} className="flex-1 rounded-xl bg-gradient-golden py-3 text-sm font-semibold text-white flex items-center justify-center gap-2"><Download className="h-4 w-4" /> {t("assessmentFlow.compatibility.savePoster")}</button>
+              <button onClick={() => { setStep("input"); setResult(null); setDeepAnalysis(""); }} className="flex-1 rounded-xl bg-card py-3 text-sm font-semibold text-foreground shadow-card flex items-center justify-center gap-2 border border-border"><Users className="h-4 w-4" /> {t("assessmentFlow.compatibility.tryAgain")}</button>
             </div>
           </motion.div>
         )}
