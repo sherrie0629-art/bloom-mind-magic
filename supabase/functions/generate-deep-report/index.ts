@@ -8,11 +8,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const typeLabels: Record<string, string> = {
-  mbti: "MBTI Personality",
-  enneagram: "Enneagram",
-  zodiac: "Zodiac",
-  emotion: "Emotional Wellness",
+const typeLabelsByLocale: Record<string, Record<string, string>> = {
+  en: { mbti: "MBTI Personality", enneagram: "Enneagram", zodiac: "Zodiac", emotion: "Emotional Wellness", bazi: "Bazi Destiny" },
+  zh: { mbti: "MBTI 性格", enneagram: "九型人格", zodiac: "星座解读", emotion: "心灵体检", bazi: "八字命理" },
 };
 
 serve(async (req) => {
