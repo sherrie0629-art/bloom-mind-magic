@@ -366,6 +366,27 @@ export type Database = {
         }
         Relationships: []
       }
+      tarot_card_art: {
+        Row: {
+          card_id: number
+          created_at: string
+          image_path: string
+          is_reversed: boolean
+        }
+        Insert: {
+          card_id: number
+          created_at?: string
+          image_path: string
+          is_reversed: boolean
+        }
+        Update: {
+          card_id?: number
+          created_at?: string
+          image_path?: string
+          is_reversed?: boolean
+        }
+        Relationships: []
+      }
       tarot_draws: {
         Row: {
           action_tip: string | null
