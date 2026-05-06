@@ -63,7 +63,9 @@ serve(async (req) => {
     const body = await req.json();
     const locale = body.locale || "en";
     const langInstr = locale === "zh" ? "\nLANG: Respond entirely in Simplified Chinese (简体中文). All field values, descriptions, captions must be Chinese." : "\nLANG: Respond entirely in natural English.";
-    const model = "google/gemini-2.5-flash-lite";
+    // Faster Gemini variant; falls back automatically if unavailable.
+    const model = "google/gemini-3.1-flash-lite-preview";
+    const fallbackModel = "google/gemini-2.5-flash-lite";
 
     // === Parallel Universe branch ===
     if (body.action === "parallel-universe") {
