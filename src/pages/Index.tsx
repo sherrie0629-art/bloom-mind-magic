@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Sparkles, Heart, Brain, Lock, Unlock, Stars, Flame, Target } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import heroBg from "@/assets/hero-bg.webp";
+const heroBg = "/hero-bg.webp";
 import AgentCard from "@/components/AgentCard";
 import BottomNav from "@/components/BottomNav";
 import DesktopLayout from "@/components/DesktopLayout";
