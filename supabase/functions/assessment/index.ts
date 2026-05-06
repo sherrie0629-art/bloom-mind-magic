@@ -63,7 +63,9 @@ serve(async (req) => {
     const body = await req.json();
     const locale = body.locale || "en";
     const langInstr = locale === "zh" ? "\nLANG: Respond entirely in Simplified Chinese (简体中文). All field values, descriptions, captions must be Chinese." : "\nLANG: Respond entirely in natural English.";
-    const model = "google/gemini-2.5-flash-lite";
+    // Faster Gemini variant; falls back automatically if unavailable.
+    const model = "google/gemini-3.1-flash-lite-preview";
+    const fallbackModel = "google/gemini-2.5-flash-lite";
 
     // === Parallel Universe branch ===
     if (body.action === "parallel-universe") {
@@ -98,6 +100,34 @@ serve(async (req) => {
 
     // === Batch questions mode (no quota check - just generating questions) ===
     if (body.action === "batch-questions") {
+      // ---- Cache layer: shared, locale-bucketed, 1h TTL ----
+      const CACHE_BUCKET = "assessment-cache";
+      const CACHE_TTL_MS = 60 * 60 * 1000;
+      const cacheKey = `mbti-batch-${locale}.json`;
+      const adminClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+
+      try {
+        const { data: existing } = await adminClient.storage.from(CACHE_BUCKET).list("", { search: cacheKey, limit: 1 });
+        const hit = existing?.find((f) => f.name === cacheKey);
+        if (hit) {
+          const updatedAt = hit.updated_at ? new Date(hit.updated_at).getTime() : 0;
+          if (Date.now() - updatedAt < CACHE_TTL_MS) {
+            const { data: file } = await adminClient.storage.from(CACHE_BUCKET).download(cacheKey);
+            if (file) {
+              const text = await file.text();
+              const cached = JSON.parse(text);
+              if (Array.isArray(cached?.questions) && cached.questions.length >= 10) {
+                return new Response(JSON.stringify({ type: "batch", data: cached.questions, cached: true }), {
+                  headers: { ...corsHeaders, "Content-Type": "application/json" },
+                });
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Cache read failed:", e);
+      }
+
       const isZh = locale === "zh";
       const styleGuide = isZh ? `
 你是一位会写互动小说的 MBTI 测评设计师。请生成 10 道"剧情化"题目，让用户像玩文字游戏一样穿越 10 个小场景，沉浸式探索自己。
@@ -149,7 +179,7 @@ Roughly even split across E/I, S/N, T/F, J/P (2–3 each). The dimension field m
 Casual, modern, slightly playful — not clinical.
 
 You MUST call the batch_questions tool to return all 10 questions.`;
-      const response = await fetchAI(model, {
+      const aiPayload = {
         messages: [
           { role: "system", content: `${styleGuide}${langInstr}` },
           { role: "user", content: isZh ? "请生成 10 道剧情化的 MBTI 场景题，覆盖 E/I、S/N、T/F、J/P 四个维度。" : "Generate 10 story-driven MBTI scene questions covering E/I, S/N, T/F, J/P." },
@@ -181,14 +211,31 @@ You MUST call the batch_questions tool to return all 10 questions.`;
           },
         }],
         tool_choice: { type: "function" as const, function: { name: "batch_questions" } },
-        temperature: 1.0, max_tokens: 2600,
-      });
+        temperature: 0.85, max_tokens: 1800,
+      };
+
+      // Try fast preview model first; fall back to stable model on failure.
+      let response = await fetchAI(model, aiPayload);
+      if (!response.ok) {
+        const t = await response.text();
+        console.warn(`Primary model ${model} failed (${response.status}): ${t}. Falling back.`);
+        response = await fetchAI(fallbackModel, aiPayload);
+      }
       if (!response.ok) { const t = await response.text(); console.error("Batch questions error:", response.status, t); throw new Error("AI service error"); }
       const data = await response.json();
       const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
       if (!toolCall) throw new Error("No tool call in response");
       const args = JSON.parse(toolCall.function.arguments);
-      return new Response(JSON.stringify({ type: "batch", data: args.questions }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+      // Write through to cache (best-effort, non-blocking).
+      if (Array.isArray(args.questions) && args.questions.length >= 10) {
+        adminClient.storage
+          .from(CACHE_BUCKET)
+          .upload(cacheKey, new Blob([JSON.stringify({ questions: args.questions, ts: Date.now() })], { type: "application/json" }), { upsert: true, contentType: "application/json" })
+          .catch((e: unknown) => console.error("Cache write failed:", e));
+      }
+
+      return new Response(JSON.stringify({ type: "batch", data: args.questions, cached: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // === Result mode — check quota server-side ===
