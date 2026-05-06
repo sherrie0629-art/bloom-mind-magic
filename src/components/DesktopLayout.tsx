@@ -1,13 +1,7 @@
 import { Home, BookOpen, Sparkles, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-
-const navItems = [
-  { icon: Home, label: "Home", path: "/" },
-  { icon: BookOpen, label: "Archive", path: "/archive" },
-  { icon: Sparkles, label: "Assess", path: "/assessment" },
-  { icon: User, label: "Me", path: "/profile" },
-];
+import { useTranslation } from "react-i18next";
 
 interface DesktopLayoutProps {
   children: React.ReactNode;
@@ -18,6 +12,15 @@ interface DesktopLayoutProps {
 const DesktopLayout = ({ children, maxWidth = "2xl" }: DesktopLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const navItems = [
+    { icon: Home, label: t("nav.home"), path: "/" },
+    { icon: BookOpen, label: t("nav.archive"), path: "/archive" },
+    { icon: Sparkles, label: t("nav.assess"), path: "/assessment" },
+    { icon: User, label: t("nav.me"), path: "/profile" },
+  ];
+
 
   const maxWidthClass = {
     xl: "max-w-xl",
@@ -32,8 +35,8 @@ const DesktopLayout = ({ children, maxWidth = "2xl" }: DesktopLayoutProps) => {
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-[220px] flex-col border-r border-border bg-card/80 backdrop-blur-xl z-50">
         {/* Logo */}
         <div className="px-5 pt-8 pb-6">
-          <h1 className="font-display text-lg font-bold text-foreground">Soul Sanctuary</h1>
-          <p className="text-[10px] text-muted-foreground mt-0.5">Your AI Healing Space</p>
+          <h1 className="font-display text-lg font-bold text-foreground">{t("home.appName")}</h1>
+          <p className="text-[10px] text-muted-foreground mt-0.5">{t("home.appTagline")}</p>
         </div>
 
         {/* Nav items */}
