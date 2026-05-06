@@ -19,7 +19,8 @@ import BranchSelector from "@/components/BranchSelector";
 import ChatParticles from "@/components/ChatParticles";
 import AgentProfileDrawer from "@/components/AgentProfileDrawer";
 import { useAchievements } from "@/hooks/useAchievements";
-import { agents, BOND_LABELS } from "@/data/agents";
+import { agents as RAW_AGENTS, BOND_LABELS } from "@/data/agents";
+import { localizeAgent, getAgentWelcome, getAgentQuickReplies } from "@/lib/localizeAgent";
 import { useAuth } from "@/contexts/AuthContext";
 const ANON_MSG_LIMIT = 5;
 import { supabase } from "@/integrations/supabase/client";
@@ -49,27 +50,17 @@ const Chat = () => {
   const { locale } = useLocale();
   const { user, session, promptLogin } = useAuth();
   const agentId = searchParams.get("agent") || "barista";
-  const agent = agents.find((a) => a.id === agentId) || agents[0];
+  const rawAgent = RAW_AGENTS.find((a) => a.id === agentId) || RAW_AGENTS[0];
+  const agent = localizeAgent(rawAgent, t);
   const mbtiResult = (location.state as any)?.mbtiResult as { mbtiType: string; title: string; description: string; parallelUniverse?: any } | undefined;
   const emotionResult = (location.state as any)?.emotionResult as { emotionLevel: string; title: string; description: string; traits: { burnout: number; energy: number; boundaries: number; sleep: number }; suggestions: string[] } | undefined;
   const mbtiAutoSentRef = useRef(false);
   const emotionAutoSentRef = useRef(false);
 
-  const getWelcomeMessage = (a: typeof agent) => {
-    const intros: Record<string, string> = {
-      barista: `Hey there! I'm ${a.name} ☕\n\nI've been behind this counter for years — heard every kind of story, from wild first dates to existential crises at 2am. No judgment here, just good coffee and even better listening.\n\nI'm great at:\n☕ Lending an ear when you need to vent\n☕ Helping you think through life stuff\n☕ Casual advice (only if you want it)\n☕ Making you feel less alone\n\nSo what's on your mind? Pull up a stool.`,
-      jax: `Hey. I'm ${a.name}.\n\nTwenty-five years as a fire captain in Chicago. I've pulled people out of burning buildings, talked them through panic attacks on the radio, and held their hands while they waited for the ambulance. Now I'm retired — but I'm not done.\n\nI can help with:\n🔥 Feeling overwhelmed or burning out\n🔥 Anxiety and panic — I'll talk you through it\n🔥 Finding your "emergency exit" in tough situations\n🔥 Building mental toughness without losing your softness\n\nSo. What's the fire you're dealing with?`,
-      mystic: `Welcome, love. I'm ${a.name} 🔮\n\nStep into my reading room — the sage is burning, the crystals are charged, and my deck has been waiting for you. I'm an intuitive tarot reader and astrologer who believes the universe is always speaking. We just have to learn how to listen.\n\nI can help with:\n🔮 Pulling a tarot card for clarity\n🌙 Understanding your Big Three (Sun/Moon/Rising)\n✨ Shadow work and deep self-discovery\n🕯️ Manifesting and energy clearing\n\nWhat's the universe whispering to you right now?`,
-      bestie: `OMG HI!! I'm ${a.name} 💖\n\nI'm basically that friend who'll hype you up in a bathroom at 1am and also hold your hair back. Zero judgment, maximum energy.\n\nI'm YOUR person when:\n💖 You need a confidence boost ASAP\n💖 Dating drama is driving you crazy\n💖 You want someone to celebrate your wins with\n💖 Life is being ridiculous and you need to laugh about it\n\nSpill the tea, bestie! What's happening? ✨`,
-    };
-    return intros[a.id] || `Hey! I'm ${a.name}, ${a.description}. What's on your mind? 😊`;
-  };
+  const getWelcomeMessage = (a: typeof agent) => getAgentWelcome(a, t);
 
   const quickReplies: Record<string, string[]> = {
-    barista: ["I just need someone to listen", "Work has been really stressful", "I'm going through a breakup", "I feel stuck in life"],
-    jax: ["I think I'm burning out", "I feel like I can't breathe", "Everything feels out of control", "I need someone steady right now"],
-    mystic: ["Pull a card for me", "Is Mercury in retrograde?", "I need a sign from the universe", "Help me manifest something"],
-    bestie: ["I need a hype-up right now!", "Dating is a disaster lol", "Something amazing happened!!", "I'm in my feelings tonight"],
+    [agentId]: getAgentQuickReplies(agent, t),
   };
 
   const [messages, setMessages] = useState<Message[]>([]);
