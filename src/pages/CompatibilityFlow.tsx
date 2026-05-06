@@ -69,7 +69,7 @@ const CompatibilityFlow = () => {
       const resp = await fetch(CHAT_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
-        body: JSON.stringify({ action: "deep-analysis", myProfile, partnerProfile, quickResult }),
+        body: JSON.stringify({ action: "deep-analysis", myProfile, partnerProfile, quickResult, locale }),
       });
       if (!resp.ok || !resp.body) { setDeepAnalysisDone(true); return; }
       const reader = resp.body.getReader();
