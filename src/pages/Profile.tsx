@@ -92,7 +92,7 @@ const Profile = () => {
     { icon: Gem, label: "Vault", action: () => navigate("/vault") },
     { icon: Heart, label: "Chemistry", action: () => navigate("/compatibility-reports") },
     { icon: Bell, label: "Notifications", action: () => {} },
-    { icon: Settings, label: "Settings", action: () => {} },
+    { icon: Settings, label: "Settings", action: () => navigate("/settings") },
     ...(isAdmin ? [{ icon: Shield, label: "Admin", action: () => navigate("/admin") }] : []),
   ];
 

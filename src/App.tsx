@@ -34,6 +34,7 @@ import Pricing from "./pages/Pricing.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import SiteFooter from "./components/SiteFooter.tsx";
 import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner.tsx";
+import LocaleSync from "./components/LocaleSync.tsx";
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <LocaleSync />
           <PaymentTestModeBanner />
           <Routes>
             <Route path="/" element={<Index />} />
