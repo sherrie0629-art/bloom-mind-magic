@@ -38,6 +38,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const body = await req.json();
+    const locale = body.locale || "en";
+    const langInstr = locale === "zh" ? "\nLANG: Respond entirely in Simplified Chinese (简体中文). All field values, descriptions, captions must be Chinese." : "\nLANG: Respond entirely in natural English.";
     const model = "google/gemini-2.5-flash-lite";
 
     if (body.action === "batch-questions") {
@@ -45,8 +47,8 @@ serve(async (req) => {
         messages: [
           { role: "system", content: `You are a professional Western astrologer. The user's zodiac sign is: ${body.zodiacSign || "unknown"}.
 Generate 10 questions about their current life situation, feelings, and energy to personalize their horoscope reading.
-Cover overall energy, love life, career, and finances. Make them fun and relatable. Each has 4 options (A/B/C/D). All in English.
-Consider current astrological themes like Mercury Retrograde, eclipse seasons, etc.
+Cover overall energy, love life, career, and finances. Make them fun and relatable. Each has 4 options (A/B/C/D). Respond in the language indicated by LANG below.
+Consider current astrological themes like Mercury Retrograde, eclipse seasons, etc.${langInstr}
 You must call the batch_questions tool.` },
           { role: "user", content: "Generate 10 horoscope reading questions." },
         ],
@@ -69,7 +71,7 @@ You must call the batch_questions tool.` },
     const systemPrompt = `You are a professional Western astrologer. The user's sign is: ${zodiacSign || "unknown"}.
 Based on their sign and answers, generate a detailed horoscope reading using Western astrology terminology (Rising sign, Moon sign, Mercury Retrograde, eclipse seasons, etc.).
 Do NOT use Chinese astrology concepts. Use Element (Fire/Earth/Air/Water) instead of Chinese elements.
-All content in English. You must call the zodiac_result tool.`;
+Respond in the language indicated by LANG below. You must call the zodiac_result tool.${langInstr}`;
 
     const response = await fetchAI(model, {
       messages: [{ role: "system", content: systemPrompt }, { role: "user", content: `Q&A:\n${history.map((h: any, i: number) => `Q${i + 1}: ${h.question}\nA${i + 1}: ${h.answer}`).join("\n\n")}\n\nGenerate horoscope reading.` }],

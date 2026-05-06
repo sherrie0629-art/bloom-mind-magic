@@ -61,6 +61,8 @@ serve(async (req) => {
 
   try {
     const body = await req.json();
+    const locale = body.locale || "en";
+    const langInstr = locale === "zh" ? "\nLANG: Respond entirely in Simplified Chinese (简体中文). All field values, descriptions, captions must be Chinese." : "\nLANG: Respond entirely in natural English.";
     const model = "google/gemini-2.5-flash-lite";
 
     // === Parallel Universe branch ===
@@ -68,7 +70,7 @@ serve(async (req) => {
       const { mbtiType } = body;
       const puResponse = await fetchAI(model, {
         messages: [
-          { role: "system", content: "You are a wildly creative writer who crafts fun, shareable 30-50 word character descriptions. Casual, vivid, and social-media ready." },
+          { role: "system", content: `You are a wildly creative writer who crafts fun, shareable 30-50 word character descriptions. Casual, vivid, and social-media ready.${langInstr}` },
           { role: "user", content: `MBTI type: ${mbtiType}. Generate two parallel universe identities: 1) A fantasy/magic world role 2) A cyberpunk world role. Each should have a cool title (3-6 words) and a fun 30-50 word description.` },
         ],
         tools: [{
@@ -100,7 +102,7 @@ serve(async (req) => {
         messages: [
           { role: "system", content: `You are a professional MBTI personality assessment expert. Generate 10 MBTI personality quiz questions.
 Questions should cover E/I, S/N, T/F, J/P dimensions. Make them scenario-based, natural, and engaging.
-Each question has 4 options (A/B/C/D). All content in English.
+Each question has 4 options (A/B/C/D). Respond in the language indicated by LANG below.${langInstr}
 You must call the batch_questions tool to return all questions.` },
           { role: "user", content: "Generate 10 MBTI personality assessment questions covering different personality dimensions." },
         ],
@@ -147,7 +149,7 @@ You must call the batch_questions tool to return all questions.` },
 
     const { history } = body;
     const systemPrompt = `You are a professional MBTI personality assessment expert. Based on the user's answers, determine their MBTI type.
-You must call the mbti_result tool to return the result. All content in English.`;
+You must call the mbti_result tool to return the result. Respond in the language indicated by LANG below.${langInstr}`;
     const userContent = `Here is the user's Q&A history:\n${history.map((h: any, i: number) => `Q${i + 1}: ${h.question}\nA${i + 1}: ${h.answer}`).join("\n\n")}\n\nPlease analyze the user's MBTI type based on these answers.`;
 
     const tools = [{

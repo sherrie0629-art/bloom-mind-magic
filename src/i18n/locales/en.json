@@ -278,6 +278,9 @@
       "deepAnalysis": "📖 Deep Analysis",
       "deepAnalysisLoading": "Generating deep analysis…",
       "tryAgain": "Try Again",
+      "savePoster": "Save Poster",
+      "pleaseSignIn": "Please sign in 🌙",
+      "dailyLimitReached": "Daily limit reached ({{n}}) 💫",
       "me": "Me",
       "them": "Them",
       "dim": {

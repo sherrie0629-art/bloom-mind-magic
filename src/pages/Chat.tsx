@@ -3,6 +3,7 @@ import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Send, Mic, Zap, Plus } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { useLocale } from "@/hooks/useLocale";
 import { useQuoteCard } from "@/hooks/useQuoteCard";
 import ShareSheet from "@/components/ShareSheet";
 import ReactMarkdown from "react-markdown";
@@ -45,6 +46,7 @@ const Chat = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const { locale } = useLocale();
   const { user, session, promptLogin } = useAuth();
   const agentId = searchParams.get("agent") || "barista";
   const agent = agents.find((a) => a.id === agentId) || agents[0];
@@ -369,6 +371,7 @@ const Chat = () => {
           memoryContext: [],
           bondLevel: 1,
           accessToken: session?.access_token,
+          locale,
           onDelta: upsertAssistant,
           onDone: () => {
             const { cleanContent, branchOptions: parsedOptions } = parseGameMarkers(assistantContent);
@@ -438,6 +441,7 @@ const Chat = () => {
         memoryContext,
         bondLevel,
         accessToken: session?.access_token,
+        locale,
         onDelta: upsertAssistant,
         onDone: async () => {
           console.log("[Chat] raw AI response:", assistantContent.slice(-200));

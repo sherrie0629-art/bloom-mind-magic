@@ -41,7 +41,8 @@ serve(async (req) => {
     }
     const userId = claimsData.claims.sub;
 
-    const { assessmentId } = await req.json();
+    const { assessmentId, locale: bodyLocale } = await req.json();
+    const locale = bodyLocale || "en";
     if (!assessmentId) throw new Error("Missing assessmentId");
 
     const { data: assessment, error: fetchErr } = await supabase
@@ -99,32 +100,36 @@ serve(async (req) => {
     const typeLabel = typeLabels[assessment.assessment_type] || assessment.assessment_type;
     const resultSummary = JSON.stringify(resultData, null, 2);
 
+    const sectionTitles = locale === "zh"
+      ? { core: "## 📋 核心人格画像", attach: "## 🧒 童年依恋模式分析", redflag: "## 💕 亲密关系预警指南", defense: "## 🛡️ 核心心理防御机制", career: "## 💼 职业发展洞察", growth: "## 🌱 个人成长路线图", outlook: "## 🔮 总结与展望" }
+      : { core: "## 📋 Core Personality Profile", attach: "## 🧒 Childhood Attachment Pattern Analysis", redflag: "## 💕 Relationship Red Flags Guide", defense: "## 🛡️ Core Defense Mechanisms", career: "## 💼 Career Development Insights", growth: "## 🌱 Personal Growth Roadmap", outlook: "## 🔮 Summary & Outlook" };
+    const langLine = locale === "zh" ? "- 全文使用简体中文撰写" : "- Write in English";
     const systemPrompt = `You are a senior psychologist and personality analysis expert with 20 years of experience. Based on the user's ${typeLabel} assessment results, generate a 3,000–5,000 word deep psychological analysis report.
 
 The report must include the following sections (in markdown format):
 
-## 📋 Core Personality Profile
+${sectionTitles.core}
 In-depth analysis of the user's core personality traits, including both overt and covert characteristics.
 
-## 🧒 Childhood Attachment Pattern Analysis
+${sectionTitles.attach}
 Based on personality traits, infer likely childhood attachment style (secure, anxious, avoidant, or disorganized) and analyze its impact on current relationships.
 
-## 💕 Relationship Red Flags Guide
+${sectionTitles.redflag}
 Analyze common pitfalls in romantic relationships and provide specific, actionable advice. Include:
 - Types of partners they tend to attract
 - Common conflict patterns in relationships
 - How to establish healthy boundaries
 
-## 🛡️ Core Defense Mechanisms
+${sectionTitles.defense}
 Analyze commonly used psychological defense mechanisms (rationalization, projection, repression, etc.) and how they affect daily decisions.
 
-## 💼 Career Development Insights
+${sectionTitles.career}
 Based on personality traits, analyze the most suitable career directions and work environments.
 
-## 🌱 Personal Growth Roadmap
+${sectionTitles.growth}
 Provide specific self-improvement suggestions and exercises.
 
-## 🔮 Summary & Outlook
+${sectionTitles.outlook}
 Overall summary and positive outlook for the future.
 
 Requirements:
@@ -132,7 +137,7 @@ Requirements:
 - Use specific examples and metaphors
 - Avoid generic advice; give concrete, actionable steps
 - Use emojis sparingly for readability
-- Write in English`;
+${langLine}`;
 
     const response = await fetch(AI_URL, {
       method: "POST",

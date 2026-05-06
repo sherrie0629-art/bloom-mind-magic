@@ -8,6 +8,7 @@ export async function streamChat({
   memoryContext,
   bondLevel,
   accessToken,
+  locale,
   onDelta,
   onDone,
   onError,
@@ -17,6 +18,7 @@ export async function streamChat({
   memoryContext?: string[];
   bondLevel?: number;
   accessToken?: string;
+  locale?: string;
   onDelta: (deltaText: string) => void;
   onDone: () => void;
   onError: (error: string) => void;
@@ -27,7 +29,7 @@ export async function streamChat({
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ messages, agentId, memoryContext, bondLevel }),
+    body: JSON.stringify({ messages, agentId, memoryContext, bondLevel, locale }),
   });
 
   if (!resp.ok) {

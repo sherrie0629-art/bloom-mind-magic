@@ -231,7 +231,10 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, agentId, memoryContext, bondLevel } = await req.json();
+    const { messages, agentId, memoryContext, bondLevel, locale } = await req.json();
+    const langLine = locale === "zh"
+      ? "\n\n【语言要求】请始终使用简体中文回复用户，无论用户使用何种语言。所有叙述、对白、情感描写均用中文。"
+      : "\n\n【Language】Always respond in natural English regardless of the user's input language.";
 
     // --- Server-side quota check ---
     // For anonymous users, enforce message count limit
@@ -290,6 +293,7 @@ serve(async (req) => {
       fullSystemPrompt += `\n\n【Long-term Memory】These are specific memories about this user from past conversations. Reference them naturally and proactively — e.g., "Last time you mentioned work stress, how's that going?" Don't list them robotically, weave them into the conversation at the right moments.\n${memoryContext.join("\n")}`;
     }
 
+    fullSystemPrompt += langLine;
     const requestBody = JSON.stringify({
       model: MODEL,
       max_tokens: 300,

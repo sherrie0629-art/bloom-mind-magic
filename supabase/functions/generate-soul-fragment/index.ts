@@ -28,7 +28,9 @@ serve(async (req) => {
       });
     }
 
-    const { type, context, sourceId } = await req.json();
+    const { type, context, sourceId, locale: bodyLocale } = await req.json();
+    const locale = bodyLocale || "en";
+    const langInstr = locale === "zh" ? "\nLANG: 全部用简体中文输出，碎片名 2-6 个汉字，描述 1-2 句简洁中文。" : "\nLANG: Respond entirely in natural English.";
 
     const response = await fetch(AI_URL, {
       method: "POST",
@@ -42,7 +44,7 @@ serve(async (req) => {
 The fragment name should be short (2-4 words), poetic and evocative, like "Spark of Courage", "Gentle Raindrop", "Silent Moonlight", "Blooming Stardust".
 The description should be 1-2 sentences explaining what this fragment represents.
 The emoji should be a single emoji that best represents the fragment's essence.
-The color should be a hex color value matching the fragment's emotional tone.`,
+The color should be a hex color value matching the fragment's emotional tone.${langInstr}`,
           },
           { role: "user", content: context },
         ],

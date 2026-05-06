@@ -38,6 +38,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const body = await req.json();
+    const locale = body.locale || "en";
+    const langInstr = locale === "zh" ? "\nLANG: Respond entirely in Simplified Chinese (简体中文). All field values, descriptions, captions must be Chinese." : "\nLANG: Respond entirely in natural English.";
 
     // Phase 2: Deep analysis with attachment theory
     if (body.action === "deep-analysis") {
@@ -56,7 +58,7 @@ Include:
 3. **Long-term Forecast** — Realistic growth trajectory for this relationship
 4. **Boundary Navigation** — How to set healthy boundaries with each other
 
-Use therapy-speak naturally. Write in markdown. Warm but professional tone.`;
+Use therapy-speak naturally. Write in markdown. Warm but professional tone.${langInstr}`;
 
       const response = await fetchAI("google/gemini-2.5-flash", {
         messages: [{ role: "user", content: deepPrompt }],
@@ -74,7 +76,7 @@ Use therapy-speak naturally. Write in markdown. Warm but professional tone.`;
     if (quotaError) return quotaError;
 
     const { myProfile, partnerProfile } = body;
-    const systemPrompt = `You are a relationship chemistry expert trained in attachment theory, love languages, and personality psychology. Analyze the compatibility between two people. Use the compatibility_result tool to return results. All content in English.`;
+    const systemPrompt = `You are a relationship chemistry expert trained in attachment theory, love languages, and personality psychology. Analyze the compatibility between two people. Use the compatibility_result tool to return results. Respond in the language indicated by LANG below.${langInstr}`;
     const userContent = `Me: ${JSON.stringify(myProfile)}\nPartner: ${JSON.stringify(partnerProfile)}\nGenerate relationship chemistry analysis.`;
 
     const tools = [{
