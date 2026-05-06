@@ -119,8 +119,9 @@ const AssessmentDetail = () => {
 
   const d = report.result_data as any;
   const type = report.assessment_type as string;
-  const cfg = typeConfig[type] || typeConfig.mbti;
-  const Icon = cfg.icon;
+  const Icon = typeIcons[type] || Brain;
+  const gradient = typeGradients[type] || typeGradients.mbti;
+  const typeLabel = t(`assessmentReports.labels.${type}`, { defaultValue: type });
 
   const handleShare = async () => {
     const iconMap: Record<string, string> = { mbti: "🧠", enneagram: "🧭", zodiac: "⭐", emotion: "🔥" };
