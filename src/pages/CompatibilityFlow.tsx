@@ -168,20 +168,20 @@ const CompatibilityFlow = () => {
             <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
               <div className="flex items-center gap-2">
                 <div className="h-6 w-6 rounded-full bg-gradient-mystic flex items-center justify-center"><span className="text-xs">🙋</span></div>
-                <h4 className="text-sm font-semibold text-foreground">About Me</h4>
+                <h4 className="text-sm font-semibold text-foreground">{t("assessmentFlow.compatibility.aboutMe")}</h4>
               </div>
-              <input value={myName} onChange={(e) => setMyName(e.target.value)} placeholder="Your name" className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-secondary" />
+              <input value={myName} onChange={(e) => setMyName(e.target.value)} placeholder={t("assessmentFlow.compatibility.yourName")} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-secondary" />
               <div className="grid grid-cols-2 gap-2">
                 <select value={myMbti} onChange={(e) => setMyMbti(e.target.value)} className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-secondary">
-                  <option value="">MBTI (optional)</option>
-                  {MBTI_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                  <option value="">{t("assessmentFlow.compatibility.mbtiOptional")}</option>
+                  {MBTI_TYPES.map((t2) => <option key={t2} value={t2}>{t2}</option>)}
                 </select>
                 <select value={myZodiac} onChange={(e) => setMyZodiac(e.target.value)} className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-secondary">
-                  <option value="">Sign (optional)</option>
+                  <option value="">{t("assessmentFlow.compatibility.signOptional")}</option>
                   {ZODIAC_SIGNS.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
-              <textarea value={myTraits} onChange={(e) => setMyTraits(e.target.value)} placeholder="Describe your personality (optional)" rows={2} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-secondary resize-none" />
+              <textarea value={myTraits} onChange={(e) => setMyTraits(e.target.value)} placeholder={t("assessmentFlow.compatibility.describeMe")} rows={2} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-secondary resize-none" />
             </div>
             <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
               <div className="flex items-center gap-2">
