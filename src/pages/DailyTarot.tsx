@@ -142,23 +142,23 @@ const DailyTarot = () => {
     if (!result) return;
     const card = tarotCards.find((c) => c.id === result.cardId);
     try {
-      toast.info("Generating your poster…", { duration: 3000 });
+      toast.info(t("dailyTarot.posterIntro"), { duration: 3000 });
       const canvas = await generatePoster({
         title: result.cardName,
-        subtitle: result.isReversed ? "Reversed" : "Upright",
+        subtitle: result.isReversed ? t("dailyTarot.reversed") : t("dailyTarot.upright"),
         description: result.interpretation.split("\n\n💡")[0],
         bars: [],
         accentColor: "#a78bfa",
         accentColorLight: "#c4b5fd",
         icon: card?.emoji || "🔮",
         caption: result.actionTip,
-        appName: "Soul Sanctuary · Daily Tarot",
+        appName: `${t("home.appName")} · ${t("dailyTarot.title")}`,
         preloadedImageUrl: result.imageUrl || undefined,
       });
       setShareDataUrl(canvas.toDataURL("image/png"));
       setShareOpen(true);
     } catch {
-      toast.error("Failed to generate poster");
+      toast.error(t("dailyTarot.posterFail"));
     }
   };
 
