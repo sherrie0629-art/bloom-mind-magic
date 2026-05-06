@@ -34,6 +34,15 @@ const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assessment-c
 
 const CompatibilityFlow = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { locale } = useLocale();
+  const DIM_LABELS: Record<string, string> = {
+    emotional: t("assessmentFlow.compatibility.dim.emotional"),
+    communication: t("assessmentFlow.compatibility.dim.communication"),
+    values: t("assessmentFlow.compatibility.dim.values"),
+    growth: t("assessmentFlow.compatibility.dim.growth"),
+    chemistry: t("assessmentFlow.compatibility.dim.chemistry"),
+  };
   const { user } = useAuth();
   const { canAssess, assessmentLimit, plan, incrementAssessment } = useSubscription(user?.id);
   const { sharePoster, posterDataUrl, showPosterPreview, closePosterPreview, downloadPoster } = useSharePoster();
