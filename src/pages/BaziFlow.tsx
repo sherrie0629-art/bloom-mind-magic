@@ -31,8 +31,11 @@ interface BaziResult {
 const getImagePrompt = (result: BaziResult) =>
   `Create an elegant mystical Chinese ink painting style illustration representing the concept of "${result.title}" and "${result.dayMaster}" in Bazi fortune telling. Use warm golden tones, abstract cosmic elements, and traditional Chinese aesthetics. Square format, no text.`;
 
-const HOURS = ["子时(23-1)", "丑时(1-3)", "寅时(3-5)", "卯时(5-7)", "辰时(7-9)", "巳时(9-11)",
+const HOURS_ZH = ["子时(23-1)", "丑时(1-3)", "寅时(3-5)", "卯时(5-7)", "辰时(7-9)", "巳时(9-11)",
   "午时(11-13)", "未时(13-15)", "申时(15-17)", "酉时(17-19)", "戌时(19-21)", "亥时(21-23)"];
+const HOURS_EN = ["Zi (23-1)", "Chou (1-3)", "Yin (3-5)", "Mao (5-7)", "Chen (7-9)", "Si (9-11)",
+  "Wu (11-13)", "Wei (13-15)", "Shen (15-17)", "You (17-19)", "Xu (19-21)", "Hai (21-23)"];
+const HOUR_KEYS = ["子时", "丑时", "寅时", "卯时", "辰时", "巳时", "午时", "未时", "申时", "酉时", "戌时", "亥时"];
 
 const BaziFlow = () => {
   const navigate = useNavigate();
@@ -182,7 +185,7 @@ const BaziFlow = () => {
                   <label className="text-xs text-muted-foreground mb-1 block">{t("assessmentFlow.bazi.hourLabel")}</label>
                   <select value={birthInfo.hour} onChange={e => setBirthInfo(p => ({ ...p, hour: e.target.value }))}
                     className="w-full rounded-lg bg-card border border-border px-3 py-2 text-sm text-foreground">
-                    {HOURS.map(h => <option key={h} value={h.split("(")[0]}>{h}</option>)}
+                    {(locale === "zh" ? HOURS_ZH : HOURS_EN).map((h, i) => <option key={HOUR_KEYS[i]} value={HOUR_KEYS[i]}>{h}</option>)}
                     <option value="不确定">{t("assessmentFlow.bazi.uncertain")}</option>
                   </select>
                 </div>

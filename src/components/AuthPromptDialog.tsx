@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mail, Lock, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +13,7 @@ interface AuthPromptDialogProps {
 }
 
 const AuthPromptDialog = ({ open, reason, onClose }: AuthPromptDialogProps) => {
+  const { t } = useTranslation();
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -26,16 +28,16 @@ const AuthPromptDialog = ({ open, reason, onClose }: AuthPromptDialogProps) => {
       if (result.error) {
         const msg = (result.error as any)?.message || String(result.error);
         if (/not supported|not enabled|disabled/i.test(msg)) {
-          toast.error("Google 登录暂未启用，请稍后再试或使用邮箱登录");
+          toast.error(t("auth.googleSignInUnavailable"));
         } else {
-          toast.error(msg || "Google 登录失败，请重试");
+          toast.error(msg || t("auth.googleSignInFailed"));
         }
         return;
       }
       if (result.redirected) return;
       onClose();
     } catch (err: any) {
-      toast.error(err?.message || "Google 登录失败，请重试");
+      toast.error(err?.message || t("auth.googleSignInFailed"));
     }
   };
 
@@ -46,7 +48,7 @@ const AuthPromptDialog = ({ open, reason, onClose }: AuthPromptDialogProps) => {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success("欢迎回来 ✨");
+        toast.success(t("auth.welcomeBack"));
         onClose();
       } else {
         const { error } = await supabase.auth.signUp({
@@ -55,10 +57,10 @@ const AuthPromptDialog = ({ open, reason, onClose }: AuthPromptDialogProps) => {
           options: { emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        toast.success("注册成功！请查看邮箱确认 📧");
+        toast.success(t("auth.accountCreated"));
       }
     } catch (error: any) {
-      toast.error(error.message || "操作失败，请重试");
+      toast.error(error.message || t("auth.actionFailed"));
     } finally {
       setLoading(false);
     }
@@ -88,7 +90,7 @@ const AuthPromptDialog = ({ open, reason, onClose }: AuthPromptDialogProps) => {
               <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-secondary/10">
                 <span className="text-2xl">✨</span>
               </div>
-              <h3 className="font-display text-lg font-bold text-foreground">登录以继续</h3>
+              <h3 className="font-display text-lg font-bold text-foreground">{t("auth.signInToContinue")}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{reason}</p>
             </div>
 
@@ -102,7 +104,7 @@ const AuthPromptDialog = ({ open, reason, onClose }: AuthPromptDialogProps) => {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
               </svg>
-              使用 Google 账号登录
+              {t("auth.googleAccount")}
             </button>
 
             {!showEmailForm ? (
@@ -110,7 +112,7 @@ const AuthPromptDialog = ({ open, reason, onClose }: AuthPromptDialogProps) => {
                 onClick={() => setShowEmailForm(true)}
                 className="mt-3 w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
-                使用邮箱登录
+                {t("auth.useEmailSignIn")}
               </button>
             ) : (
               <motion.form
@@ -123,7 +125,7 @@ const AuthPromptDialog = ({ open, reason, onClose }: AuthPromptDialogProps) => {
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
                     type="email" value={email} onChange={(e) => setEmail(e.target.value)}
-                    placeholder="邮箱地址" required
+                    placeholder={t("auth.emailPlaceholder")} required
                     className="w-full rounded-xl border border-border bg-background pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-secondary/30"
                   />
                 </div>
@@ -131,17 +133,17 @@ const AuthPromptDialog = ({ open, reason, onClose }: AuthPromptDialogProps) => {
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
                     type="password" value={password} onChange={(e) => setPassword(e.target.value)}
-                    placeholder="密码" required minLength={6}
+                    placeholder={t("auth.passwordPlaceholder")} required minLength={6}
                     className="w-full rounded-xl border border-border bg-background pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-secondary/30"
                   />
                 </div>
                 <button type="submit" disabled={loading}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-golden py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-50">
-                  {loading ? "请稍候..." : isLogin ? "登录" : "注册"}
+                  {loading ? t("common.pleaseWait") : isLogin ? t("auth.signIn") : t("auth.signUp")}
                   <ArrowRight className="h-4 w-4" />
                 </button>
                 <button type="button" onClick={() => setIsLogin(!isLogin)} className="w-full text-center text-xs text-muted-foreground">
-                  {isLogin ? "没有账号？注册" : "已有账号？登录"}
+                  {isLogin ? t("auth.noAccountShort") : t("auth.haveAccountShort")}
                 </button>
               </motion.form>
             )}

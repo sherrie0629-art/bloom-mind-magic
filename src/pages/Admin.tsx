@@ -1,5 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useLocale } from "@/hooks/useLocale";
 import { ArrowLeft, Crown, Search, UserCheck, ShoppingBag, RefreshCw, BarChart3, Users, MessageSquare, FileText, Settings, Check, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,14 +27,16 @@ interface PurchaseRow {
   profile_name?: string;
 }
 
-const PRODUCT_LABELS: Record<string, string> = {
-  deep_report: "Deep Report",
-  compatibility: "Compatibility Test",
-  subscription: "Membership",
-};
+// Product labels are localized via t() inside component
+
+
 
 const Admin = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { locale } = useLocale();
+  const dateLocale = locale === "zh" ? "zh-CN" : "en-US";
+  const productLabel = (k: string) => t(`admin.products.${k}`, { defaultValue: k });
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -48,7 +52,7 @@ const Admin = () => {
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
     supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => {
-      if (!data) { navigate("/"); toast({ title: "Access Denied", description: "You are not an admin" }); return; }
+      if (!data) { navigate("/"); toast({ title: t("admin.accessDenied"), description: t("admin.notAdmin") }); return; }
       setIsAdmin(true);
       setLoading(false);
     });
@@ -150,10 +154,10 @@ const Admin = () => {
       await (supabase as any).from("user_subscriptions").insert({ user_id: userId, ...payload });
     }
     toast({
-      title: "已更新",
+      title: t("admin.subUpdated"),
       description: opts.plan === "plus"
-        ? `Plus 有效期至 ${new Date(opts.expiresAt!).toLocaleDateString("zh-CN")}`
-        : "已切换为免费用户",
+        ? t("admin.subPlusTill", { d: new Date(opts.expiresAt!).toLocaleDateString(dateLocale) })
+        : t("admin.subFreeSet"),
     });
     await loadUsers();
     setUpdatingId(null);
@@ -162,7 +166,7 @@ const Admin = () => {
 
   const updatePurchaseStatus = async (id: string, status: string) => {
     await supabase.from("purchase_records").update({ status }).eq("id", id);
-    toast({ title: "Updated", description: `Status set to ${status === "completed" ? "Completed" : status}` });
+    toast({ title: t("admin.purchaseUpdated"), description: t("admin.purchaseStatus", { s: status === "completed" ? t("admin.completed") : status }) });
     await loadPurchases();
   };
 
@@ -171,30 +175,32 @@ const Admin = () => {
   );
 
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
+  if (!isAdmin) return null;
+
 
   return (
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border px-4 py-3 flex items-center gap-3">
         <button onClick={() => navigate(-1)}><ArrowLeft className="h-5 w-5 text-foreground" /></button>
-        <h1 className="font-display text-base font-semibold text-foreground">Admin Dashboard</h1>
+        <h1 className="font-display text-base font-semibold text-foreground">{t("admin.title")}</h1>
       </div>
 
       <div className="flex border-b border-border">
         {[
-          { key: "dashboard" as const, label: "Overview", icon: BarChart3 },
-          { key: "users" as const, label: "Users", icon: UserCheck },
-          { key: "purchases" as const, label: "Purchases", icon: ShoppingBag },
-          { key: "settings" as const, label: "Settings", icon: Settings },
-        ].map(t => (
+          { key: "dashboard" as const, label: t("admin.tabs.dashboard"), icon: BarChart3 },
+          { key: "users" as const, label: t("admin.tabs.users"), icon: UserCheck },
+          { key: "purchases" as const, label: t("admin.tabs.purchases"), icon: ShoppingBag },
+          { key: "settings" as const, label: t("admin.tabs.settings"), icon: Settings },
+        ].map(tt => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+            key={tt.key}
+            onClick={() => setTab(tt.key)}
             className={`flex-1 py-3 text-xs font-medium flex items-center justify-center gap-1.5 border-b-2 transition-colors ${
-              tab === t.key ? "border-secondary text-secondary" : "border-transparent text-muted-foreground"
+              tab === tt.key ? "border-secondary text-secondary" : "border-transparent text-muted-foreground"
             }`}
           >
-            <t.icon className="h-3.5 w-3.5" />
-            {t.label}
+            <tt.icon className="h-3.5 w-3.5" />
+            {tt.label}
           </button>
         ))}
       </div>
@@ -203,10 +209,10 @@ const Admin = () => {
         <div className="p-4 space-y-3">
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: "Total Users", value: String(dashStats.total), icon: Users, color: "text-secondary" },
-              { label: "Plus Members", value: String(dashStats.premium), icon: Crown, color: "text-yellow-500" },
-              { label: "Active Today", value: String(dashStats.todayActive), icon: UserCheck, color: "text-accent" },
-              { label: "Assessments", value: String(dashStats.totalAssessments), icon: FileText, color: "text-primary" },
+              { label: t("admin.stats.total"), value: String(dashStats.total), icon: Users, color: "text-secondary" },
+              { label: t("admin.stats.premium"), value: String(dashStats.premium), icon: Crown, color: "text-yellow-500" },
+              { label: t("admin.stats.todayActive"), value: String(dashStats.todayActive), icon: UserCheck, color: "text-accent" },
+              { label: t("admin.stats.assessments"), value: String(dashStats.totalAssessments), icon: FileText, color: "text-primary" },
             ].map(s => (
               <div key={s.label} className="rounded-2xl bg-card shadow-card p-4">
                 <div className="flex items-center gap-2 mb-2">
@@ -219,11 +225,11 @@ const Admin = () => {
           </div>
 
           <div className="rounded-2xl bg-card shadow-card p-4">
-            <h4 className="text-xs font-semibold text-foreground mb-3">Today's Overview</h4>
+            <h4 className="text-xs font-semibold text-foreground mb-3">{t("admin.todayOverview")}</h4>
             <div className="space-y-3">
               <div>
                 <div className="flex justify-between text-[11px] text-muted-foreground mb-1">
-                  <span>Conversations</span>
+                  <span>{t("admin.convs")}</span>
                   <span>{dashStats.todayChats}</span>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -232,7 +238,7 @@ const Admin = () => {
               </div>
               <div>
                 <div className="flex justify-between text-[11px] text-muted-foreground mb-1">
-                  <span>Assessments</span>
+                  <span>{t("admin.assess")}</span>
                   <span>{dashStats.todayAssessments}</span>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -243,9 +249,9 @@ const Admin = () => {
           </div>
 
           <div className="rounded-2xl bg-card shadow-card p-4">
-            <h4 className="text-xs font-semibold text-foreground mb-1">Total Revenue</h4>
+            <h4 className="text-xs font-semibold text-foreground mb-1">{t("admin.totalRevenue")}</h4>
             <p className="font-display text-3xl font-bold text-foreground">${(dashStats.totalRevenue / 100).toFixed(2)}</p>
-            <p className="text-[10px] text-muted-foreground mt-1">Completed orders only</p>
+            <p className="text-[10px] text-muted-foreground mt-1">{t("admin.completedOnly")}</p>
           </div>
         </div>
       )}
@@ -257,12 +263,12 @@ const Admin = () => {
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search by name or ID..."
+              placeholder={t("admin.searchPlaceholder")}
               className="w-full rounded-xl bg-card border border-border pl-9 pr-4 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-secondary"
             />
           </div>
 
-          <p className="text-[10px] text-muted-foreground">{filteredUsers.length} users total</p>
+          <p className="text-[10px] text-muted-foreground">{t("admin.totalUsers", { n: filteredUsers.length })}</p>
 
           <div className="space-y-2">
             {filteredUsers.map(u => {
@@ -273,9 +279,9 @@ const Admin = () => {
               const isEditing = editingUserId === u.user_id;
 
               const usageRows = [
-                { label: "对话", count: usage.chat_count, limit: limits.chat },
-                { label: "测评", count: usage.assessment_count, limit: limits.assessment },
-                { label: "深度报告", count: usage.deep_report_count, limit: limits.deepReport },
+                { label: t("admin.rows.chat"), count: usage.chat_count, limit: limits.chat },
+                { label: t("admin.rows.assess"), count: usage.assessment_count, limit: limits.assessment },
+                { label: t("admin.rows.deep"), count: usage.deep_report_count, limit: limits.deepReport },
               ];
 
               return (
@@ -285,26 +291,25 @@ const Admin = () => {
                       {isPlus ? "👑" : "🌙"}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-foreground truncate">{u.display_name || "Traveler"}</p>
+                      <p className="text-xs font-medium text-foreground truncate">{u.display_name || t("profile.traveler")}</p>
                       <p className="text-[9px] text-muted-foreground truncate">{u.user_id}</p>
                     </div>
                     {isPlus && (
                       <span className="rounded-full bg-secondary/20 px-2 py-0.5 text-[10px] font-medium text-secondary">
-                        {u.subscription?.billing_period === "yearly" ? "Plus · 年" : "Plus · 月"}
+                        {u.subscription?.billing_period === "yearly" ? t("admin.plusYear") : t("admin.plusMonth")}
                       </span>
                     )}
                   </div>
 
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-muted-foreground mb-2">
-                    <span>注册：{new Date(u.created_at).toLocaleDateString("zh-CN")}</span>
+                    <span>{t("admin.registeredAt", { d: new Date(u.created_at).toLocaleDateString(dateLocale) })}</span>
                     {isPlus && u.subscription?.expires_at && (
-                      <span>· 到期：{new Date(u.subscription.expires_at).toLocaleDateString("zh-CN")}</span>
+                      <span>{t("admin.expiryAt", { d: new Date(u.subscription.expires_at).toLocaleDateString(dateLocale) })}</span>
                     )}
                   </div>
 
-                  {/* 今日使用额度 */}
                   <div className="space-y-1.5 mb-3 rounded-lg bg-muted/30 p-2">
-                    <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">今日额度</p>
+                    <p className="text-[9px] font-medium text-muted-foreground uppercase tracking-wide">{t("admin.todayQuota")}</p>
                     {usageRows.map(row => {
                       const unlimited = row.limit >= 9999;
                       const pct = row.limit === 0 ? 0 : Math.min(100, (row.count / row.limit) * 100);
@@ -313,7 +318,7 @@ const Admin = () => {
                           <div className="flex justify-between text-[10px] mb-0.5">
                             <span className="text-foreground">{row.label}</span>
                             <span className="text-muted-foreground">
-                              {row.count} / {unlimited ? "无限" : row.limit}
+                              {row.count} / {unlimited ? t("admin.unlimited") : row.limit}
                             </span>
                           </div>
                           <div className="h-1 rounded-full bg-muted overflow-hidden">
@@ -332,7 +337,7 @@ const Admin = () => {
                       onClick={() => setEditingUserId(u.user_id)}
                       className="w-full rounded-lg bg-secondary/15 py-1.5 text-[10px] font-semibold text-secondary"
                     >
-                      <Crown className="inline h-3 w-3 mr-0.5" />管理订阅
+                      <Crown className="inline h-3 w-3 mr-0.5" />{t("admin.manageSub")}
                     </button>
                   ) : (
                     <SubscriptionEditor
@@ -353,40 +358,40 @@ const Admin = () => {
 
       {tab === "purchases" && (
         <div className="p-4 space-y-2">
-          <p className="text-[10px] text-muted-foreground">Latest {purchases.length} records</p>
+          <p className="text-[10px] text-muted-foreground">{t("admin.purchases", { n: purchases.length })}</p>
           {purchases.map(p => (
             <div key={p.id} className="rounded-2xl bg-card shadow-card p-3">
               <div className="flex items-center justify-between mb-1.5">
                 <div>
                   <p className="text-xs font-medium text-foreground">
-                    {PRODUCT_LABELS[p.product_type] || p.product_type}
+                    {productLabel(p.product_type)}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">{p.profile_name || "Traveler"}</p>
+                  <p className="text-[10px] text-muted-foreground">{p.profile_name || t("profile.traveler")}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs font-semibold text-foreground">${(p.amount / 100).toFixed(2)}</p>
                   <p className={`text-[10px] ${p.status === "completed" ? "text-green-500" : "text-yellow-500"}`}>
-                    {p.status === "completed" ? "Completed" : p.status === "pending" ? "Pending" : p.status}
+                    {p.status === "completed" ? t("admin.completed") : p.status === "pending" ? t("admin.pending") : p.status}
                   </p>
                 </div>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-[9px] text-muted-foreground">
-                  {new Date(p.created_at).toLocaleString("en-US")}
+                  {new Date(p.created_at).toLocaleString(dateLocale)}
                 </span>
                 {p.status === "pending" && (
                   <button
                     onClick={() => updatePurchaseStatus(p.id, "completed")}
                     className="rounded-lg bg-green-500/10 px-3 py-1 text-[10px] font-medium text-green-600"
                   >
-                    Mark Complete
+                    {t("admin.markComplete")}
                   </button>
                 )}
               </div>
             </div>
           ))}
           {purchases.length === 0 && (
-            <p className="text-center text-xs text-muted-foreground py-8">No purchase records yet</p>
+            <p className="text-center text-xs text-muted-foreground py-8">{t("admin.noPurchases")}</p>
           )}
         </div>
       )}
@@ -394,8 +399,8 @@ const Admin = () => {
       {tab === "settings" && (
         <div className="p-4 space-y-4">
           <div className="rounded-2xl bg-card shadow-card p-4">
-            <h3 className="text-sm font-semibold text-foreground mb-1">AI Model Service</h3>
-            <p className="text-[10px] text-muted-foreground mb-4">Currently using Lovable AI (Google Gemini)</p>
+            <h3 className="text-sm font-semibold text-foreground mb-1">{t("admin.aiTitle")}</h3>
+            <p className="text-[10px] text-muted-foreground mb-4">{t("admin.aiDesc")}</p>
 
             <div className="relative rounded-xl border-2 border-secondary bg-secondary/5 shadow-glow p-4">
               <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-secondary flex items-center justify-center">
@@ -404,7 +409,7 @@ const Admin = () => {
               <Globe className="h-6 w-6 mb-2 text-secondary" />
               <p className="text-xs font-semibold text-foreground">Lovable AI</p>
               <p className="text-[10px] text-muted-foreground mt-1">Google Gemini models</p>
-              <p className="text-[9px] text-muted-foreground mt-0.5">Active · Available globally</p>
+              <p className="text-[9px] text-muted-foreground mt-0.5">{t("admin.aiActive")}</p>
             </div>
           </div>
         </div>
@@ -423,6 +428,7 @@ interface EditorProps {
 }
 
 const SubscriptionEditor = ({ currentPlan, currentBilling, currentExpiresAt, saving, onCancel, onSave }: EditorProps) => {
+  const { t } = useTranslation();
   const defaultExpiry = (billing: "monthly" | "yearly") => {
     const d = new Date();
     d.setDate(d.getDate() + (billing === "yearly" ? 365 : 30));
@@ -443,7 +449,7 @@ const SubscriptionEditor = ({ currentPlan, currentBilling, currentExpiresAt, sav
     <div className="space-y-2 rounded-lg border border-border p-2.5">
       <div className="grid grid-cols-2 gap-2">
         <label className="block">
-          <span className="text-[9px] text-muted-foreground">套餐</span>
+          <span className="text-[9px] text-muted-foreground">{t("admin.subEditor.plan")}</span>
           <select
             value={plan}
             onChange={e => setPlan(e.target.value as "free" | "plus")}
@@ -454,20 +460,20 @@ const SubscriptionEditor = ({ currentPlan, currentBilling, currentExpiresAt, sav
           </select>
         </label>
         <label className="block">
-          <span className="text-[9px] text-muted-foreground">计费周期</span>
+          <span className="text-[9px] text-muted-foreground">{t("admin.subEditor.billing")}</span>
           <select
             value={billing}
             disabled={plan === "free"}
             onChange={e => handleBillingChange(e.target.value as "monthly" | "yearly")}
             className="mt-0.5 w-full rounded-md bg-card border border-border px-2 py-1 text-[11px] text-foreground disabled:opacity-50"
           >
-            <option value="monthly">月付 Monthly</option>
-            <option value="yearly">年付 Yearly</option>
+            <option value="monthly">{t("admin.subEditor.monthly")}</option>
+            <option value="yearly">{t("admin.subEditor.yearly")}</option>
           </select>
         </label>
       </div>
       <label className="block">
-        <span className="text-[9px] text-muted-foreground">到期时间</span>
+        <span className="text-[9px] text-muted-foreground">{t("admin.subEditor.expires")}</span>
         <input
           type="date"
           value={expires}
@@ -486,13 +492,13 @@ const SubscriptionEditor = ({ currentPlan, currentBilling, currentExpiresAt, sav
           })}
           className="flex-1 rounded-lg bg-gradient-golden py-1.5 text-[10px] font-semibold text-primary-foreground disabled:opacity-50"
         >
-          {saving ? "保存中..." : "保存"}
+          {saving ? t("admin.subEditor.saving") : t("admin.subEditor.save")}
         </button>
         <button
           onClick={onCancel}
           className="flex-1 rounded-lg bg-muted py-1.5 text-[10px] font-medium text-muted-foreground"
         >
-          取消
+          {t("admin.subEditor.cancel")}
         </button>
       </div>
     </div>
