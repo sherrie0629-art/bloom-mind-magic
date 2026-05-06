@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import BottomNav from "@/components/BottomNav";
 import DesktopLayout from "@/components/DesktopLayout";
-import { agents, BOND_THRESHOLDS } from "@/data/agents";
+import { agents as RAW_AGENTS, BOND_THRESHOLDS } from "@/data/agents";
+import { localizeAgent } from "@/lib/localizeAgent";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
