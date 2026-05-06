@@ -224,7 +224,7 @@ const DailyTarot = () => {
               >
                 <span className="text-5xl">✨</span>
               </motion.div>
-              <p className="text-sm text-muted-foreground animate-pulse">Reading the cards...</p>
+              <p className="text-sm text-muted-foreground animate-pulse">{t("dailyTarot.drawing")}</p>
             </div>
           </motion.div>
         )}
