@@ -1,17 +1,18 @@
 import { Home, BookOpen, Sparkles, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-
-const navItems = [
-  { icon: Home, label: "Home", path: "/" },
-  { icon: BookOpen, label: "Archive", path: "/archive" },
-  { icon: Sparkles, label: "Assess", path: "/assessment" },
-  { icon: User, label: "Me", path: "/profile" },
-];
+import { useTranslation } from "react-i18next";
 
 const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const navItems = [
+    { icon: Home, label: t("nav.home"), path: "/" },
+    { icon: BookOpen, label: t("nav.archive"), path: "/archive" },
+    { icon: Sparkles, label: t("nav.assess"), path: "/assessment" },
+    { icon: User, label: t("nav.me"), path: "/profile" },
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-background/80 backdrop-blur-xl md:hidden">

@@ -25,6 +25,7 @@ import AgentArchive from "./pages/AgentArchive.tsx";
 import Vault from "./pages/Vault.tsx";
 import SoulMap from "./pages/SoulMap.tsx";
 import Admin from "./pages/Admin.tsx";
+import Settings from "./pages/Settings.tsx";
 import Welcome from "./pages/Welcome.tsx";
 import Contact from "./pages/Contact.tsx";
 import PrivacyPolicy from "./pages/PrivacyPolicy.tsx";
@@ -68,6 +69,7 @@ const App = () => (
             <Route path="/vault" element={<Vault />} />
             <Route path="/soul-map" element={<SoulMap />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/welcome" element={<Welcome />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
