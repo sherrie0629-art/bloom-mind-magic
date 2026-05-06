@@ -201,14 +201,14 @@ const DailyTarot = () => {
                 <span className="text-6xl">🔮</span>
               </motion.div>
               <p className="text-sm text-muted-foreground mb-6 max-w-[260px]">
-                Focus your mind, and let the cards reveal what you need to hear today.
+                {t("dailyTarot.focus")}
               </p>
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={handleDraw}
                 className="flex items-center gap-2 rounded-2xl bg-gradient-golden px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg"
               >
-                <Sparkles className="h-4 w-4" /> Draw Today's Card
+                <Sparkles className="h-4 w-4" /> {t("dailyTarot.drawBtn")}
               </motion.button>
             </div>
           </motion.div>
