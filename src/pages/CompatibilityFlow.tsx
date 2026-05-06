@@ -186,23 +186,23 @@ const CompatibilityFlow = () => {
             <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
               <div className="flex items-center gap-2">
                 <div className="h-6 w-6 rounded-full bg-gradient-golden flex items-center justify-center"><span className="text-xs">💕</span></div>
-                <h4 className="text-sm font-semibold text-foreground">About Them</h4>
+                <h4 className="text-sm font-semibold text-foreground">{t("assessmentFlow.compatibility.aboutThem")}</h4>
               </div>
-              <input value={partnerName} onChange={(e) => setPartnerName(e.target.value)} placeholder="Their name" className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-secondary" />
+              <input value={partnerName} onChange={(e) => setPartnerName(e.target.value)} placeholder={t("assessmentFlow.compatibility.theirName")} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-secondary" />
               <div className="grid grid-cols-2 gap-2">
                 <select value={partnerMbti} onChange={(e) => setPartnerMbti(e.target.value)} className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-secondary">
-                  <option value="">MBTI (optional)</option>
-                  {MBTI_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                  <option value="">{t("assessmentFlow.compatibility.mbtiOptional")}</option>
+                  {MBTI_TYPES.map((t2) => <option key={t2} value={t2}>{t2}</option>)}
                 </select>
                 <select value={partnerZodiac} onChange={(e) => setPartnerZodiac(e.target.value)} className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-secondary">
-                  <option value="">Sign (optional)</option>
+                  <option value="">{t("assessmentFlow.compatibility.signOptional")}</option>
                   {ZODIAC_SIGNS.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
-              <textarea value={partnerTraits} onChange={(e) => setPartnerTraits(e.target.value)} placeholder="Describe their personality (optional)" rows={2} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-secondary resize-none" />
+              <textarea value={partnerTraits} onChange={(e) => setPartnerTraits(e.target.value)} placeholder={t("assessmentFlow.compatibility.describeThem")} rows={2} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-secondary resize-none" />
             </div>
             <button onClick={handleSubmit} className="w-full rounded-xl bg-gradient-golden py-3 text-sm font-semibold text-white flex items-center justify-center gap-2">
-              <Sparkles className="h-4 w-4" /> Analyze Chemistry
+              <Sparkles className="h-4 w-4" /> {t("assessmentFlow.compatibility.analyzeBtn")}
             </button>
           </motion.div>
         )}
