@@ -8,6 +8,7 @@ export async function streamChat({
   memoryContext,
   bondLevel,
   accessToken,
+  locale,
   onDelta,
   onDone,
   onError,
