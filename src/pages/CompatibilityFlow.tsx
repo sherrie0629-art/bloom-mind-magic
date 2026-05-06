@@ -155,7 +155,7 @@ const CompatibilityFlow = () => {
     <div className="min-h-screen bg-gradient-calm pb-12">
       <div className="flex items-center gap-3 px-4 py-3 pt-14">
         <button onClick={() => navigate(-1)} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></button>
-        <h2 className="font-display text-sm font-semibold text-foreground">💕 Relationship Chemistry</h2>
+        <h2 className="font-display text-sm font-semibold text-foreground">{t("assessmentFlow.compatibility.title")}</h2>
       </div>
       <AnimatePresence mode="wait">
         {step === "input" && (
