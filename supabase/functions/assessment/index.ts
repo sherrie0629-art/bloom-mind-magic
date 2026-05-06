@@ -100,6 +100,34 @@ serve(async (req) => {
 
     // === Batch questions mode (no quota check - just generating questions) ===
     if (body.action === "batch-questions") {
+      // ---- Cache layer: shared, locale-bucketed, 1h TTL ----
+      const CACHE_BUCKET = "assessment-cache";
+      const CACHE_TTL_MS = 60 * 60 * 1000;
+      const cacheKey = `mbti-batch-${locale}.json`;
+      const adminClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+
+      try {
+        const { data: existing } = await adminClient.storage.from(CACHE_BUCKET).list("", { search: cacheKey, limit: 1 });
+        const hit = existing?.find((f) => f.name === cacheKey);
+        if (hit) {
+          const updatedAt = hit.updated_at ? new Date(hit.updated_at).getTime() : 0;
+          if (Date.now() - updatedAt < CACHE_TTL_MS) {
+            const { data: file } = await adminClient.storage.from(CACHE_BUCKET).download(cacheKey);
+            if (file) {
+              const text = await file.text();
+              const cached = JSON.parse(text);
+              if (Array.isArray(cached?.questions) && cached.questions.length >= 10) {
+                return new Response(JSON.stringify({ type: "batch", data: cached.questions, cached: true }), {
+                  headers: { ...corsHeaders, "Content-Type": "application/json" },
+                });
+              }
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Cache read failed:", e);
+      }
+
       const isZh = locale === "zh";
       const styleGuide = isZh ? `
 你是一位会写互动小说的 MBTI 测评设计师。请生成 10 道"剧情化"题目，让用户像玩文字游戏一样穿越 10 个小场景，沉浸式探索自己。
