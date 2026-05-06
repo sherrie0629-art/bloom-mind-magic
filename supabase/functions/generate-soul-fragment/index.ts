@@ -44,7 +44,7 @@ serve(async (req) => {
 The fragment name should be short (2-4 words), poetic and evocative, like "Spark of Courage", "Gentle Raindrop", "Silent Moonlight", "Blooming Stardust".
 The description should be 1-2 sentences explaining what this fragment represents.
 The emoji should be a single emoji that best represents the fragment's essence.
-The color should be a hex color value matching the fragment's emotional tone.`,
+The color should be a hex color value matching the fragment's emotional tone.${langInstr}`,
           },
           { role: "user", content: context },
         ],
