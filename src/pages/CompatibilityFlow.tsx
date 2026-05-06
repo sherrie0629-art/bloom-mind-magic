@@ -107,11 +107,11 @@ const CompatibilityFlow = () => {
   }, [user]);
 
   const handleSubmit = useCallback(async () => {
-    if (!user) { toast.error("Please sign in 🌙"); navigate("/auth"); return; }
-    if (!canAssess) { toast.error(`Daily limit reached (${assessmentLimit}) 💫`); return; }
-    if (!myName.trim() || !partnerName.trim()) { toast.error("Please enter both names"); return; }
-    if (!myMbti && !myZodiac && !myTraits.trim()) { toast.error("Please fill in at least one field about yourself"); return; }
-    if (!partnerMbti && !partnerZodiac && !partnerTraits.trim()) { toast.error("Please fill in at least one field about your partner"); return; }
+    if (!user) { toast.error(t("assessmentFlow.compatibility.pleaseSignIn")); navigate("/auth"); return; }
+    if (!canAssess) { toast.error(t("assessmentFlow.compatibility.dailyLimitReached", { n: assessmentLimit })); return; }
+    if (!myName.trim() || !partnerName.trim()) { toast.error(t("assessmentFlow.compatibility.needBothNames")); return; }
+    if (!myMbti && !myZodiac && !myTraits.trim()) { toast.error(t("assessmentFlow.compatibility.needMyInfo")); return; }
+    if (!partnerMbti && !partnerZodiac && !partnerTraits.trim()) { toast.error(t("assessmentFlow.compatibility.needTheirInfo")); return; }
     await incrementAssessment();
     setStep("loading");
     setDeepAnalysis("");
@@ -119,15 +119,15 @@ const CompatibilityFlow = () => {
     const myProfile = { name: myName, mbti: myMbti || undefined, zodiac: myZodiac || undefined, traits: myTraits || undefined };
     const partnerProfile = { name: partnerName, mbti: partnerMbti || undefined, zodiac: partnerZodiac || undefined, traits: partnerTraits || undefined };
     try {
-      const { data, error } = await supabase.functions.invoke("assessment-compatibility", { body: { myProfile, partnerProfile } });
+      const { data, error } = await supabase.functions.invoke("assessment-compatibility", { body: { myProfile, partnerProfile, locale } });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       setResult(data.result);
       setStep("result");
       await (supabase as any).from("compatibility_reports").insert({ user_id: user.id, partner_info: { name: partnerName, mbti: partnerMbti, zodiac: partnerZodiac, traits: partnerTraits }, result_data: data.result, is_paid: false });
       streamDeepAnalysis(myProfile, partnerProfile, data.result);
-    } catch (e: any) { toast.error(e.message || "Analysis failed, please try again"); setStep("input"); }
-  }, [user, myName, myMbti, myZodiac, myTraits, partnerName, partnerMbti, partnerZodiac, partnerTraits, canAssess, streamDeepAnalysis]);
+    } catch (e: any) { toast.error(e.message || t("assessmentFlow.compatibility.analyzeFail")); setStep("input"); }
+  }, [user, myName, myMbti, myZodiac, myTraits, partnerName, partnerMbti, partnerZodiac, partnerTraits, canAssess, streamDeepAnalysis, locale, t, assessmentLimit, incrementAssessment, navigate]);
 
   const handleSharePoster = () => {
     if (!result) return;
