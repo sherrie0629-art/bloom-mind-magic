@@ -38,6 +38,8 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const body = await req.json();
+    const locale = body.locale || "en";
+    const langInstr = locale === "zh" ? "\nLANG: Respond entirely in Simplified Chinese (简体中文). All field values, descriptions, captions must be Chinese." : "\nLANG: Respond entirely in natural English.";
     const model = "google/gemini-2.5-flash-lite";
 
     if (body.action === "batch-questions") {
