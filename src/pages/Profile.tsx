@@ -135,32 +135,32 @@ const Profile = () => {
                 className={`mt-6 mx-6 rounded-2xl shadow-card p-4 transition-colors duration-300 ${plan === "plus" ? "bg-gradient-to-br from-secondary/10 to-gold/10 border border-secondary/20" : "bg-card"}`}>
                 <div className="flex items-center gap-2 mb-3">
                   <Crown className={`h-5 w-5 ${plan === "plus" ? "text-yellow-500" : "text-muted-foreground"}`} />
-                  <span className="text-sm font-semibold text-foreground">{plan === "plus" ? "✨ Plus" : "Free Plan"}</span>
-                  {plan === "plus" && expiresAt && <span className="text-[10px] text-muted-foreground ml-auto">Expires: {new Date(expiresAt).toLocaleDateString()}</span>}
+                  <span className="text-sm font-semibold text-foreground">{plan === "plus" ? t("profile.plus") : t("profile.freePlan")}</span>
+                  {plan === "plus" && expiresAt && <span className="text-[10px] text-muted-foreground ml-auto">{t("profile.expires", { date: new Date(expiresAt).toLocaleDateString() })}</span>}
                 </div>
                 {plan === "free" && (
                   freeTrialExpired ? (
                     <div className="mb-3 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-xs text-destructive font-medium text-center">
-                      🚫 Free trial ended. Upgrade to Plus to continue.
+                      {t("profile.trialEnded")}
                     </div>
                   ) : (
                     <div className="mb-3 rounded-lg bg-secondary/10 border border-secondary/20 px-3 py-2 text-xs text-secondary font-medium text-center">
-                      🎁 Free trial: {freeTrialDaysLeft} days left
+                      {t("profile.trialLeft", { n: freeTrialDaysLeft })}
                     </div>
                   )
                 )}
                 <div className="space-y-2.5 mb-3">
                   <div>
-                    <div className="flex justify-between text-[11px] text-muted-foreground mb-1"><span>Today's Chats</span><span>{chatCount}/{plan === "plus" ? "∞" : chatLimit}</span></div>
+                    <div className="flex justify-between text-[11px] text-muted-foreground mb-1"><span>{t("profile.todaysChats")}</span><span>{chatCount}/{plan === "plus" ? "∞" : chatLimit}</span></div>
                     <div className="h-1.5 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full bg-gradient-golden transition-all duration-500" style={{ width: plan === "plus" ? "100%" : `${Math.min(100, (chatCount / chatLimit) * 100)}%` }} /></div>
                   </div>
                   <div>
-                    <div className="flex justify-between text-[11px] text-muted-foreground mb-1"><span>Today's Quizzes</span><span>{assessmentCount}/{plan === "plus" ? "∞" : assessmentLimit}</span></div>
+                    <div className="flex justify-between text-[11px] text-muted-foreground mb-1"><span>{t("profile.todaysQuizzes")}</span><span>{assessmentCount}/{plan === "plus" ? "∞" : assessmentLimit}</span></div>
                     <div className="h-1.5 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full bg-gradient-mystic transition-all duration-500" style={{ width: plan === "plus" ? "100%" : `${Math.min(100, (assessmentCount / assessmentLimit) * 100)}%` }} /></div>
                   </div>
                   {plan === "plus" && (
                     <div>
-                      <div className="flex justify-between text-[11px] text-muted-foreground mb-1"><span>Today's Deep Reports</span><span>{deepReportCount}/{deepReportLimit}</span></div>
+                      <div className="flex justify-between text-[11px] text-muted-foreground mb-1"><span>{t("profile.todaysDeepReports")}</span><span>{deepReportCount}/{deepReportLimit}</span></div>
                       <div className="h-1.5 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full bg-gradient-to-r from-secondary to-gold transition-all duration-500" style={{ width: `${Math.min(100, (deepReportCount / deepReportLimit) * 100)}%` }} /></div>
                     </div>
                   )}
@@ -171,7 +171,7 @@ const Profile = () => {
                     disabled={portalLoading}
                     className="mt-1 w-full rounded-xl border border-secondary/30 bg-secondary/5 py-2 text-[11px] font-semibold text-secondary hover:bg-secondary/10 transition-colors disabled:opacity-60"
                   >
-                    {portalLoading ? "Opening…" : "Manage Subscription / Cancel"}
+                    {portalLoading ? t("profile.opening") : t("profile.manageSubscription")}
                   </button>
                 )}
               </motion.div>
@@ -179,10 +179,10 @@ const Profile = () => {
 
             {!subLoading && plan !== "plus" && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-3 mx-6 rounded-2xl bg-card shadow-card p-4">
-                <h4 className="text-xs font-semibold text-foreground mb-2.5 flex items-center gap-1.5"><Crown className="h-3.5 w-3.5 text-secondary" /> Why Plus?</h4>
+                <h4 className="text-xs font-semibold text-foreground mb-2.5 flex items-center gap-1.5"><Crown className="h-3.5 w-3.5 text-secondary" /> {t("profile.whyPlus")}</h4>
                 
                 <div className="space-y-0">
-                  <div className="grid grid-cols-3 text-[10px] text-muted-foreground pb-1.5 border-b border-border"><span>Benefit</span><span className="text-center">Free</span><span className="text-center text-secondary font-semibold">Plus</span></div>
+                  <div className="grid grid-cols-3 text-[10px] text-muted-foreground pb-1.5 border-b border-border"><span>{t("profile.benefit")}</span><span className="text-center">{t("profile.free")}</span><span className="text-center text-secondary font-semibold">Plus</span></div>
                   {plusBenefits.map((b) => (
                     <div key={b.label} className="grid grid-cols-3 text-[11px] py-1.5 border-b border-border/50 last:border-0">
                       <span className="text-foreground">{b.label}</span><span className="text-center text-muted-foreground">{b.free}</span><span className="text-center text-secondary font-medium">{b.plus}</span>
@@ -196,23 +196,23 @@ const Profile = () => {
                     onClick={() => setBillingToggle("monthly")}
                     className={`rounded-full px-3 py-1 text-[11px] font-medium transition-colors ${billingToggle === "monthly" ? "bg-secondary text-secondary-foreground" : "bg-muted text-muted-foreground"}`}
                   >
-                    Monthly
+                    {t("profile.monthly")}
                   </button>
                   <button
                     onClick={() => setBillingToggle("yearly")}
                     className={`rounded-full px-3 py-1 text-[11px] font-medium transition-colors ${billingToggle === "yearly" ? "bg-secondary text-secondary-foreground" : "bg-muted text-muted-foreground"}`}
                   >
-                    Yearly · Save 20%
+                    {t("profile.yearlySave")}
                   </button>
                 </div>
 
                 <button onClick={handleUpgrade} disabled={checkoutLoading} className="w-full rounded-xl bg-gradient-golden py-2.5 text-xs font-semibold text-primary-foreground flex items-center justify-center gap-1.5 disabled:opacity-60">
                   <Sparkles className="h-3.5 w-3.5" />
-                  {checkoutLoading ? "Loading…" : billingToggle === "monthly" ? "Get Plus · $4.99/mo" : "Get Plus · $47.99/yr"}
+                  {checkoutLoading ? t("profile.loadingText") : billingToggle === "monthly" ? t("profile.getPlusMonthly") : t("profile.getPlusYearly")}
                 </button>
                 <p className="mt-2 text-[10px] text-muted-foreground text-center leading-relaxed">
-                  14-day refund available if no AI features have been used. See{" "}
-                  <button onClick={() => navigate("/terms")} className="text-secondary underline">Terms</button> for details.
+                  {t("profile.refundNote")}{" "}
+                  <button onClick={() => navigate("/terms")} className="text-secondary underline">{t("profile.termsLink")}</button>{t("profile.forDetails")}
                 </p>
               </motion.div>
             )}
