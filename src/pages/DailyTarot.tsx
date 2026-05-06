@@ -271,7 +271,7 @@ const DailyTarot = () => {
 
             {/* Interpretation */}
             <div className="rounded-2xl bg-card p-5 shadow-card mb-4">
-              <h3 className="text-xs font-semibold text-secondary uppercase tracking-wider mb-3">Today's Reading</h3>
+              <h3 className="text-xs font-semibold text-secondary uppercase tracking-wider mb-3">{t("dailyTarot.todayReading")}</h3>
               <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">
                 {result.interpretation}
               </p>
