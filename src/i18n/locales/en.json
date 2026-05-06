@@ -1,5 +1,6 @@
 {
   "nav": { "home": "Home", "archive": "Archive", "assess": "Assess", "me": "Me" },
+  "soulFragment": { "newToast": "✨ New Soul Fragment: {{name}}" },
   "common": {
     "back": "Back",
     "save": "Save",

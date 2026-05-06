@@ -1,5 +1,6 @@
 {
   "nav": { "home": "首页", "archive": "档案", "assess": "测评", "me": "我的" },
+  "soulFragment": { "newToast": "✨ 获得新的灵魂碎片：{{name}}" },
   "common": {
     "back": "返回",
     "save": "保存",
