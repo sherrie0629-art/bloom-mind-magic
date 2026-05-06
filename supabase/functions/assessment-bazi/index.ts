@@ -69,7 +69,7 @@ You must call the batch_questions tool to return all questions.` },
 
     const { history } = body;
     const systemPrompt = `You are an Enneagram personality expert. Based on the user's answers, determine their Enneagram type (1-9), wing, core fear, core desire, growth path, and stress arrow.
-Provide professional but accessible analysis. Respond in the language indicated by LANG below.
+Provide professional but accessible analysis. Respond in the language indicated by LANG below.${langInstr}
 You must call the enneagram_result tool to return results.`;
     const userContent = `Here is the user's Q&A history:\n${history.map((h: any, i: number) => `Q${i + 1}: ${h.question}\nA${i + 1}: ${h.answer}`).join("\n\n")}\n\nAnalyze the Enneagram type.`;
 
