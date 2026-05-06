@@ -692,7 +692,7 @@ const Chat = () => {
               className="mx-auto flex items-center gap-2 rounded-2xl bg-secondary/5 border border-secondary/15 px-3 py-2 max-w-[85%]"
             >
               <span className="text-[11px] leading-relaxed text-muted-foreground">
-                🔮 Open up to earn energy and unlock {agent.name}'s hidden story fragments. Bond level: <span className="text-secondary font-medium">{BOND_LABELS[bondLevel - 1]}</span>
+                {t("chat.energyHint", { name: agent.name })}<span className="text-secondary font-medium">{(t("home.bondLabels", { returnObjects: true }) as string[])[bondLevel - 1]}</span>
               </span>
             </motion.div>
           )}
@@ -750,7 +750,7 @@ const Chat = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
-              placeholder="What's on your mind..."
+              placeholder={t("chat.inputPlaceholder")}
               className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none"
               disabled={isStreaming}
             />
@@ -787,8 +787,8 @@ const Chat = () => {
         open={shareOpen}
         onClose={() => { setShareOpen(false); setShareImageUrl(null); }}
         imageDataUrl={shareImageUrl}
-        title={`${agent.name} says...`}
-        text={`via Soul Sanctuary`}
+        title={t("chat.saysSuffix", { name: agent.name })}
+        text={t("chat.via")}
       />
     </div>
 
@@ -802,17 +802,17 @@ const Chat = () => {
       <div className="p-4 space-y-4">
         <div>
           <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
-            <span>Bond Level</span>
-            <span className="text-secondary font-medium">{BOND_LABELS[bondLevel - 1]}</span>
+            <span>{t("chat.bondLevel")}</span>
+            <span className="text-secondary font-medium">{(t("home.bondLabels", { returnObjects: true }) as string[])[bondLevel - 1]}</span>
           </div>
           <BondIndicator level={bondLevel} totalTurns={totalTurns} energyBits={energyBits} />
         </div>
         <div className="flex items-center justify-between rounded-xl bg-muted/50 px-3 py-2">
-          <span className="text-xs text-muted-foreground">Energy</span>
+          <span className="text-xs text-muted-foreground">{t("chat.energy")}</span>
           <div className="flex items-center gap-1"><Zap className="h-3.5 w-3.5 text-secondary" /><span className="text-sm font-bold text-secondary">{energyBits}</span></div>
         </div>
         <div>
-          <h4 className="text-xs font-semibold text-foreground mb-2">Story Fragments</h4>
+          <h4 className="text-xs font-semibold text-foreground mb-2">{t("chat.storyFragments")}</h4>
           <div className="space-y-2">
             {agent.lore.map((loreEntry, index) => {
               const isUnlocked = index + 1 <= bondLevel;
