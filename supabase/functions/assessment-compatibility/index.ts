@@ -58,7 +58,7 @@ Include:
 3. **Long-term Forecast** — Realistic growth trajectory for this relationship
 4. **Boundary Navigation** — How to set healthy boundaries with each other
 
-Use therapy-speak naturally. Write in markdown. Warm but professional tone.`;
+Use therapy-speak naturally. Write in markdown. Warm but professional tone.${langInstr}`;
 
       const response = await fetchAI("google/gemini-2.5-flash", {
         messages: [{ role: "user", content: deepPrompt }],
