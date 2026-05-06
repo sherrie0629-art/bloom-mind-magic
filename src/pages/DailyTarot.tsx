@@ -263,7 +263,7 @@ const DailyTarot = () => {
                     <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }}>
                       <RotateCcw className="h-5 w-5 text-secondary mx-auto" />
                     </motion.div>
-                    <p className="text-xs text-muted-foreground mt-2">Generating card art...</p>
+                    <p className="text-xs text-muted-foreground mt-2">{t("dailyTarot.generatingArt")}</p>
                   </div>
                 </div>
               )}
