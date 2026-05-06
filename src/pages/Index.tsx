@@ -7,7 +7,8 @@ import heroBg from "@/assets/hero-bg.webp";
 import AgentCard from "@/components/AgentCard";
 import BottomNav from "@/components/BottomNav";
 import DesktopLayout from "@/components/DesktopLayout";
-import { agents } from "@/data/agents";
+import { agents as RAW_AGENTS } from "@/data/agents";
+import { localizeAgent } from "@/lib/localizeAgent";
 import SEO from "@/components/SEO";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -45,6 +46,8 @@ const Index = () => {
     t("home.bondLabels.close"),
     t("home.bondLabels.soulbound"),
   ];
+
+  const agents = RAW_AGENTS.map((a) => localizeAgent(a, t));
 
   return (
     <DesktopLayout maxWidth="4xl">
