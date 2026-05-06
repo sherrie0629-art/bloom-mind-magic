@@ -12,6 +12,15 @@ interface DesktopLayoutProps {
 const DesktopLayout = ({ children, maxWidth = "2xl" }: DesktopLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+
+  const navItems = [
+    { icon: Home, label: t("nav.home"), path: "/" },
+    { icon: BookOpen, label: t("nav.archive"), path: "/archive" },
+    { icon: Sparkles, label: t("nav.assess"), path: "/assessment" },
+    { icon: User, label: t("nav.me"), path: "/profile" },
+  ];
+
 
   const maxWidthClass = {
     xl: "max-w-xl",
