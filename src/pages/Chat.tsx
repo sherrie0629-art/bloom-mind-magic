@@ -441,6 +441,7 @@ const Chat = () => {
         memoryContext,
         bondLevel,
         accessToken: session?.access_token,
+        locale,
         onDelta: upsertAssistant,
         onDone: async () => {
           console.log("[Chat] raw AI response:", assistantContent.slice(-200));
