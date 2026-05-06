@@ -100,18 +100,37 @@ Output the reading directly without titles or separators.` },
     const interpretation = tipMatch ? fullText.slice(0, tipMatch.index).trim() : fullText;
     const actionTip = tipMatch ? tipMatch[1].trim() : "Give yourself a moment of stillness.";
 
-    // Score energy 1-5
-    const scoreResp = await fetchAI("google/gemini-2.5-flash-lite", {
-      messages: [{ role: "user", content: `Tarot card "${cardName}" in ${position} position. Keywords: ${keywordsStr}. Rate emotional energy 1-5 (1=low, 5=high). Reply with only the number.` }],
-    });
-    let energyScore = 3;
-    if (scoreResp.ok) {
-      const sd = await scoreResp.json();
-      const p = parseInt(sd.choices?.[0]?.message?.content?.trim());
-      if (p >= 1 && p <= 5) energyScore = p;
+    // Score energy locally (no AI needed) - based on card position + keyword sentiment
+    const POSITIVE_WORDS = new Set([
+      "love","joy","success","abundance","harmony","peace","wisdom","clarity","hope",
+      "freedom","celebration","victory","new beginnings","strength","courage","faith",
+      "growth","passion","creativity","fulfillment","insight","trust","balance","luck",
+    ]);
+    const NEGATIVE_WORDS = new Set([
+      "fear","loss","grief","conflict","betrayal","despair","stagnation","confusion",
+      "isolation","ending","destruction","heartbreak","anxiety","doubt","burden","defeat",
+    ]);
+    let energyScore = isReversed ? 2 : 4;
+    let pos = 0, neg = 0;
+    for (const k of (keywords || [])) {
+      const lk = String(k).toLowerCase();
+      if (POSITIVE_WORDS.has(lk)) pos++;
+      else if (NEGATIVE_WORDS.has(lk)) neg++;
     }
+    if (pos > neg) energyScore = Math.min(5, energyScore + 1);
+    else if (neg > pos) energyScore = Math.max(1, energyScore - 1);
 
-    // Insert
+    // Check shared card art cache (78 cards × 2 positions = 156 max entries)
+    const { data: cached } = await supabase
+      .from("tarot_card_art")
+      .select("image_path")
+      .eq("card_id", cardId)
+      .eq("is_reversed", isReversed)
+      .maybeSingle();
+
+    const cachedPath = (cached as any)?.image_path as string | undefined;
+
+    // Insert draw row (status depends on cache hit)
     const { data: row, error: insertErr } = await supabase.from("tarot_draws").insert({
       user_id: user.id,
       card_id: cardId,
@@ -120,8 +139,8 @@ Output the reading directly without titles or separators.` },
       interpretation: `${interpretation}\n\n💡 ${actionTip}`,
       action_tip: actionTip,
       energy_score: energyScore,
-      image_path: null,
-      image_status: "pending",
+      image_path: cachedPath || null,
+      image_status: cachedPath ? "ready" : "pending",
     }).select("id").single();
 
     if (insertErr) {
@@ -129,8 +148,25 @@ Output the reading directly without titles or separators.` },
       return new Response(JSON.stringify({ error: "Failed to save draw" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Async image generation
     const drawId = row.id;
+
+    // Cache hit → return signed URL immediately, no image generation needed
+    if (cachedPath) {
+      const { data: signed } = await supabase.storage.from(BUCKET).createSignedUrl(cachedPath, 3600);
+      return new Response(JSON.stringify({
+        id: drawId,
+        cardId,
+        cardName,
+        isReversed,
+        interpretation: `${interpretation}\n\n💡 ${actionTip}`,
+        actionTip,
+        energyScore,
+        imageUrl: signed?.signedUrl || null,
+        imageStatus: "ready",
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Cache miss → async image generation
     const imagePrompt = `Create a mystical tarot card illustration for "${cardName}" (${position}). Style: ethereal watercolor with gold accents, dreamy cosmic atmosphere, rich symbolism. The card should evoke ${keywordsStr}. Mystical, elegant, NO TEXT. Square format.`;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY")!;
 
@@ -148,14 +184,20 @@ Output the reading directly without titles or separators.` },
         const b64 = b64Url.split(",")[1];
         if (!b64) { await supabase.from("tarot_draws").update({ image_status: "failed" }).eq("id", drawId); return; }
         const bin = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-        const fileName = `${user.id}/${Date.now()}.png`;
+        const fileName = `shared/${cardId}_${isReversed ? "rev" : "up"}_${Date.now()}.png`;
         const { error: upErr } = await supabase.storage.from(BUCKET).upload(fileName, bin, { contentType: "image/png", upsert: false });
         if (upErr) { console.error("Upload err:", upErr); await supabase.from("tarot_draws").update({ image_status: "failed" }).eq("id", drawId); return; }
+        // Write to shared cache (ignore conflict in case of concurrent generation)
+        await supabase.from("tarot_card_art").upsert(
+          { card_id: cardId, is_reversed: isReversed, image_path: fileName },
+          { onConflict: "card_id,is_reversed", ignoreDuplicates: true }
+        );
         await supabase.from("tarot_draws").update({ image_path: fileName, image_status: "ready" }).eq("id", drawId);
       } catch (e) { console.error("Image gen err:", e); await supabase.from("tarot_draws").update({ image_status: "failed" }).eq("id", drawId); }
     })();
 
     try { if (typeof EdgeRuntime !== "undefined" && (EdgeRuntime as any).waitUntil) { (EdgeRuntime as any).waitUntil(imagePromise); } } catch {}
+
 
     return new Response(JSON.stringify({
       id: drawId,
