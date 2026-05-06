@@ -8,11 +8,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const typeLabels: Record<string, string> = {
-  mbti: "MBTI Personality",
-  enneagram: "Enneagram",
-  zodiac: "Zodiac",
-  emotion: "Emotional Wellness",
+const typeLabelsByLocale: Record<string, Record<string, string>> = {
+  en: { mbti: "MBTI Personality", enneagram: "Enneagram", zodiac: "Zodiac", emotion: "Emotional Wellness", bazi: "Bazi Destiny" },
+  zh: { mbti: "MBTI 性格", enneagram: "九型人格", zodiac: "星座解读", emotion: "心灵体检", bazi: "八字命理" },
 };
 
 serve(async (req) => {
@@ -97,7 +95,8 @@ serve(async (req) => {
       });
     }
 
-    const typeLabel = typeLabels[assessment.assessment_type] || assessment.assessment_type;
+    const labels = typeLabelsByLocale[locale] || typeLabelsByLocale.en;
+    const typeLabel = labels[assessment.assessment_type] || assessment.assessment_type;
     const resultSummary = JSON.stringify(resultData, null, 2);
 
     const sectionTitles = locale === "zh"
@@ -147,7 +146,9 @@ ${langLine}`;
         max_tokens: 8000,
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Here are the user's ${typeLabel} assessment results:\n\n${resultSummary}\n\nPlease generate the deep analysis report.` },
+          { role: "user", content: locale === "zh"
+            ? `以下是用户的${typeLabel}测评结果：\n\n${resultSummary}\n\n请生成深度分析报告（全文使用简体中文）。`
+            : `Here are the user's ${typeLabel} assessment results:\n\n${resultSummary}\n\nPlease generate the deep analysis report.` },
         ],
       }),
     });
