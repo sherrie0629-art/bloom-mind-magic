@@ -71,7 +71,7 @@ You must call the batch_questions tool.` },
     const systemPrompt = `You are a professional Western astrologer. The user's sign is: ${zodiacSign || "unknown"}.
 Based on their sign and answers, generate a detailed horoscope reading using Western astrology terminology (Rising sign, Moon sign, Mercury Retrograde, eclipse seasons, etc.).
 Do NOT use Chinese astrology concepts. Use Element (Fire/Earth/Air/Water) instead of Chinese elements.
-Respond in the language indicated by LANG below. You must call the zodiac_result tool.`;
+Respond in the language indicated by LANG below. You must call the zodiac_result tool.${langInstr}`;
 
     const response = await fetchAI(model, {
       messages: [{ role: "system", content: systemPrompt }, { role: "user", content: `Q&A:\n${history.map((h: any, i: number) => `Q${i + 1}: ${h.question}\nA${i + 1}: ${h.answer}`).join("\n\n")}\n\nGenerate horoscope reading.` }],
