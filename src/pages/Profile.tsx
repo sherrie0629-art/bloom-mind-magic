@@ -107,7 +107,7 @@ const Profile = () => {
   return (
     <DesktopLayout>
       <div className="min-h-screen bg-gradient-calm pb-24 md:pb-8">
-        <SEO title="Profile — Soul Sanctuary" description="Manage your Soul Sanctuary profile and preferences." />
+        <SEO title={`${t("profile.menu.settings")} — ${t("home.appName")}`} description={t("home.tagline")} />
         <div className="px-6 pt-14 md:pt-10 text-center">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="mx-auto h-20 w-20 rounded-full bg-gradient-mystic p-0.5">
             <div className="flex h-full w-full items-center justify-center rounded-full bg-card">
@@ -115,17 +115,17 @@ const Profile = () => {
             </div>
           </motion.div>
           <motion.h2 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-3 font-display text-lg font-semibold text-foreground">
-            {profile?.display_name || (user ? user.email?.split("@")[0] : "Traveler")}
+            {profile?.display_name || (user ? user.email?.split("@")[0] : t("profile.traveler"))}
           </motion.h2>
           <p className="text-xs text-muted-foreground">
-            {user ? `Day ${stats.days} of your inner journey ✨` : "Sign in to begin your journey"}
+            {user ? t("profile.dayOf", { n: stats.days }) : t("auth.signInToBegin")}
           </p>
         </div>
 
         {!user ? (
           <div className="mt-8 px-6">
             <button onClick={() => navigate("/auth")} className="w-full rounded-xl bg-gradient-golden py-3 text-sm font-semibold text-primary-foreground">
-              Sign In / Sign Up
+              {t("auth.signInUp")}
             </button>
           </div>
         ) : (
