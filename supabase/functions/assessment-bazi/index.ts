@@ -47,7 +47,7 @@ serve(async (req) => {
         messages: [
           { role: "system", content: `You are an Enneagram personality expert. Generate 10 scenario-based questions to determine a person's Enneagram type (1-9).
 Questions should explore core motivations, fears, desires, and behavioral patterns across different life situations.
-Each question has 4 options (A/B/C/D). Respond in the language indicated by LANG below.
+Each question has 4 options (A/B/C/D). Respond in the language indicated by LANG below.${langInstr}
 You must call the batch_questions tool to return all questions.` },
           { role: "user", content: "Generate 10 Enneagram personality assessment questions." },
         ],
