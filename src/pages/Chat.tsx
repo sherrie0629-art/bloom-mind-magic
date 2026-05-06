@@ -696,7 +696,7 @@ const Chat = () => {
               className="mx-auto flex items-center gap-2 rounded-2xl bg-secondary/5 border border-secondary/15 px-3 py-2 max-w-[85%]"
             >
               <span className="text-[11px] leading-relaxed text-muted-foreground">
-                {t("chat.energyHint", { name: agent.name })}<span className="text-secondary font-medium">{(t("home.bondLabels", { returnObjects: true }) as string[])[bondLevel - 1]}</span>
+                {t("chat.energyHint", { name: agent.name })}<span className="text-secondary font-medium">{t(`home.bondLabels.${(["stranger","acquaintance","trusted","close","soulbound"][bondLevel - 1]) || "stranger"}`)}</span>
               </span>
             </motion.div>
           )}
@@ -807,7 +807,7 @@ const Chat = () => {
         <div>
           <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
             <span>{t("chat.bondLevel")}</span>
-            <span className="text-secondary font-medium">{(t("home.bondLabels", { returnObjects: true }) as string[])[bondLevel - 1]}</span>
+            <span className="text-secondary font-medium">{t(`home.bondLabels.${(["stranger","acquaintance","trusted","close","soulbound"][bondLevel - 1]) || "stranger"}`)}</span>
           </div>
           <BondIndicator level={bondLevel} totalTurns={totalTurns} energyBits={energyBits} />
         </div>
