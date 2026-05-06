@@ -81,25 +81,38 @@ const ZodiacFlow = () => {
 
   const resultIdRef = useRef<string | null>(null);
   const batchQuestionsRef = useRef<any[]>([]);
+  const imagePromiseRef = useRef<Promise<string | null> | null>(null);
 
   const isZh = locale === "zh";
   const localizeName = (n: string) => isZh ? (ZH_NAMES[n] || n) : n;
   const localizeElement = (e: string) => isZh ? (ZH_ELEMENTS[e] || e) : e;
   const localizeDate = (n: string) => isZh ? ZH_DATES[n] : EN_DATES[n];
 
-  const fetchResultImage = useCallback(async (r: ZodiacResult) => {
+  const startImageFetch = useCallback((signName: string, element: string) => {
     setImageLoading(true);
+    setResultImageUrl(null);
+    const p = (async () => {
+      try {
+        const img = await fetchAIImage(getImagePromptForSign(signName, element), { cacheKey: getCacheKeyForSign(signName) });
+        return img?.src || null;
+      } catch { return null; }
+    })();
+    imagePromiseRef.current = p;
+    return p;
+  }, [fetchAIImage]);
+
+  const awaitResultImage = useCallback(async () => {
     try {
-      const img = await fetchAIImage(getImagePrompt(r));
-      if (img) {
-        setResultImageUrl(img.src);
+      const url = imagePromiseRef.current ? await imagePromiseRef.current : null;
+      if (url) {
+        setResultImageUrl(url);
         if (resultIdRef.current) {
           const { data: existing } = await supabase.from("assessment_results").select("result_data").eq("id", resultIdRef.current).single();
-          if (existing) { await supabase.from("assessment_results").update({ result_data: { ...existing.result_data as any, imageUrl: img.src } }).eq("id", resultIdRef.current); }
+          if (existing) { await supabase.from("assessment_results").update({ result_data: { ...existing.result_data as any, imageUrl: url } }).eq("id", resultIdRef.current); }
         }
       }
     } finally { setImageLoading(false); }
-  }, [fetchAIImage]);
+  }, []);
 
   const fetchResult = async (finalHistory: QA[], sign: string) => {
     setLoading(true);
