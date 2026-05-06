@@ -236,7 +236,7 @@ const Profile = () => {
 
             <div className="mt-4 px-6">
               <button onClick={handleLogout} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-card py-3 text-sm text-destructive shadow-card">
-                <LogOut className="h-4 w-4" /> Sign Out
+                <LogOut className="h-4 w-4" /> {t("auth.signOut")}
               </button>
             </div>
           </>
