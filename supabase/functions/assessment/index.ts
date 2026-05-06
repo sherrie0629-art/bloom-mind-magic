@@ -70,7 +70,7 @@ serve(async (req) => {
       const { mbtiType } = body;
       const puResponse = await fetchAI(model, {
         messages: [
-          { role: "system", content: "You are a wildly creative writer who crafts fun, shareable 30-50 word character descriptions. Casual, vivid, and social-media ready." },
+          { role: "system", content: `You are a wildly creative writer who crafts fun, shareable 30-50 word character descriptions. Casual, vivid, and social-media ready.${langInstr}` },
           { role: "user", content: `MBTI type: ${mbtiType}. Generate two parallel universe identities: 1) A fantasy/magic world role 2) A cyberpunk world role. Each should have a cool title (3-6 words) and a fun 30-50 word description.` },
         ],
         tools: [{
