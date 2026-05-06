@@ -260,7 +260,7 @@ const AssessmentDetail = () => {
           transition={{ delay: 0.1 }}
           className="mt-4 rounded-2xl bg-card p-5 shadow-card space-y-3"
         >
-          <h4 className="font-display text-sm font-semibold text-foreground mb-2">Dimensions</h4>
+          <h4 className="font-display text-sm font-semibold text-foreground mb-2">{t("assessmentDetail.dimensions")}</h4>
           {renderDimensions()}
         </motion.div>
 
@@ -272,12 +272,12 @@ const AssessmentDetail = () => {
             transition={{ delay: 0.15 }}
             className="mt-4 rounded-2xl bg-card p-5 shadow-card"
           >
-            <h4 className="font-display text-sm font-semibold text-foreground mb-3">Lucky Guide</h4>
+            <h4 className="font-display text-sm font-semibold text-foreground mb-3">{t("assessmentDetail.luckyGuide")}</h4>
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: "Lucky Color", value: d.luckyItems.color },
-                { label: "Lucky Number", value: d.luckyItems.number },
-                { label: "Lucky Direction", value: d.luckyItems.direction },
+                { label: t("assessmentDetail.luckyColor"), value: d.luckyItems.color },
+                { label: t("assessmentDetail.luckyNumber"), value: d.luckyItems.number },
+                { label: t("assessmentDetail.luckyDirection"), value: d.luckyItems.direction },
               ].map((item) => (
                 <div key={item.label} className="text-center rounded-xl bg-muted/50 py-3">
                   <p className="text-xs text-muted-foreground">{item.label}</p>
@@ -297,7 +297,7 @@ const AssessmentDetail = () => {
             className="mt-4 rounded-2xl bg-card p-5 shadow-card"
           >
             <h4 className="font-display text-sm font-semibold text-foreground mb-2">
-              {type === "emotion" ? "Wellness Tips" : "Advice"}
+              {type === "emotion" ? t("assessmentDetail.wellnessTips") : t("assessmentDetail.advice")}
             </h4>
             {d.advice && <p className="text-sm text-foreground leading-relaxed">{d.advice}</p>}
             {type === "emotion" && d.suggestions && (
@@ -324,36 +324,26 @@ const AssessmentDetail = () => {
             <div className="rounded-2xl bg-card p-5 shadow-card border border-secondary/20">
               <div className="flex items-center gap-2 mb-3">
                 <Crown className="h-5 w-5 text-secondary" />
-                <h4 className="font-display text-sm font-semibold text-foreground">Deep Psychological Analysis</h4>
+                <h4 className="font-display text-sm font-semibold text-foreground">{t("assessmentDetail.deepTitle")}</h4>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed mb-1">
-                Includes 3,000–5,000 word in-depth report:
+                {t("assessmentDetail.deepIntroLine")}
               </p>
               <ul className="text-xs text-muted-foreground space-y-1 mb-4">
-                <li className="flex items-center gap-1.5">
-                  <Sparkles className="h-3 w-3 text-secondary" /> Attachment style analysis
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <Sparkles className="h-3 w-3 text-secondary" /> Relationship red flags guide
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <Sparkles className="h-3 w-3 text-secondary" /> Core defense mechanisms
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <Sparkles className="h-3 w-3 text-secondary" /> Career development insights
-                </li>
-                <li className="flex items-center gap-1.5">
-                  <Sparkles className="h-3 w-3 text-secondary" /> Personal growth roadmap
-                </li>
+                {(t("assessmentDetail.deepBullets", { returnObjects: true, defaultValue: [] }) as string[]).map((b, i) => (
+                  <li key={i} className="flex items-center gap-1.5">
+                    <Sparkles className="h-3 w-3 text-secondary" /> {b}
+                  </li>
+                ))}
               </ul>
 
               {/* Blurred preview teaser */}
               <div className="relative mb-4 overflow-hidden rounded-xl">
                 <div className="blur-sm select-none pointer-events-none p-3 bg-muted/30 text-xs text-muted-foreground leading-relaxed">
-                  Based on your assessment results, your core personality traits reveal a unique inner tension. On the surface, you tend to... However, deep down, you carry a deeper longing for intimate connection. This contradiction stems from attachment patterns formed in childhood...
+                  {t("assessmentDetail.deepTeaser")}
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center bg-card/40">
-                  <span className="text-[11px] text-muted-foreground font-medium">🔒 Unlock to read full report</span>
+                  <span className="text-[11px] text-muted-foreground font-medium">{t("assessmentDetail.unlockToRead")}</span>
                 </div>
               </div>
 
@@ -365,18 +355,18 @@ const AssessmentDetail = () => {
                 {deepLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    AI is generating your deep report…
+                    {t("assessmentDetail.generating")}
                   </>
                 ) : (
                   <>
                     <Crown className="h-4 w-4" />
-                    {plan === "plus" ? "Generate Deep Report (1/day)" : "Upgrade to Plus to unlock"}
+                    {plan === "plus" ? t("assessmentDetail.generatePlus") : t("assessmentDetail.upgradeUnlock")}
                   </>
                 )}
               </button>
               {plan !== "plus" && (
                 <p className="text-[10px] text-muted-foreground text-center mt-2">
-                  Plus members get 1 free deep report per day ✨
+                  {t("assessmentDetail.plusPerk")}
                 </p>
               )}
             </div>
@@ -384,7 +374,7 @@ const AssessmentDetail = () => {
             <div className="rounded-2xl bg-card p-5 shadow-card">
               <div className="flex items-center gap-2 mb-4">
                 <Crown className="h-5 w-5 text-secondary" />
-                <h4 className="font-display text-sm font-semibold text-foreground">Deep Psychological Analysis</h4>
+                <h4 className="font-display text-sm font-semibold text-foreground">{t("assessmentDetail.deepTitle")}</h4>
               </div>
               <div className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-headings:font-display prose-h2:text-base prose-h2:mt-6 prose-h2:mb-3 prose-p:text-sm prose-p:leading-relaxed prose-li:text-sm prose-strong:text-foreground">
                 <ReactMarkdown>{deepReport || ""}</ReactMarkdown>
@@ -399,7 +389,7 @@ const AssessmentDetail = () => {
         onClose={() => { setShareOpen(false); setShareImageUrl(null); }}
         imageDataUrl={shareImageUrl}
         title={getTitle()}
-        text="Discover yours at Soul Sanctuary ✨"
+        text={t("assessmentDetail.shareDescAI")}
       />
     </div>
     </DesktopLayout>
