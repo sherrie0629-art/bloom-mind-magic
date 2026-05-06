@@ -41,7 +41,8 @@ serve(async (req) => {
     }
     const userId = claimsData.claims.sub;
 
-    const { assessmentId } = await req.json();
+    const { assessmentId, locale: bodyLocale } = await req.json();
+    const locale = bodyLocale || "en";
     if (!assessmentId) throw new Error("Missing assessmentId");
 
     const { data: assessment, error: fetchErr } = await supabase
