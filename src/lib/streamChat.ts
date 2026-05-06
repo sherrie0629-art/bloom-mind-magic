@@ -29,7 +29,7 @@ export async function streamChat({
       "Content-Type": "application/json",
       Authorization: `Bearer ${accessToken || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
     },
-    body: JSON.stringify({ messages, agentId, memoryContext, bondLevel }),
+    body: JSON.stringify({ messages, agentId, memoryContext, bondLevel, locale }),
   });
 
   if (!resp.ok) {
