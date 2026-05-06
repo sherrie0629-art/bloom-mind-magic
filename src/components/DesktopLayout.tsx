@@ -1,13 +1,7 @@
 import { Home, BookOpen, Sparkles, User } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-
-const navItems = [
-  { icon: Home, label: "Home", path: "/" },
-  { icon: BookOpen, label: "Archive", path: "/archive" },
-  { icon: Sparkles, label: "Assess", path: "/assessment" },
-  { icon: User, label: "Me", path: "/profile" },
-];
+import { useTranslation } from "react-i18next";
 
 interface DesktopLayoutProps {
   children: React.ReactNode;
