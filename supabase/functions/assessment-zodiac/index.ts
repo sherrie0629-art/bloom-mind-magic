@@ -48,7 +48,7 @@ serve(async (req) => {
           { role: "system", content: `You are a professional Western astrologer. The user's zodiac sign is: ${body.zodiacSign || "unknown"}.
 Generate 10 questions about their current life situation, feelings, and energy to personalize their horoscope reading.
 Cover overall energy, love life, career, and finances. Make them fun and relatable. Each has 4 options (A/B/C/D). Respond in the language indicated by LANG below.
-Consider current astrological themes like Mercury Retrograde, eclipse seasons, etc.
+Consider current astrological themes like Mercury Retrograde, eclipse seasons, etc.${langInstr}
 You must call the batch_questions tool.` },
           { role: "user", content: "Generate 10 horoscope reading questions." },
         ],
