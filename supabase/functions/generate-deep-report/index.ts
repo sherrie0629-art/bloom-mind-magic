@@ -108,28 +108,28 @@ serve(async (req) => {
 
 The report must include the following sections (in markdown format):
 
-## 📋 Core Personality Profile
+${sectionTitles.core}
 In-depth analysis of the user's core personality traits, including both overt and covert characteristics.
 
-## 🧒 Childhood Attachment Pattern Analysis
+${sectionTitles.attach}
 Based on personality traits, infer likely childhood attachment style (secure, anxious, avoidant, or disorganized) and analyze its impact on current relationships.
 
-## 💕 Relationship Red Flags Guide
+${sectionTitles.redflag}
 Analyze common pitfalls in romantic relationships and provide specific, actionable advice. Include:
 - Types of partners they tend to attract
 - Common conflict patterns in relationships
 - How to establish healthy boundaries
 
-## 🛡️ Core Defense Mechanisms
+${sectionTitles.defense}
 Analyze commonly used psychological defense mechanisms (rationalization, projection, repression, etc.) and how they affect daily decisions.
 
-## 💼 Career Development Insights
+${sectionTitles.career}
 Based on personality traits, analyze the most suitable career directions and work environments.
 
-## 🌱 Personal Growth Roadmap
+${sectionTitles.growth}
 Provide specific self-improvement suggestions and exercises.
 
-## 🔮 Summary & Outlook
+${sectionTitles.outlook}
 Overall summary and positive outlook for the future.
 
 Requirements:
@@ -137,7 +137,7 @@ Requirements:
 - Use specific examples and metaphors
 - Avoid generic advice; give concrete, actionable steps
 - Use emojis sparingly for readability
-- Write in English`;
+${langLine}`;
 
     const response = await fetch(AI_URL, {
       method: "POST",
