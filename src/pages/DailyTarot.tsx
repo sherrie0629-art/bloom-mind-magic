@@ -29,6 +29,7 @@ interface DrawResult {
 
 const DailyTarot = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, promptLogin } = useAuth();
   const [state, setState] = useState<DrawState>("idle");
   const [result, setResult] = useState<DrawResult | null>(null);
