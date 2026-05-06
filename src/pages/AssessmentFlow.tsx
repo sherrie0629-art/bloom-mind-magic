@@ -44,10 +44,12 @@ const AssessmentFlow = () => {
 
   const fetchResultImage = useCallback(async (r: MBTIResult) => {
     setImageLoading(true);
+    // Safety timeout: never block the result UI on the image
+    const timeoutId = setTimeout(() => setImageLoading(false), 30000);
     try {
-      const img = await fetchAIImage(getImagePrompt(r));
+      const img = await fetchAIImage(getImagePrompt(r), { cacheKey: `mbti-${r.mbtiType}`, returnUrlOnly: true });
       if (img) { setResultImageUrl(img.src); if (resultIdRef.current) { const { data: existing } = await supabase.from("assessment_results").select("result_data").eq("id", resultIdRef.current).single(); if (existing) { await supabase.from("assessment_results").update({ result_data: { ...existing.result_data as any, imageUrl: img.src } }).eq("id", resultIdRef.current); } } }
-    } finally { setImageLoading(false); }
+    } finally { clearTimeout(timeoutId); setImageLoading(false); }
   }, [fetchAIImage]);
 
   const fetchParallelUniverse = useCallback(async (mbtiType: string) => {

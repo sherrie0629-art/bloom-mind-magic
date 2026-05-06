@@ -27,6 +27,8 @@ const ResultAIImage = ({ imageUrl, loading }: ResultAIImageProps) => {
           <img
             src={imageUrl}
             alt="AI generated artwork"
+            decoding="async"
+            loading="eager"
             className="h-48 w-48 rounded-2xl object-cover shadow-card"
           />
         </motion.div>

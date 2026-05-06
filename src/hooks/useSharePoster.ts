@@ -28,25 +28,31 @@ export function useSharePoster() {
   const [posterDataUrl, setPosterDataUrl] = useState<string | null>(null);
   const [showPosterPreview, setShowPosterPreview] = useState(false);
 
-  const fetchAIImage = useCallback(async (prompt: string): Promise<HTMLImageElement | null> => {
+  const fetchAIImage = useCallback(async (
+    prompt: string,
+    options?: { cacheKey?: string; returnUrlOnly?: boolean },
+  ): Promise<(HTMLImageElement & { src: string }) | { src: string } | null> => {
     try {
-      const cached = imageCache.get(prompt);
+      const cacheLookupKey = options?.cacheKey || prompt;
+      const cached = imageCache.get(cacheLookupKey);
       if (cached) {
+        if (options?.returnUrlOnly) return { src: cached };
         return new Promise((resolve) => {
           const img = new Image();
-          img.onload = () => resolve(img);
+          img.onload = () => resolve(img as HTMLImageElement & { src: string });
           img.onerror = () => resolve(null);
           img.src = cached;
         });
       }
 
       const { data, error } = await supabase.functions.invoke("generate-poster-image", {
-        body: { prompt },
+        body: { prompt, cacheKey: options?.cacheKey },
       });
       if (error || !data?.imageUrl) return null;
 
-      imageCache.set(prompt, data.imageUrl);
+      imageCache.set(cacheLookupKey, data.imageUrl);
 
+      if (options?.returnUrlOnly) return { src: data.imageUrl };
       return loadImageViaBlobUrl(data.imageUrl);
     } catch {
       return null;
