@@ -18,6 +18,7 @@ export async function streamChat({
   memoryContext?: string[];
   bondLevel?: number;
   accessToken?: string;
+  locale?: string;
   onDelta: (deltaText: string) => void;
   onDone: () => void;
   onError: (error: string) => void;
