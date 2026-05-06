@@ -336,7 +336,7 @@ const Chat = () => {
     if (!user) {
       const userMsgCount = messages.filter(m => m.role === "user").length;
       if (userMsgCount >= ANON_MSG_LIMIT) {
-        promptLogin("登录后保存聊天记录，继续探索更多 ✨");
+        promptLogin(t("chat.anonLimitPrompt"));
         return;
       }
       // Anonymous: skip DB ops, just chat locally
@@ -389,16 +389,16 @@ const Chat = () => {
         });
       } catch {
         setIsStreaming(false);
-        toast.error("网络错误，请重试");
+        toast.error(t("common.networkError"));
       }
       return;
     }
 
     if (!canChat) {
       if (freeTrialExpired) {
-        toast.error("免费试用已结束，请升级 Plus 继续使用 ✨");
+        toast.error(t("chat.freeEndedToast"));
       } else {
-        toast.error(`今日聊天次数已用完 (${chatLimit} 次/${plan === "plus" ? "Plus" : "Free"}) 💫 明天再来吧！`);
+        toast.error(t("chat.limitReached", { n: chatLimit, plan: plan === "plus" ? "Plus" : "Free" }));
       }
       return;
     }
@@ -508,7 +508,7 @@ const Chat = () => {
       });
     } catch (e) {
       setIsStreaming(false);
-      toast.error("Network error, please try again");
+      toast.error(t("common.networkError"));
     }
   };
 
@@ -551,7 +551,7 @@ const Chat = () => {
 
   const handleLongPressStart = useCallback((content: string) => {
     longPressTimer.current = setTimeout(async () => {
-      toast.info("Generating quote card...");
+      toast.info(t("chat.quoteCardLoading"));
       const accentMap: Record<string, string> = {
         barista: "#e8a87c",
         jax: "#f59e0b",
@@ -569,7 +569,7 @@ const Chat = () => {
         setShareImageUrl(dataUrl);
         setShareOpen(true);
       } catch {
-        toast.error("Failed to generate card");
+        toast.error(t("chat.cardFail"));
       }
     }, 600);
   }, [agent, agentId, generateQuoteCard]);
