@@ -167,7 +167,7 @@ const DailyTarot = () => {
   if (loadingToday) {
     return (
       <div className="min-h-screen bg-gradient-calm flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground text-sm">Loading...</div>
+        <div className="animate-pulse text-muted-foreground text-sm">{t("dailyTarot.loading")}</div>
       </div>
     );
   }
