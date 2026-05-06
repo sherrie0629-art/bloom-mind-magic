@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, User, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { toast } from "sonner";
@@ -9,6 +10,7 @@ import SEO from "@/components/SEO";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -23,18 +25,17 @@ const Auth = () => {
       if (result.error) {
         const msg = (result.error as any)?.message || String(result.error);
         if (/not supported|not enabled|disabled/i.test(msg)) {
-          toast.error("Google 登录暂未启用，请稍后再试或使用邮箱登录");
+          toast.error(t("auth.googleSignInUnavailable"));
         } else {
-          toast.error(msg || "Google sign-in failed. Please try again.");
+          toast.error(msg || t("auth.googleSignInFailed"));
         }
         return;
       }
-      if (result.redirected) return; // browser is leaving — AuthContext handles callback on return
-      // Tokens already set on supabase client (rare path)
-      toast.success("Welcome back ✨");
+      if (result.redirected) return;
+      toast.success(t("auth.welcomeBack"));
       navigate("/");
     } catch (err: any) {
-      toast.error(err?.message || "Google sign-in failed. Please try again.");
+      toast.error(err?.message || t("auth.googleSignInFailed"));
     }
   };
 
@@ -45,18 +46,18 @@ const Auth = () => {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        toast.success("Welcome back ✨");
+        toast.success(t("auth.welcomeBack"));
         navigate("/");
       } else {
         const { error } = await supabase.auth.signUp({
           email, password,
-          options: { data: { display_name: displayName || "Traveler" }, emailRedirectTo: window.location.origin },
+          options: { data: { display_name: displayName || t("profile.traveler") }, emailRedirectTo: window.location.origin },
         });
         if (error) throw error;
-        toast.success("Account created! Please check your email to confirm 📧");
+        toast.success(t("auth.accountCreated"));
       }
     } catch (error: any) {
-      toast.error(error.message || "Something went wrong. Please try again.");
+      toast.error(error.message || t("auth.actionFailed"));
     } finally {
       setLoading(false);
     }
@@ -64,12 +65,12 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-calm flex flex-col items-center justify-center px-6">
-      <SEO title="Sign In — Soul Sanctuary" description="Join Soul Sanctuary. Start your journey of AI-powered self-discovery." />
+      <SEO title={`${t("auth.signInUp")} — ${t("home.appName")}`} description={t("home.tagline")} />
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <h1 className="font-display text-3xl font-bold text-gradient-mystic">Soul Sanctuary</h1>
+          <h1 className="font-display text-3xl font-bold text-gradient-mystic">{t("home.appName")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            {isLogin ? "Welcome back. Continue your journey within." : "Begin your journey of self-discovery."}
+            {isLogin ? t("auth.welcomeBackSubtitle") : t("auth.beginJourney")}
           </p>
         </div>
 
@@ -81,12 +82,12 @@ const Auth = () => {
             <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
             <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
           </svg>
-          Sign in with Google
+          {t("auth.googleSignIn")}
         </button>
 
         <div className="flex items-center gap-3 mb-4">
           <div className="flex-1 h-px bg-border" />
-          <span className="text-xs text-muted-foreground">or use email</span>
+          <span className="text-xs text-muted-foreground">{t("auth.orUseEmail")}</span>
           <div className="flex-1 h-px bg-border" />
         </div>
 
@@ -94,29 +95,29 @@ const Auth = () => {
           {!isLogin && (
             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your name"
+              <input type="text" value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder={t("auth.namePlaceholder")}
                 className="w-full rounded-xl border border-border bg-card pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-secondary/30" />
             </motion.div>
           )}
           <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email address" required
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder={t("auth.emailPlaceholder")} required
               className="w-full rounded-xl border border-border bg-card pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-secondary/30" />
           </div>
           <div className="relative">
             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" required minLength={6}
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder={t("auth.passwordPlaceholder")} required minLength={6}
               className="w-full rounded-xl border border-border bg-card pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-secondary/30" />
           </div>
           <button type="submit" disabled={loading}
             className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-golden py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50 transition-opacity">
-            {loading ? "Please wait..." : isLogin ? "Sign In" : "Sign Up"}
+            {loading ? t("common.pleaseWait") : isLogin ? t("auth.signIn") : t("auth.signUp")}
             <ArrowRight className="h-4 w-4" />
           </button>
         </form>
 
         <button onClick={() => setIsLogin(!isLogin)} className="mt-6 w-full text-center text-sm text-muted-foreground">
-          {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+          {isLogin ? t("auth.noAccount") : t("auth.haveAccount")}
         </button>
       </motion.div>
     </div>

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Mail, ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import SEO from "@/components/SEO";
 import DesktopLayout from "@/components/DesktopLayout";
@@ -7,18 +8,17 @@ import DesktopLayout from "@/components/DesktopLayout";
 const SUPPORT_EMAIL = "islandai_life@outlook.com";
 
 const Contact = () => {
+  const { t } = useTranslation();
   return (
     <DesktopLayout maxWidth="2xl">
-      <SEO title="Contact Us — Island AI" description="Get in touch with the Island AI team for support, feedback, or partnership." />
+      <SEO title={`${t("contact.title")} — ${t("home.appName")}`} description={t("contact.subtitle")} />
       <div className="min-h-screen bg-gradient-calm px-6 py-10 md:px-8 md:py-14">
         <Link to="/" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-secondary mb-6">
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Home
+          <ArrowLeft className="h-3.5 w-3.5" /> {t("contact.back")}
         </Link>
 
-        <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">Contact Us</h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          We'd love to hear from you. Whether you have a question, feedback, or need support, reach out anytime.
-        </p>
+        <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">{t("contact.title")}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">{t("contact.subtitle")}</p>
 
         <div className="mt-8 rounded-2xl bg-card p-6 shadow-card border border-secondary/10">
           <div className="flex items-start gap-3">
@@ -26,23 +26,20 @@ const Contact = () => {
               <Mail className="h-5 w-5 text-secondary" />
             </div>
             <div className="flex-1">
-              <p className="text-sm font-semibold text-foreground">Email Support</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Replies typically within 1–2 business days.
-              </p>
+              <p className="text-sm font-semibold text-foreground">{t("contact.email")}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t("contact.replyHint")}</p>
               <a href={`mailto:${SUPPORT_EMAIL}`} className="mt-2 inline-block text-sm text-secondary font-medium">
                 {SUPPORT_EMAIL}
               </a>
             </div>
           </div>
           <Button asChild className="mt-5 w-full md:w-auto">
-            <a href={`mailto:${SUPPORT_EMAIL}`}>Send us an email</a>
+            <a href={`mailto:${SUPPORT_EMAIL}`}>{t("contact.sendBtn")}</a>
           </Button>
         </div>
 
         <div className="mt-6 text-xs text-muted-foreground leading-relaxed">
-          For privacy or data requests, please mention "Privacy Request" in your subject line. For refund or billing
-          inquiries, include your account email and order reference if available.
+          {t("contact.footnote")}
         </div>
       </div>
     </DesktopLayout>

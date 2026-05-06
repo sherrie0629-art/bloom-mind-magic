@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Settings, ChevronRight, BookOpen, Star, Bell, LogOut, Crown, Heart, Sparkles, FileText, ShoppingBag, Shield, Gem } from "lucide-react";
 import BottomNav from "@/components/BottomNav";
 import DesktopLayout from "@/components/DesktopLayout";
@@ -15,6 +16,7 @@ import SEO from "@/components/SEO";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<{ display_name: string | null } | null>(null);
   const [stats, setStats] = useState({ conversations: 0, assessments: 0, days: 0 });
@@ -29,8 +31,7 @@ const Profile = () => {
   // Detect Paddle checkout success redirect
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
-      toast.success("升级成功！🎉");
-      // Webhook needs a moment to process
+      toast.success(t("profile.upgradeSuccess"));
       setTimeout(() => refresh(), 3000);
       searchParams.delete("checkout");
       setSearchParams(searchParams, { replace: true });
@@ -66,9 +67,9 @@ const Profile = () => {
       });
     } catch (e) {
       console.error(e);
-      toast.error("无法打开结账，请稍后重试");
+      toast.error(t("profile.checkoutFail"));
     }
-  }, [user, billingToggle, openCheckout]);
+  }, [user, billingToggle, openCheckout, t]);
 
   const [portalLoading, setPortalLoading] = useState(false);
   const handleManageSubscription = useCallback(async () => {
@@ -78,36 +79,35 @@ const Profile = () => {
       const { data, error } = await supabase.functions.invoke("paddle-customer-portal");
       if (error) throw error;
       if (!data?.url) throw new Error("No portal URL returned");
-      // Same-tab redirect avoids COOP blocking on cross-origin navigation
       window.location.href = data.url;
     } catch (e: any) {
       console.error(e);
-      toast.error(e?.message || "无法打开管理页面，请稍后重试");
+      toast.error(e?.message || t("profile.portalFail"));
       setPortalLoading(false);
     }
-  }, [user]);
+  }, [user, t]);
 
   const menuItems = [
-    { icon: Star, label: "Reports", count: stats.assessments, action: () => navigate("/assessment-reports") },
-    { icon: Gem, label: "Vault", action: () => navigate("/vault") },
-    { icon: Heart, label: "Chemistry", action: () => navigate("/compatibility-reports") },
-    { icon: Bell, label: "Notifications", action: () => {} },
-    { icon: Settings, label: "Settings", action: () => navigate("/settings") },
-    ...(isAdmin ? [{ icon: Shield, label: "Admin", action: () => navigate("/admin") }] : []),
+    { icon: Star, label: t("profile.menu.reports"), count: stats.assessments, action: () => navigate("/assessment-reports") },
+    { icon: Gem, label: t("profile.menu.vault"), action: () => navigate("/vault") },
+    { icon: Heart, label: t("profile.menu.chemistry"), action: () => navigate("/compatibility-reports") },
+    { icon: Bell, label: t("profile.menu.notifications"), action: () => {} },
+    { icon: Settings, label: t("profile.menu.settings"), action: () => navigate("/settings") },
+    ...(isAdmin ? [{ icon: Shield, label: t("profile.menu.admin"), action: () => navigate("/admin") }] : []),
   ];
 
   const handleLogout = async () => { await signOut(); navigate("/"); };
 
   const plusBenefits = [
-    { label: "Daily Chats", free: "20", plus: "Unlimited" },
-    { label: "Daily Quizzes", free: "5", plus: "Unlimited" },
-    { label: "Deep Reports", free: "—", plus: "1/day" },
+    { label: t("profile.benefitLabels.dailyChats"), free: "20", plus: t("profile.benefitLabels.unlimited") },
+    { label: t("profile.benefitLabels.dailyQuizzes"), free: "5", plus: t("profile.benefitLabels.unlimited") },
+    { label: t("profile.benefitLabels.deepReports"), free: "—", plus: t("profile.benefitLabels.perDay") },
   ];
 
   return (
     <DesktopLayout>
       <div className="min-h-screen bg-gradient-calm pb-24 md:pb-8">
-        <SEO title="Profile — Soul Sanctuary" description="Manage your Soul Sanctuary profile and preferences." />
+        <SEO title={`${t("profile.menu.settings")} — ${t("home.appName")}`} description={t("home.tagline")} />
         <div className="px-6 pt-14 md:pt-10 text-center">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="mx-auto h-20 w-20 rounded-full bg-gradient-mystic p-0.5">
             <div className="flex h-full w-full items-center justify-center rounded-full bg-card">
@@ -115,17 +115,17 @@ const Profile = () => {
             </div>
           </motion.div>
           <motion.h2 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-3 font-display text-lg font-semibold text-foreground">
-            {profile?.display_name || (user ? user.email?.split("@")[0] : "Traveler")}
+            {profile?.display_name || (user ? user.email?.split("@")[0] : t("profile.traveler"))}
           </motion.h2>
           <p className="text-xs text-muted-foreground">
-            {user ? `Day ${stats.days} of your inner journey ✨` : "Sign in to begin your journey"}
+            {user ? t("profile.dayOf", { n: stats.days }) : t("auth.signInToBegin")}
           </p>
         </div>
 
         {!user ? (
           <div className="mt-8 px-6">
             <button onClick={() => navigate("/auth")} className="w-full rounded-xl bg-gradient-golden py-3 text-sm font-semibold text-primary-foreground">
-              Sign In / Sign Up
+              {t("auth.signInUp")}
             </button>
           </div>
         ) : (
@@ -135,32 +135,32 @@ const Profile = () => {
                 className={`mt-6 mx-6 rounded-2xl shadow-card p-4 transition-colors duration-300 ${plan === "plus" ? "bg-gradient-to-br from-secondary/10 to-gold/10 border border-secondary/20" : "bg-card"}`}>
                 <div className="flex items-center gap-2 mb-3">
                   <Crown className={`h-5 w-5 ${plan === "plus" ? "text-yellow-500" : "text-muted-foreground"}`} />
-                  <span className="text-sm font-semibold text-foreground">{plan === "plus" ? "✨ Plus" : "Free Plan"}</span>
-                  {plan === "plus" && expiresAt && <span className="text-[10px] text-muted-foreground ml-auto">Expires: {new Date(expiresAt).toLocaleDateString()}</span>}
+                  <span className="text-sm font-semibold text-foreground">{plan === "plus" ? t("profile.plus") : t("profile.freePlan")}</span>
+                  {plan === "plus" && expiresAt && <span className="text-[10px] text-muted-foreground ml-auto">{t("profile.expires", { date: new Date(expiresAt).toLocaleDateString() })}</span>}
                 </div>
                 {plan === "free" && (
                   freeTrialExpired ? (
                     <div className="mb-3 rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2 text-xs text-destructive font-medium text-center">
-                      🚫 Free trial ended. Upgrade to Plus to continue.
+                      {t("profile.trialEnded")}
                     </div>
                   ) : (
                     <div className="mb-3 rounded-lg bg-secondary/10 border border-secondary/20 px-3 py-2 text-xs text-secondary font-medium text-center">
-                      🎁 Free trial: {freeTrialDaysLeft} days left
+                      {t("profile.trialLeft", { n: freeTrialDaysLeft })}
                     </div>
                   )
                 )}
                 <div className="space-y-2.5 mb-3">
                   <div>
-                    <div className="flex justify-between text-[11px] text-muted-foreground mb-1"><span>Today's Chats</span><span>{chatCount}/{plan === "plus" ? "∞" : chatLimit}</span></div>
+                    <div className="flex justify-between text-[11px] text-muted-foreground mb-1"><span>{t("profile.todaysChats")}</span><span>{chatCount}/{plan === "plus" ? "∞" : chatLimit}</span></div>
                     <div className="h-1.5 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full bg-gradient-golden transition-all duration-500" style={{ width: plan === "plus" ? "100%" : `${Math.min(100, (chatCount / chatLimit) * 100)}%` }} /></div>
                   </div>
                   <div>
-                    <div className="flex justify-between text-[11px] text-muted-foreground mb-1"><span>Today's Quizzes</span><span>{assessmentCount}/{plan === "plus" ? "∞" : assessmentLimit}</span></div>
+                    <div className="flex justify-between text-[11px] text-muted-foreground mb-1"><span>{t("profile.todaysQuizzes")}</span><span>{assessmentCount}/{plan === "plus" ? "∞" : assessmentLimit}</span></div>
                     <div className="h-1.5 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full bg-gradient-mystic transition-all duration-500" style={{ width: plan === "plus" ? "100%" : `${Math.min(100, (assessmentCount / assessmentLimit) * 100)}%` }} /></div>
                   </div>
                   {plan === "plus" && (
                     <div>
-                      <div className="flex justify-between text-[11px] text-muted-foreground mb-1"><span>Today's Deep Reports</span><span>{deepReportCount}/{deepReportLimit}</span></div>
+                      <div className="flex justify-between text-[11px] text-muted-foreground mb-1"><span>{t("profile.todaysDeepReports")}</span><span>{deepReportCount}/{deepReportLimit}</span></div>
                       <div className="h-1.5 rounded-full bg-muted overflow-hidden"><div className="h-full rounded-full bg-gradient-to-r from-secondary to-gold transition-all duration-500" style={{ width: `${Math.min(100, (deepReportCount / deepReportLimit) * 100)}%` }} /></div>
                     </div>
                   )}
@@ -171,7 +171,7 @@ const Profile = () => {
                     disabled={portalLoading}
                     className="mt-1 w-full rounded-xl border border-secondary/30 bg-secondary/5 py-2 text-[11px] font-semibold text-secondary hover:bg-secondary/10 transition-colors disabled:opacity-60"
                   >
-                    {portalLoading ? "Opening…" : "Manage Subscription / Cancel"}
+                    {portalLoading ? t("profile.opening") : t("profile.manageSubscription")}
                   </button>
                 )}
               </motion.div>
@@ -179,10 +179,10 @@ const Profile = () => {
 
             {!subLoading && plan !== "plus" && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="mt-3 mx-6 rounded-2xl bg-card shadow-card p-4">
-                <h4 className="text-xs font-semibold text-foreground mb-2.5 flex items-center gap-1.5"><Crown className="h-3.5 w-3.5 text-secondary" /> Why Plus?</h4>
+                <h4 className="text-xs font-semibold text-foreground mb-2.5 flex items-center gap-1.5"><Crown className="h-3.5 w-3.5 text-secondary" /> {t("profile.whyPlus")}</h4>
                 
                 <div className="space-y-0">
-                  <div className="grid grid-cols-3 text-[10px] text-muted-foreground pb-1.5 border-b border-border"><span>Benefit</span><span className="text-center">Free</span><span className="text-center text-secondary font-semibold">Plus</span></div>
+                  <div className="grid grid-cols-3 text-[10px] text-muted-foreground pb-1.5 border-b border-border"><span>{t("profile.benefit")}</span><span className="text-center">{t("profile.free")}</span><span className="text-center text-secondary font-semibold">Plus</span></div>
                   {plusBenefits.map((b) => (
                     <div key={b.label} className="grid grid-cols-3 text-[11px] py-1.5 border-b border-border/50 last:border-0">
                       <span className="text-foreground">{b.label}</span><span className="text-center text-muted-foreground">{b.free}</span><span className="text-center text-secondary font-medium">{b.plus}</span>
@@ -196,23 +196,23 @@ const Profile = () => {
                     onClick={() => setBillingToggle("monthly")}
                     className={`rounded-full px-3 py-1 text-[11px] font-medium transition-colors ${billingToggle === "monthly" ? "bg-secondary text-secondary-foreground" : "bg-muted text-muted-foreground"}`}
                   >
-                    Monthly
+                    {t("profile.monthly")}
                   </button>
                   <button
                     onClick={() => setBillingToggle("yearly")}
                     className={`rounded-full px-3 py-1 text-[11px] font-medium transition-colors ${billingToggle === "yearly" ? "bg-secondary text-secondary-foreground" : "bg-muted text-muted-foreground"}`}
                   >
-                    Yearly · Save 20%
+                    {t("profile.yearlySave")}
                   </button>
                 </div>
 
                 <button onClick={handleUpgrade} disabled={checkoutLoading} className="w-full rounded-xl bg-gradient-golden py-2.5 text-xs font-semibold text-primary-foreground flex items-center justify-center gap-1.5 disabled:opacity-60">
                   <Sparkles className="h-3.5 w-3.5" />
-                  {checkoutLoading ? "Loading…" : billingToggle === "monthly" ? "Get Plus · $4.99/mo" : "Get Plus · $47.99/yr"}
+                  {checkoutLoading ? t("profile.loadingText") : billingToggle === "monthly" ? t("profile.getPlusMonthly") : t("profile.getPlusYearly")}
                 </button>
                 <p className="mt-2 text-[10px] text-muted-foreground text-center leading-relaxed">
-                  14-day refund available if no AI features have been used. See{" "}
-                  <button onClick={() => navigate("/terms")} className="text-secondary underline">Terms</button> for details.
+                  {t("profile.refundNote")}{" "}
+                  <button onClick={() => navigate("/terms")} className="text-secondary underline">{t("profile.termsLink")}</button>{t("profile.forDetails")}
                 </p>
               </motion.div>
             )}
@@ -236,7 +236,7 @@ const Profile = () => {
 
             <div className="mt-4 px-6">
               <button onClick={handleLogout} className="flex w-full items-center justify-center gap-2 rounded-2xl bg-card py-3 text-sm text-destructive shadow-card">
-                <LogOut className="h-4 w-4" /> Sign Out
+                <LogOut className="h-4 w-4" /> {t("auth.signOut")}
               </button>
             </div>
           </>

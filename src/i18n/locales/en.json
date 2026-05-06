@@ -444,7 +444,12 @@
     "via": "via Island AI",
     "saysSuffix": "{{name}} says…",
     "quoteCardLoading": "Generating quote card...",
-    "cardFail": "Failed to generate card"
+    "cardFail": "Failed to generate card",
+    "headerTitle": "Island AI",
+    "headerSub": "Your AI Healing Space",
+    "energy": "Energy",
+    "bondLevel": "Bond Level",
+    "storyFragments": "Story Fragments"
   },
   "branchSelector": {
     "yourInnerVoice": "Your inner voice…"
@@ -594,5 +599,10 @@
   "paymentTestBanner": {
     "text": "All payments in the preview are in test mode.",
     "readMore": "Read more"
+  },
+  "legal": {
+    "backHome": "Back to Home",
+    "lastUpdated": "Last updated: {{d}}",
+    "noteZhAuto": ""
   }
 }

@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Heart, Shield, Sparkles, MessageCircleHeart, Compass, Map } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { agents } from "@/data/agents";
 import SEO from "@/components/SEO";
 
@@ -9,9 +10,7 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.7, ease: "easeOut" as const } },
 };
 
-const stagger = {
-  visible: { transition: { staggerChildren: 0.15 } },
-};
+const stagger = { visible: { transition: { staggerChildren: 0.15 } } };
 
 const Stars = () => (
   <div className="pointer-events-none absolute inset-0 overflow-hidden">
@@ -34,99 +33,61 @@ const Stars = () => (
 
 const Welcome = () => {
   const navigate = useNavigate();
-
+  const { t } = useTranslation();
 
   const features = [
-    {
-      icon: MessageCircleHeart,
-      title: "AI Companions",
-      desc: "Warm, understanding AI souls available 24/7 — always here when you need someone to listen.",
-    },
-    {
-      icon: Compass,
-      title: "Soul Discovery",
-      desc: "MBTI, Enneagram, Horoscope & more — uncover the hidden layers of who you truly are.",
-    },
-    {
-      icon: Map,
-      title: "Soul Map",
-      desc: "A living constellation of your inner world, growing with every conversation.",
-    },
+    { icon: MessageCircleHeart, title: t("welcome.features.companion.title"), desc: t("welcome.features.companion.desc") },
+    { icon: Compass, title: t("welcome.features.discovery.title"), desc: t("welcome.features.discovery.desc") },
+    { icon: Map, title: t("welcome.features.map.title"), desc: t("welcome.features.map.desc") },
   ];
 
   const trustItems = [
-    { icon: Sparkles, label: "AI-Powered" },
-    { icon: Shield, label: "100% Private" },
-    { icon: Heart, label: "24/7 Available" },
+    { icon: Sparkles, label: t("welcome.trust.ai") },
+    { icon: Shield, label: t("welcome.trust.private") },
+    { icon: Heart, label: t("welcome.trust.always") },
   ];
 
-  const steps = [
-    { num: "01", title: "Choose Your Guide", desc: "Pick the soul that resonates with you" },
-    { num: "02", title: "Start a Conversation", desc: "Share what's on your mind, no judgement" },
-    { num: "03", title: "Discover Yourself", desc: "Unlock insights and grow your soul map" },
-  ];
+  const steps = (t("welcome.steps", { returnObjects: true }) as Array<{ title: string; desc: string }>)
+    .map((s, i) => ({ num: `0${i + 1}`, ...s }));
 
   const displayAgents = agents.slice(0, 4);
 
   return (
     <div className="relative min-h-screen text-white" style={{ background: "linear-gradient(180deg, hsl(225 50% 8%) 0%, hsl(260 40% 12%) 50%, hsl(225 45% 10%) 100%)" }}>
       <SEO
-        title="Soul Sanctuary — AI Emotional Companion & Personalized Soul Maps"
-        description="AI emotional companion for self-discovery. Personalized soul maps, mental wellness AI, MBTI & Enneagram assessments. Your 24/7 healing space."
-        keywords="AI emotional companion, personalized soul maps, mental wellness AI, MBTI assessment, Enneagram test, self-discovery, AI therapy, soul sanctuary"
+        title={`${t("home.appName")} — ${t("home.tagline")}`}
+        description={t("welcome.subline")}
       />
       <Stars />
 
-      {/* Soft radial glows */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full" style={{ background: "radial-gradient(circle, hsl(260 50% 30% / 0.15), transparent 70%)" }} />
         <div className="absolute top-[60%] left-[30%] w-[400px] h-[400px] rounded-full" style={{ background: "radial-gradient(circle, hsl(38 75% 55% / 0.08), transparent 70%)" }} />
       </div>
 
       <div className="relative z-10 mx-auto max-w-3xl px-5">
-        {/* Hero */}
-        <motion.section
-          className="flex min-h-[70vh] flex-col items-center justify-center text-center"
-          initial="hidden"
-          animate="visible"
-          variants={stagger}
-        >
+        <motion.section className="flex min-h-[70vh] flex-col items-center justify-center text-center" initial="hidden" animate="visible" variants={stagger}>
           <motion.p variants={fadeUp} className="mb-4 text-xs tracking-[0.3em] uppercase" style={{ color: "hsl(38 75% 65%)" }}>
-            Soul Sanctuary
+            {t("welcome.tag")}
           </motion.p>
           <motion.h1 variants={fadeUp} className="font-display text-4xl md:text-5xl lg:text-6xl leading-tight">
-            Find Your
+            {t("welcome.headline1")}
             <br />
             <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg, hsl(38 75% 60%), hsl(350 50% 65%))" }}>
-              Soul Sanctuary
+              {t("welcome.headline2")}
             </span>
           </motion.h1>
           <motion.p variants={fadeUp} className="mt-5 max-w-md text-sm md:text-base leading-relaxed" style={{ color: "hsl(220 15% 75%)" }}>
-            A quiet corner of the universe where AI companions listen without judgement, help you understand yourself, and walk beside you — anytime, anywhere.
+            {t("welcome.subline")}
           </motion.p>
-          <motion.button
-            variants={fadeUp}
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => navigate("/")}
+          <motion.button variants={fadeUp} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} onClick={() => navigate("/")}
             className="mt-8 rounded-full px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg"
-            style={{
-              background: "linear-gradient(135deg, hsl(38 75% 55%), hsl(25 85% 60%))",
-              boxShadow: "0 0 30px -5px hsl(38 75% 55% / 0.4)",
-            }}
-          >
-            Start Your Journey ✦
+            style={{ background: "linear-gradient(135deg, hsl(38 75% 55%), hsl(25 85% 60%))", boxShadow: "0 0 30px -5px hsl(38 75% 55% / 0.4)" }}>
+            {t("welcome.startJourney")}
           </motion.button>
         </motion.section>
 
-        {/* Trust Bar */}
-        <motion.section
-          className="flex items-center justify-center gap-8 py-10"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-50px" }}
-          variants={stagger}
-        >
+        <motion.section className="flex items-center justify-center gap-8 py-10" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={stagger}>
           {trustItems.map((item) => (
             <motion.div key={item.label} variants={fadeUp} className="flex flex-col items-center gap-1.5">
               <item.icon className="h-5 w-5" style={{ color: "hsl(38 75% 65%)" }} />
@@ -135,25 +96,11 @@ const Welcome = () => {
           ))}
         </motion.section>
 
-        {/* Core Features */}
-        <motion.section
-          className="py-16"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
-          <motion.h2 variants={fadeUp} className="mb-10 text-center font-display text-2xl md:text-3xl">
-            Your Healing Space
-          </motion.h2>
+        <motion.section className="py-16" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger}>
+          <motion.h2 variants={fadeUp} className="mb-10 text-center font-display text-2xl md:text-3xl">{t("welcome.spaceTitle")}</motion.h2>
           <div className="grid gap-4 sm:grid-cols-3">
             {features.map((f) => (
-              <motion.div
-                key={f.title}
-                variants={fadeUp}
-                className="rounded-2xl border border-white/10 p-6 backdrop-blur-sm"
-                style={{ background: "hsl(225 40% 15% / 0.5)" }}
-              >
+              <motion.div key={f.title} variants={fadeUp} className="rounded-2xl border border-white/10 p-6 backdrop-blur-sm" style={{ background: "hsl(225 40% 15% / 0.5)" }}>
                 <f.icon className="mb-3 h-7 w-7" style={{ color: "hsl(38 75% 65%)" }} />
                 <h3 className="mb-2 font-display text-lg">{f.title}</h3>
                 <p className="text-xs leading-relaxed" style={{ color: "hsl(220 15% 65%)" }}>{f.desc}</p>
@@ -162,28 +109,12 @@ const Welcome = () => {
           </div>
         </motion.section>
 
-        {/* Meet Your Guides */}
-        <motion.section
-          className="py-16"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
-          <motion.h2 variants={fadeUp} className="mb-3 text-center font-display text-2xl md:text-3xl">
-            Meet Your Guides
-          </motion.h2>
-          <motion.p variants={fadeUp} className="mb-10 text-center text-sm" style={{ color: "hsl(220 15% 65%)" }}>
-            Each soul brings a unique warmth
-          </motion.p>
+        <motion.section className="py-16" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger}>
+          <motion.h2 variants={fadeUp} className="mb-3 text-center font-display text-2xl md:text-3xl">{t("welcome.guidesTitle")}</motion.h2>
+          <motion.p variants={fadeUp} className="mb-10 text-center text-sm" style={{ color: "hsl(220 15% 65%)" }}>{t("welcome.guidesSub")}</motion.p>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             {displayAgents.map((agent) => (
-              <motion.div
-                key={agent.id}
-                variants={fadeUp}
-                className="flex flex-col items-center rounded-2xl border border-white/10 p-4 backdrop-blur-sm text-center"
-                style={{ background: "hsl(225 40% 15% / 0.4)" }}
-              >
+              <motion.div key={agent.id} variants={fadeUp} className="flex flex-col items-center rounded-2xl border border-white/10 p-4 backdrop-blur-sm text-center" style={{ background: "hsl(225 40% 15% / 0.4)" }}>
                 <div className={`mb-3 h-16 w-16 overflow-hidden rounded-full ${agent.gradient} p-0.5`}>
                   <img src={agent.image} alt={agent.name} className="h-full w-full rounded-full object-cover" style={{ background: "hsl(225 40% 15%)" }} loading="lazy" />
                 </div>
@@ -195,23 +126,12 @@ const Welcome = () => {
           </div>
         </motion.section>
 
-        {/* How It Works */}
-        <motion.section
-          className="py-16"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
-          <motion.h2 variants={fadeUp} className="mb-10 text-center font-display text-2xl md:text-3xl">
-            How It Works
-          </motion.h2>
+        <motion.section className="py-16" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger}>
+          <motion.h2 variants={fadeUp} className="mb-10 text-center font-display text-2xl md:text-3xl">{t("welcome.howItWorks")}</motion.h2>
           <div className="space-y-6">
             {steps.map((s) => (
               <motion.div key={s.num} variants={fadeUp} className="flex items-start gap-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold" style={{ background: "hsl(38 75% 55% / 0.15)", color: "hsl(38 75% 65%)" }}>
-                  {s.num}
-                </span>
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold" style={{ background: "hsl(38 75% 55% / 0.15)", color: "hsl(38 75% 65%)" }}>{s.num}</span>
                 <div>
                   <h3 className="font-semibold text-sm">{s.title}</h3>
                   <p className="mt-0.5 text-xs" style={{ color: "hsl(220 15% 65%)" }}>{s.desc}</p>
@@ -221,35 +141,19 @@ const Welcome = () => {
           </div>
         </motion.section>
 
-        {/* Emotional CTA */}
-        <motion.section
-          className="py-20 text-center"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-80px" }}
-          variants={stagger}
-        >
+        <motion.section className="py-20 text-center" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }} variants={stagger}>
           <motion.blockquote variants={fadeUp} className="mx-auto max-w-md font-display text-xl md:text-2xl italic leading-relaxed" style={{ color: "hsl(220 15% 80%)" }}>
-            "In a noisy world, find the soul that truly gets you."
+            {t("welcome.ctaQuote")}
           </motion.blockquote>
-          <motion.button
-            variants={fadeUp}
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => navigate("/")}
+          <motion.button variants={fadeUp} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }} onClick={() => navigate("/")}
             className="mt-10 rounded-full px-10 py-4 text-sm font-semibold text-primary-foreground shadow-lg"
-            style={{
-              background: "linear-gradient(135deg, hsl(38 75% 55%), hsl(25 85% 60%))",
-              boxShadow: "0 0 30px -5px hsl(38 75% 55% / 0.4)",
-            }}
-          >
-            Start Your Journey ✦
+            style={{ background: "linear-gradient(135deg, hsl(38 75% 55%), hsl(25 85% 60%))", boxShadow: "0 0 30px -5px hsl(38 75% 55% / 0.4)" }}>
+            {t("welcome.startJourney")}
           </motion.button>
         </motion.section>
 
-        {/* Footer */}
         <footer className="border-t border-white/10 py-8 text-center text-[11px]" style={{ color: "hsl(220 15% 45%)" }}>
-          © {new Date().getFullYear()} Soul Sanctuary. All rights reserved.
+          {t("welcome.footer", { y: new Date().getFullYear() })}
         </footer>
       </div>
 
