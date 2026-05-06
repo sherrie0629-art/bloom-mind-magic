@@ -1,5 +1,7 @@
 import { Lock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Agent, BOND_LABELS, BOND_THRESHOLDS } from "@/data/agents";
+import { localizeAgent } from "@/lib/localizeAgent";
 import {
   Drawer,
   DrawerContent,
@@ -18,12 +20,14 @@ interface AgentProfileDrawerProps {
 }
 
 const AgentProfileDrawer = ({
-  agent,
+  agent: rawAgent,
   bondLevel,
   totalTurns,
   open,
   onClose,
 }: AgentProfileDrawerProps) => {
+  const { t } = useTranslation();
+  const agent = localizeAgent(rawAgent, t);
   const nextThreshold = BOND_THRESHOLDS[bondLevel] ?? BOND_THRESHOLDS[BOND_THRESHOLDS.length - 1];
   const prevThreshold = BOND_THRESHOLDS[bondLevel - 1] ?? 0;
   const progressPct =
