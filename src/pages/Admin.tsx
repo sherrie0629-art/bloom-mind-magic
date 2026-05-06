@@ -55,20 +55,34 @@ const Admin = () => {
   }, [user, navigate]);
 
   const loadUsers = useCallback(async () => {
-    const [profilesRes, subsRes, usageRes] = await Promise.all([
-      supabase.from("profiles").select("user_id, display_name, created_at").order("created_at", { ascending: false }),
+    const [authRes, profilesRes, subsRes, usageRes] = await Promise.all([
+      supabase.functions.invoke("admin-list-users"),
+      supabase.from("profiles").select("user_id, display_name, created_at"),
       supabase.from("user_subscriptions").select("user_id, plan, expires_at, billing_period"),
       supabase.from("usage_tracking").select("user_id, chat_count, assessment_count, deep_report_count").eq("track_date", new Date().toISOString().split("T")[0]),
     ]);
 
+    const profileMap = new Map((profilesRes.data || []).map(p => [p.user_id, p]));
     const subMap = new Map((subsRes.data || []).map(s => [s.user_id, s]));
     const usageMap = new Map((usageRes.data || []).map(u => [u.user_id, u]));
 
-    setUsers((profilesRes.data || []).map(p => ({
-      ...p,
-      subscription: subMap.get(p.user_id) as any,
-      usage: usageMap.get(p.user_id) as any,
-    })));
+    // Prefer auth-listed users (source of truth); fall back to profiles if function fails
+    const authUsers = (authRes.data?.users as Array<{ user_id: string; display_name: string | null; created_at: string }> | undefined);
+    const baseList = authUsers && authUsers.length
+      ? authUsers
+      : (profilesRes.data || []);
+
+    setUsers(
+      baseList
+        .map(u => ({
+          user_id: u.user_id,
+          display_name: profileMap.get(u.user_id)?.display_name || u.display_name || null,
+          created_at: u.created_at,
+          subscription: subMap.get(u.user_id) as any,
+          usage: usageMap.get(u.user_id) as any,
+        }))
+        .sort((a, b) => (a.created_at < b.created_at ? 1 : -1))
+    );
   }, []);
 
   const loadPurchases = useCallback(async () => {
