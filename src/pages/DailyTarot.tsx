@@ -86,7 +86,7 @@ const DailyTarot = () => {
     let attempts = 0;
     pollRef.current = setInterval(async () => {
       attempts++;
-      if (attempts > 30) { clearInterval(pollRef.current!); pollRef.current = null; return; }
+      if (attempts > 60) { clearInterval(pollRef.current!); pollRef.current = null; return; }
       try {
         const { data } = await supabase.functions.invoke("tarot-draw-status", { body: { drawId } });
         if (data?.imageStatus === "ready" && data?.imageUrl) {
@@ -99,7 +99,7 @@ const DailyTarot = () => {
           pollRef.current = null;
         }
       } catch { /* ignore */ }
-    }, 3000);
+    }, 1500);
   }, []);
 
   const handleDraw = async () => {
