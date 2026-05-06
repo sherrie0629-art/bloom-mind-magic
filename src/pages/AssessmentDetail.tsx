@@ -157,10 +157,10 @@ const AssessmentDetail = () => {
   const renderDimensions = () => {
     if (type === "mbti" && d.traits) {
       const dims = [
-        { left: "Extrovert E", right: "Introvert I", value: d.traits.E_I },
-        { left: "Sensing S", right: "Intuition N", value: d.traits.S_N },
-        { left: "Thinking T", right: "Feeling F", value: d.traits.T_F },
-        { left: "Judging J", right: "Perceiving P", value: d.traits.J_P },
+        { left: t("assessmentFlow.mbti.dim.ei.0", { defaultValue: "Extrovert E" }), right: t("assessmentFlow.mbti.dim.ei.1", { defaultValue: "Introvert I" }), value: d.traits.E_I },
+        { left: t("assessmentFlow.mbti.dim.sn.0", { defaultValue: "Sensing S" }), right: t("assessmentFlow.mbti.dim.sn.1", { defaultValue: "Intuition N" }), value: d.traits.S_N },
+        { left: t("assessmentFlow.mbti.dim.tf.0", { defaultValue: "Thinking T" }), right: t("assessmentFlow.mbti.dim.tf.1", { defaultValue: "Feeling F" }), value: d.traits.T_F },
+        { left: t("assessmentFlow.mbti.dim.jp.0", { defaultValue: "Judging J" }), right: t("assessmentFlow.mbti.dim.jp.1", { defaultValue: "Perceiving P" }), value: d.traits.J_P },
       ];
       return dims.map((dim) => (
         <div key={dim.left} className="space-y-1">
@@ -173,50 +173,22 @@ const AssessmentDetail = () => {
         </div>
       ));
     }
-    if (type === "enneagram" && d.traits) {
-      return Object.entries(d.traits).map(([k, v]) => {
-        const labels: Record<string, string> = { thinking: "Thinking", feeling: "Feeling", instinct: "Instinct", growth: "Growth" };
-        return (
-          <div key={k} className="space-y-1">
-            <div className="flex justify-between text-[11px] text-muted-foreground">
-              <span>{labels[k] || k}</span><span>{v as number}%</span>
-            </div>
-            <div className="h-2 rounded-full bg-muted overflow-hidden">
-              <div className="h-full rounded-full bg-gradient-mystic" style={{ width: `${v as number}%` }} />
-            </div>
+    const dimGradients: Record<string, string> = {
+      enneagram: "bg-gradient-mystic",
+      zodiac: "bg-gradient-to-r from-lavender to-rose-warm",
+      emotion: "bg-gradient-to-r from-rose-warm to-gold",
+    };
+    if ((type === "enneagram" || type === "zodiac" || type === "emotion") && d.traits) {
+      return Object.entries(d.traits).map(([k, v]) => (
+        <div key={k} className="space-y-1">
+          <div className="flex justify-between text-[11px] text-muted-foreground">
+            <span>{t(`assessmentDetail.dim.${k}`, { defaultValue: k })}</span><span>{v as number}%</span>
           </div>
-        );
-      });
-    }
-    if (type === "zodiac" && d.traits) {
-      return Object.entries(d.traits).map(([k, v]) => {
-        const labels: Record<string, string> = { overall: "Overall", love: "Love", career: "Career", fortune: "Fortune" };
-        return (
-          <div key={k} className="space-y-1">
-            <div className="flex justify-between text-[11px] text-muted-foreground">
-              <span>{labels[k] || k}</span><span>{v as number}%</span>
-            </div>
-            <div className="h-2 rounded-full bg-muted overflow-hidden">
-              <div className="h-full rounded-full bg-gradient-to-r from-lavender to-rose-warm" style={{ width: `${v as number}%` }} />
-            </div>
+          <div className="h-2 rounded-full bg-muted overflow-hidden">
+            <div className={`h-full rounded-full ${dimGradients[type]}`} style={{ width: `${v as number}%` }} />
           </div>
-        );
-      });
-    }
-    if (type === "emotion" && d.traits) {
-      return Object.entries(d.traits).map(([k, v]) => {
-        const labels: Record<string, string> = { stress: "Stress", energy: "Energy", social: "Social", sleep: "Sleep" };
-        return (
-          <div key={k} className="space-y-1">
-            <div className="flex justify-between text-[11px] text-muted-foreground">
-              <span>{labels[k] || k}</span><span>{v as number}%</span>
-            </div>
-            <div className="h-2 rounded-full bg-muted overflow-hidden">
-              <div className="h-full rounded-full bg-gradient-to-r from-rose-warm to-gold" style={{ width: `${v as number}%` }} />
-            </div>
-          </div>
-        );
-      });
+        </div>
+      ));
     }
     return null;
   };
