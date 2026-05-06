@@ -7,11 +7,11 @@ export interface PoolQuestion { question: string; options: PoolOption[]; dimensi
 export type PoolSet = PoolQuestion[];
 
 const ZH_SET_1: PoolSet = [
-  { question: "🌙 凌晨两点，三年没联系的朋友突然发来一句"在吗"。", dimension: "E/I", options: [
-    { label: "A", text: "立刻回："在，怎么了？"" },
-    { label: "B", text: "截图甩进闺蜜群："这什么意思"" },
+  { question: "🌙 凌晨两点，三年没联系的朋友突然发来一句\"在吗\"。", dimension: "E/I", options: [
+    { label: "A", text: "立刻回：\"在，怎么了？\"" },
+    { label: "B", text: "截图甩进闺蜜群：\"这什么意思\"" },
     { label: "C", text: "划走，假装明天才看到" },
-    { label: "D", text: "回个"嗯"，等对方先开口" },
+    { label: "D", text: "回个\"嗯\"，等对方先开口" },
   ]},
   { question: "☕ 你走进一家从没去过的咖啡馆，菜单全是没听过的名字。", dimension: "S/N", options: [
     { label: "A", text: "问店员今天最推荐哪一款" },
@@ -22,12 +22,12 @@ const ZH_SET_1: PoolSet = [
   { question: "🛸 一艘飞船降落在你家楼下，外星人请你介绍人类。", dimension: "S/N", options: [
     { label: "A", text: "认真讲讲我们怎么发明了火和 wifi" },
     { label: "B", text: "递给它一副耳机，放周杰伦" },
-    { label: "C", text: "演示一下"挤地铁"是什么" },
-    { label: "D", text: "反过来问它："你们那边有爱吗"" },
+    { label: "C", text: "演示一下\"挤地铁\"是什么" },
+    { label: "D", text: "反过来问它：\"你们那边有爱吗\"" },
   ]},
   { question: "🪞 早上照镜子，镜子里的你眨了一下你没眨的那只眼。", dimension: "T/F", options: [
     { label: "A", text: "冷静研究：是不是没睡醒产生的错觉" },
-    { label: "B", text: "对它笑了笑："你也不容易"" },
+    { label: "B", text: "对它笑了笑：\"你也不容易\"" },
     { label: "C", text: "退后一步，掏出手机录像存证" },
     { label: "D", text: "假装无事发生，刷牙去了" },
   ]},
@@ -37,15 +37,15 @@ const ZH_SET_1: PoolSet = [
     { label: "C", text: "直接去找新人合影、留祝福" },
     { label: "D", text: "评估完逃生路线，找借口先撤" },
   ]},
-  { question: "📮 收到一张匿名明信片，背面只写了一句"该回家了"。", dimension: "T/F", options: [
+  { question: "📮 收到一张匿名明信片，背面只写了一句\"该回家了\"。", dimension: "T/F", options: [
     { label: "A", text: "心里咯噔一下，开始想是谁寄的" },
-    { label: "B", text: "拍照发朋友圈："来人破案"" },
+    { label: "B", text: "拍照发朋友圈：\"来人破案\"" },
     { label: "C", text: "翻邮戳、对笔迹，认真排查" },
     { label: "D", text: "把它压在台灯下，当成神秘装饰" },
   ]},
   { question: "🚪 推开一扇门，里面是 10 岁的自己在写作业。", dimension: "F/T", options: [
-    { label: "A", text: "蹲下来抱抱 ta："辛苦啦"" },
-    { label: "B", text: "提醒 ta："这道题以后用不上"" },
+    { label: "A", text: "蹲下来抱抱 ta：\"辛苦啦\"" },
+    { label: "B", text: "提醒 ta：\"这道题以后用不上\"" },
     { label: "C", text: "陪 ta 写完，再一起吃个零食" },
     { label: "D", text: "悄悄退出去，怕打扰 ta" },
   ]},
@@ -58,7 +58,7 @@ const ZH_SET_1: PoolSet = [
   { question: "🌧 暴雨困在便利店，旁边一个陌生人开始小声哭。", dimension: "F/T", options: [
     { label: "A", text: "递过去一包纸巾，不说话" },
     { label: "B", text: "假装没看见，给 ta 留点空间" },
-    { label: "C", text: "轻声问一句："要紧吗"" },
+    { label: "C", text: "轻声问一句：\"要紧吗\"" },
     { label: "D", text: "默默买杯热饮放在 ta 身边" },
   ]},
   { question: "🪐 你被告知只能再活 24 小时，但没人会知道你死了。", dimension: "J/P", options: [
@@ -88,7 +88,7 @@ const ZH_SET_2: PoolSet = [
     { label: "C", text: "研究 AI 是怎么决定的，找规律" },
     { label: "D", text: "组队反抗，把选择权抢回来" },
   ]},
-  { question: "🪞 镜子里有人对你比了个"嘘"。", dimension: "S/N", options: [
+  { question: "🪞 镜子里有人对你比了个\"嘘\"。", dimension: "S/N", options: [
     { label: "A", text: "我也比一个，看 ta 怎么反应" },
     { label: "B", text: "立刻揉眼睛，怀疑自己累过头" },
     { label: "C", text: "脑补出整段平行宇宙剧本" },
@@ -100,7 +100,7 @@ const ZH_SET_2: PoolSet = [
     { label: "C", text: "主动去搭讪几个有趣的面具" },
     { label: "D", text: "中途偷偷把面具摘了" },
   ]},
-  { question: "📮 楼下出现一个写着"许愿"的木箱，没人知道是谁放的。", dimension: "S/N", options: [
+  { question: "📮 楼下出现一个写着\"许愿\"的木箱，没人知道是谁放的。", dimension: "S/N", options: [
     { label: "A", text: "认真写一个最近的烦恼塞进去" },
     { label: "B", text: "好奇是谁放的，蹲点看看" },
     { label: "C", text: "塞张白纸进去，看会发生啥" },
@@ -110,7 +110,7 @@ const ZH_SET_2: PoolSet = [
     { label: "A", text: "嘴上不说，心里默默记下了" },
     { label: "B", text: "劝 ta 收手，公司迟早会发现" },
     { label: "C", text: "假装没听见，跟我无关" },
-    { label: "D", text: "好奇追问："效益咋样"" },
+    { label: "D", text: "好奇追问：\"效益咋样\"" },
   ]},
   { question: "🎲 你被随机分到一个 6 人小组做项目，组员全是陌生人。", dimension: "J/P", options: [
     { label: "A", text: "立刻拉群、定 deadline、分工" },
