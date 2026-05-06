@@ -18,6 +18,7 @@ interface PosterConfig {
   extraLines?: string[];
   appName?: string;
   imagePrompt?: string;
+  imageCacheKey?: string;
   preloadedImageUrl?: string;
 }
 
@@ -62,7 +63,7 @@ export function useSharePoster() {
   const generatePoster = useCallback(async (config: PosterConfig) => {
     const aiImagePromise = config.preloadedImageUrl
       ? loadImageViaBlobUrl(config.preloadedImageUrl)
-      : config.imagePrompt ? fetchAIImage(config.imagePrompt) : Promise.resolve(null);
+      : config.imagePrompt ? fetchAIImage(config.imagePrompt, { cacheKey: config.imageCacheKey }) : Promise.resolve(null);
 
     const measureCanvas = document.createElement("canvas");
     measureCanvas.width = POSTER_WIDTH;

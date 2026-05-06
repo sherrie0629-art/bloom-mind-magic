@@ -59,8 +59,9 @@ interface ZodiacResult {
   socialCaption: string;
 }
 
-const getImagePrompt = (result: ZodiacResult) =>
-  `Create a dreamy celestial illustration representing the zodiac sign ${result.zodiacSign} with ${result.element} element. Soft purple and violet cosmic tones, stars, constellation patterns. Ethereal and magical. Square format, no text.`;
+const getImagePromptForSign = (signName: string, element: string) =>
+  `Create a dreamy celestial illustration representing the zodiac sign ${signName} with ${element} element. Soft purple and violet cosmic tones, stars, constellation patterns. Ethereal and magical. Square format, no text.`;
+const getCacheKeyForSign = (signName: string) => `zodiac_${signName.toLowerCase()}`;
 
 const ZodiacFlow = () => {
   const navigate = useNavigate();
@@ -80,25 +81,38 @@ const ZodiacFlow = () => {
 
   const resultIdRef = useRef<string | null>(null);
   const batchQuestionsRef = useRef<any[]>([]);
+  const imagePromiseRef = useRef<Promise<string | null> | null>(null);
 
   const isZh = locale === "zh";
   const localizeName = (n: string) => isZh ? (ZH_NAMES[n] || n) : n;
   const localizeElement = (e: string) => isZh ? (ZH_ELEMENTS[e] || e) : e;
   const localizeDate = (n: string) => isZh ? ZH_DATES[n] : EN_DATES[n];
 
-  const fetchResultImage = useCallback(async (r: ZodiacResult) => {
+  const startImageFetch = useCallback((signName: string, element: string) => {
     setImageLoading(true);
+    setResultImageUrl(null);
+    const p = (async () => {
+      try {
+        const img = await fetchAIImage(getImagePromptForSign(signName, element), { cacheKey: getCacheKeyForSign(signName) });
+        return img?.src || null;
+      } catch { return null; }
+    })();
+    imagePromiseRef.current = p;
+    return p;
+  }, [fetchAIImage]);
+
+  const awaitResultImage = useCallback(async () => {
     try {
-      const img = await fetchAIImage(getImagePrompt(r));
-      if (img) {
-        setResultImageUrl(img.src);
+      const url = imagePromiseRef.current ? await imagePromiseRef.current : null;
+      if (url) {
+        setResultImageUrl(url);
         if (resultIdRef.current) {
           const { data: existing } = await supabase.from("assessment_results").select("result_data").eq("id", resultIdRef.current).single();
-          if (existing) { await supabase.from("assessment_results").update({ result_data: { ...existing.result_data as any, imageUrl: img.src } }).eq("id", resultIdRef.current); }
+          if (existing) { await supabase.from("assessment_results").update({ result_data: { ...existing.result_data as any, imageUrl: url } }).eq("id", resultIdRef.current); }
         }
       }
     } finally { setImageLoading(false); }
-  }, [fetchAIImage]);
+  }, []);
 
   const fetchResult = async (finalHistory: QA[], sign: string) => {
     setLoading(true);
@@ -111,7 +125,7 @@ const ZodiacFlow = () => {
       if (data.type === "result") {
         setResult(data.data);
         setCurrentQuestion(null);
-        fetchResultImage(data.data);
+        awaitResultImage();
         if (user) {
           const { data: inserted } = await supabase.from("assessment_results").insert({
             user_id: user.id, assessment_type: "zodiac", result_data: data.data,
@@ -128,6 +142,8 @@ const ZodiacFlow = () => {
     if (!canAssess) { toast.error(t("assessmentFlow.common.limitReached", { n: assessmentLimit })); return; }
     await incrementAssessment();
     setSelectedSign(signName);
+    const signMeta = ZODIAC_SIGNS.find(z => z.name === signName);
+    if (signMeta) startImageFetch(signName, signMeta.element);
     setLoading(true);
     setLoadingMsg(t("assessmentFlow.common.starting"));
     try {
@@ -178,7 +194,8 @@ const ZodiacFlow = () => {
         `💡 ${result.advice}`,
       ],
       preloadedImageUrl: resultImageUrl || undefined,
-      imagePrompt: !resultImageUrl ? getImagePrompt(result) : undefined,
+      imagePrompt: !resultImageUrl ? getImagePromptForSign(result.zodiacSign, result.element) : undefined,
+      imageCacheKey: getCacheKeyForSign(result.zodiacSign),
     });
   };
 
