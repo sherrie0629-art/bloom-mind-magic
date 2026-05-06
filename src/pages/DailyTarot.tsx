@@ -283,7 +283,7 @@ const DailyTarot = () => {
               onClick={handleShare}
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-golden py-3 text-sm font-semibold text-primary-foreground shadow-lg"
             >
-              <Share2 className="h-4 w-4" /> Save & Share
+              <Share2 className="h-4 w-4" /> {t("dailyTarot.saveShare")}
             </motion.button>
           </motion.div>
         )}
