@@ -29,13 +29,6 @@ interface CompatibilityResult {
   socialCaption: string;
 }
 
-const DIM_LABELS: Record<string, string> = {
-  emotional: "Emotional Resonance",
-  communication: "Communication",
-  values: "Shared Values",
-  growth: "Growth Together",
-  chemistry: "Chemistry",
-};
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/assessment-compatibility`;
 
