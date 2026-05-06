@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Send, Mic, Zap, Plus } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { useQuoteCard } from "@/hooks/useQuoteCard";
 import ShareSheet from "@/components/ShareSheet";
 import ReactMarkdown from "react-markdown";
@@ -43,6 +44,7 @@ const Chat = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { t } = useTranslation();
   const { user, session, promptLogin } = useAuth();
   const agentId = searchParams.get("agent") || "barista";
   const agent = agents.find((a) => a.id === agentId) || agents[0];
