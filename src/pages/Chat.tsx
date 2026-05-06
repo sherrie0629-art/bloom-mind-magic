@@ -586,15 +586,15 @@ const Chat = () => {
     {/* Desktop sidebar nav */}
     <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-[220px] flex-col border-r border-border bg-card/80 backdrop-blur-xl z-50">
       <div className="px-5 pt-8 pb-6">
-        <h1 className="font-display text-lg font-bold text-foreground">Soul Sanctuary</h1>
-        <p className="text-[10px] text-muted-foreground mt-0.5">Your AI Healing Space</p>
+        <h1 className="font-display text-lg font-bold text-foreground">{t("chat.headerTitle")}</h1>
+        <p className="text-[10px] text-muted-foreground mt-0.5">{t("chat.headerSub")}</p>
       </div>
       <nav className="flex-1 px-3 space-y-1">
         {[
-          { icon: "🏠", label: "Home", path: "/" },
-          { icon: "📖", label: "Archive", path: "/archive" },
-          { icon: "✨", label: "Assess", path: "/assessment" },
-          { icon: "👤", label: "Me", path: "/profile" },
+          { icon: "🏠", label: t("nav.home"), path: "/" },
+          { icon: "📖", label: t("nav.archive"), path: "/archive" },
+          { icon: "✨", label: t("nav.assess"), path: "/assessment" },
+          { icon: "👤", label: t("nav.me"), path: "/profile" },
         ].map((item) => (
           <button key={item.path} onClick={() => navigate(item.path)} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted/50 hover:text-foreground transition-colors">
             <span>{item.icon}</span><span>{item.label}</span>
@@ -605,7 +605,7 @@ const Chat = () => {
     </aside>
 
     <div className={`flex h-screen flex-col flex-1 chat-theme-${agentId} relative`} style={{ background: dynamicBg || 'var(--chat-bg, hsl(40 30% 97%))' }}>
-      <SEO title="Chat — Soul Sanctuary" description="Talk with your AI companion. A safe, private space for emotional support and self-reflection." />
+      <SEO title={`${t("nav.home")} — ${t("home.appName")}`} description={t("home.tagline")} />
       <ChatParticles atmosphere={atmosphere} onBgChange={setDynamicBg} />
       <div className="border-b border-border backdrop-blur-xl px-4 py-3" style={{ backgroundColor: 'var(--chat-header-bg, hsl(0 0% 0% / 0.03))' }}>
         <div className="flex items-center gap-3">
@@ -622,7 +622,7 @@ const Chat = () => {
                 <button
                   onClick={startNewConversation}
                   className="rounded-lg bg-muted/50 p-1.5 text-muted-foreground transition-colors hover:bg-muted active:scale-95"
-                  title="New conversation"
+                  title={t("chat.newConv")}
                 >
                   <Plus className="h-3.5 w-3.5" />
                 </button>
@@ -633,7 +633,7 @@ const Chat = () => {
               </div>
             </div>
             <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-[11px] text-muted-foreground whitespace-nowrap">{agent.title} · Online</p>
+              <p className="text-[11px] text-muted-foreground whitespace-nowrap">{agent.title} · {t("chat.online")}</p>
               <BondIndicator level={bondLevel} totalTurns={totalTurns} energyBits={energyBits} />
             </div>
           </div>
