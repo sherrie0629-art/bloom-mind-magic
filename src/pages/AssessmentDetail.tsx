@@ -10,15 +10,21 @@ import { useSharePoster } from "@/hooks/useSharePoster";
 import ShareSheet from "@/components/ShareSheet";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 
-const typeConfig: Record<string, { icon: typeof Brain; label: string; gradient: string }> = {
-  mbti: { icon: Brain, label: "MBTI Personality", gradient: "bg-gradient-to-br from-indigo to-indigo-light" },
-  enneagram: { icon: Compass, label: "Enneagram Analysis", gradient: "bg-gradient-to-br from-secondary to-gold" },
-  zodiac: { icon: Stars, label: "Zodiac Reading", gradient: "bg-gradient-to-br from-lavender to-rose-warm" },
-  emotion: { icon: Flame, label: "Emotional Wellness", gradient: "bg-gradient-to-br from-rose-warm to-gold" },
+const typeIcons: Record<string, typeof Brain> = {
+  mbti: Brain, enneagram: Compass, zodiac: Stars, emotion: Flame,
+};
+const typeGradients: Record<string, string> = {
+  mbti: "bg-gradient-to-br from-indigo to-indigo-light",
+  enneagram: "bg-gradient-to-br from-secondary to-gold",
+  zodiac: "bg-gradient-to-br from-lavender to-rose-warm",
+  emotion: "bg-gradient-to-br from-rose-warm to-gold",
 };
 
 const AssessmentDetail = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
