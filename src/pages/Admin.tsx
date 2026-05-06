@@ -27,11 +27,9 @@ interface PurchaseRow {
   profile_name?: string;
 }
 
-const PRODUCT_LABELS: Record<string, string> = {
-  deep_report: "Deep Report",
-  compatibility: "Compatibility Test",
-  subscription: "Membership",
-};
+// Product labels are localized via t() inside component
+
+
 
 const Admin = () => {
   const navigate = useNavigate();
