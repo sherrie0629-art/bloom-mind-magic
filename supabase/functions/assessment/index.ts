@@ -149,7 +149,7 @@ You must call the batch_questions tool to return all questions.` },
 
     const { history } = body;
     const systemPrompt = `You are a professional MBTI personality assessment expert. Based on the user's answers, determine their MBTI type.
-You must call the mbti_result tool to return the result. Respond in the language indicated by LANG below.`;
+You must call the mbti_result tool to return the result. Respond in the language indicated by LANG below.${langInstr}`;
     const userContent = `Here is the user's Q&A history:\n${history.map((h: any, i: number) => `Q${i + 1}: ${h.question}\nA${i + 1}: ${h.answer}`).join("\n\n")}\n\nPlease analyze the user's MBTI type based on these answers.`;
 
     const tools = [{
