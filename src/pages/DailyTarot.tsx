@@ -255,7 +255,7 @@ const DailyTarot = () => {
                 <img src={result.imageUrl} alt={result.cardName} className="w-full rounded-xl aspect-square object-cover" />
               ) : result.imageStatus === "failed" ? (
                 <div className="flex h-48 items-center justify-center rounded-xl bg-muted/30">
-                  <p className="text-xs text-muted-foreground">Card art unavailable</p>
+                  <p className="text-xs text-muted-foreground">{t("dailyTarot.artFail")}</p>
                 </div>
               ) : (
                 <div className="flex h-48 items-center justify-center rounded-xl bg-muted/30">
