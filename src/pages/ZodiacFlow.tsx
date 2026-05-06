@@ -125,7 +125,7 @@ const ZodiacFlow = () => {
       if (data.type === "result") {
         setResult(data.data);
         setCurrentQuestion(null);
-        fetchResultImage(data.data);
+        awaitResultImage();
         if (user) {
           const { data: inserted } = await supabase.from("assessment_results").insert({
             user_id: user.id, assessment_type: "zodiac", result_data: data.data,
@@ -142,6 +142,8 @@ const ZodiacFlow = () => {
     if (!canAssess) { toast.error(t("assessmentFlow.common.limitReached", { n: assessmentLimit })); return; }
     await incrementAssessment();
     setSelectedSign(signName);
+    const signMeta = ZODIAC_SIGNS.find(z => z.name === signName);
+    if (signMeta) startImageFetch(signName, signMeta.element);
     setLoading(true);
     setLoadingMsg(t("assessmentFlow.common.starting"));
     try {
@@ -192,7 +194,7 @@ const ZodiacFlow = () => {
         `💡 ${result.advice}`,
       ],
       preloadedImageUrl: resultImageUrl || undefined,
-      imagePrompt: !resultImageUrl ? getImagePrompt(result) : undefined,
+      imagePrompt: !resultImageUrl ? getImagePromptForSign(result.zodiacSign, result.element) : undefined,
     });
   };
 
