@@ -133,7 +133,7 @@ const DailyTarot = () => {
       if (data.imageStatus === "pending") startPolling(data.id);
     } catch (e: any) {
       console.error("Draw error:", e);
-      toast.error(e.message || "Failed to draw. Please try again.");
+      toast.error(e.message || t("dailyTarot.drawFail"));
       setState("idle");
     }
   };
