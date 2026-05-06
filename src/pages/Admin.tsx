@@ -52,7 +52,7 @@ const Admin = () => {
   useEffect(() => {
     if (!user) { navigate("/auth"); return; }
     supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => {
-      if (!data) { navigate("/"); toast({ title: "Access Denied", description: "You are not an admin" }); return; }
+      if (!data) { navigate("/"); toast({ title: t("admin.accessDenied"), description: t("admin.notAdmin") }); return; }
       setIsAdmin(true);
       setLoading(false);
     });
