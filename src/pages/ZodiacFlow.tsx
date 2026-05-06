@@ -195,6 +195,7 @@ const ZodiacFlow = () => {
       ],
       preloadedImageUrl: resultImageUrl || undefined,
       imagePrompt: !resultImageUrl ? getImagePromptForSign(result.zodiacSign, result.element) : undefined,
+      imageCacheKey: getCacheKeyForSign(result.zodiacSign),
     });
   };
 
