@@ -16,6 +16,7 @@ import SEO from "@/components/SEO";
 
 const Profile = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, signOut } = useAuth();
   const [profile, setProfile] = useState<{ display_name: string | null } | null>(null);
   const [stats, setStats] = useState({ conversations: 0, assessments: 0, days: 0 });
@@ -30,8 +31,7 @@ const Profile = () => {
   // Detect Paddle checkout success redirect
   useEffect(() => {
     if (searchParams.get("checkout") === "success") {
-      toast.success("升级成功！🎉");
-      // Webhook needs a moment to process
+      toast.success(t("profile.upgradeSuccess"));
       setTimeout(() => refresh(), 3000);
       searchParams.delete("checkout");
       setSearchParams(searchParams, { replace: true });
