@@ -70,7 +70,7 @@ Each has 4 options (A/B/C/D). Respond in the language indicated by LANG below. C
     const systemPrompt = `You are a professional wellness coach. Based on the user's answers, assess their current burnout and wellness state.
 Use therapy-speak naturally: "boundaries", "emotional labor", "self-care", "holding space", "validation".
 Be warm, supportive, and professional. If you notice signs of serious mental health concerns, gently suggest professional help.
-Respond in the language indicated by LANG below. Call emotion_result tool.`;
+Respond in the language indicated by LANG below. Call emotion_result tool.${langInstr}`;
 
     const response = await fetchAI(model, {
       messages: [{ role: "system", content: systemPrompt }, { role: "user", content: `Q&A:\n${history.map((h: any, i: number) => `Q${i + 1}: ${h.question}\nA${i + 1}: ${h.answer}`).join("\n\n")}\n\nAssess wellness state.` }],
