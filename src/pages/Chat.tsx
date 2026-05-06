@@ -46,6 +46,7 @@ const Chat = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
+  const { locale } = useLocale();
   const { user, session, promptLogin } = useAuth();
   const agentId = searchParams.get("agent") || "barista";
   const agent = agents.find((a) => a.id === agentId) || agents[0];
