@@ -211,7 +211,7 @@ const CompatibilityFlow = () => {
             <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }}>
               <Heart className="h-12 w-12 text-rose-warm" />
             </motion.div>
-            <p className="text-sm text-muted-foreground">AI is analyzing your chemistry…</p>
+            <p className="text-sm text-muted-foreground">{t("assessmentFlow.compatibility.analyzing")}</p>
           </motion.div>
         )}
         {step === "result" && result && (
