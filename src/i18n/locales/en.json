@@ -1,0 +1,65 @@
+{
+  "nav": {
+    "home": "Home",
+    "archive": "Archive",
+    "assess": "Assess",
+    "me": "Me"
+  },
+  "common": {
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "loading": "Loading…"
+  },
+  "footer": {
+    "pricing": "Pricing",
+    "contact": "Contact Us",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "rights": "All rights reserved"
+  },
+  "profile": {
+    "signInUp": "Sign In / Sign Up",
+    "signOut": "Sign Out",
+    "signInToBegin": "Sign in to begin your journey",
+    "dayOf": "Day {{n}} of your inner journey ✨",
+    "traveler": "Traveler",
+    "freePlan": "Free Plan",
+    "plus": "✨ Plus",
+    "expires": "Expires: {{date}}",
+    "trialEnded": "🚫 Free trial ended. Upgrade to Plus to continue.",
+    "trialLeft": "🎁 Free trial: {{n}} days left",
+    "todaysChats": "Today's Chats",
+    "todaysQuizzes": "Today's Quizzes",
+    "todaysDeepReports": "Today's Deep Reports",
+    "manageSubscription": "Manage Subscription / Cancel",
+    "opening": "Opening…",
+    "whyPlus": "Why Plus?",
+    "benefit": "Benefit",
+    "free": "Free",
+    "monthly": "Monthly",
+    "yearlySave": "Yearly · Save 20%",
+    "getPlusMonthly": "Get Plus · $4.99/mo",
+    "getPlusYearly": "Get Plus · $47.99/yr",
+    "refundNote": "14-day refund available if no AI features have been used. See",
+    "termsLink": "Terms",
+    "forDetails": "for details.",
+    "menu": {
+      "reports": "Reports",
+      "vault": "Vault",
+      "chemistry": "Chemistry",
+      "notifications": "Notifications",
+      "settings": "Settings",
+      "admin": "Admin"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Interface Language",
+    "languageDesc": "Choose the display language for the app.",
+    "chinese": "中文",
+    "english": "English",
+    "saved": "Language updated"
+  }
+}

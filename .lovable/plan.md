@@ -1,45 +1,107 @@
-## 在管理员后台增加订阅管理与额度展示
+## 目标
 
-### 背景
-当前 `/admin` 的"用户"标签只支持把用户设为 Plus 1 个月 / 1 年，或移除 Plus；今日用量虽然已经从 `usage_tracking` 读了一行，但只展示一行很小的文字。需要：
-1. 管理员可手工把用户切换到 **任意订阅版本**（Free / Plus 月付 / Plus 年付），并自定义到期时间。
-2. 用户卡片清晰显示该用户的 **使用额度**（今日 chat、assessment、deep_report 计数 + 对应套餐的上限）。
+让用户可在中文 / 英文之间切换界面语言，入口放在"我的 → Settings"中，选择后立即生效并持久化（刷新后保留，跨设备登录可同步）。
 
-### 改动内容
+---
 
-**1. `src/pages/Admin.tsx` — 用户标签升级**
+## 方案概览
 
-- 扩展 `UserRow.usage` 字段，加入 `deep_report_count`，并在 `loadUsers` 的 `usage_tracking` 查询里 select 这一列。
-- 在每张用户卡片下新增"使用额度"区块，按照 `useSubscription` 里的 `LIMITS` 常量显示三行：
-  - 对话：`chat_count / 20`（free）或 `/ 9999`（plus）
-  - 测评：`assessment_count / 5` 或 `/ 9999`
-  - 深度报告：`deep_report_count / 0` 或 `/ 1`
-  - 每行配一个进度条（复用现有 `bg-muted` + 渐变填充样式），plus 显示为"无限"。
-- 把现有"1 Month / 1 Year / Remove Plus"按钮改成一个"管理订阅"按钮，点击后展开一个内嵌面板（同卡片内 `useState` 控制），包含：
-  - 套餐 select：Free / Plus
-  - 计费周期 select：Monthly / Yearly（仅 Plus 时启用）
-  - 到期时间 `<input type="date">`，默认 = 今天 + 30/365 天，可手工修改；Free 时禁用并清空
-  - "保存"按钮：调用新的 `applySubscription(userId, { plan, billingPeriod, expiresAt })` 函数
-  - "取消"按钮：折叠面板
-- `applySubscription` 逻辑：
-  - Free：`update user_subscriptions set plan='free', expires_at=null, billing_period='monthly'`（若不存在则 insert）
-  - Plus：upsert `plan='plus'`, `expires_at=<选择的日期 ISO>`, `billing_period=<选择>`
-  - 完成后 `loadUsers()` 刷新 + toast 提示
-- 把 `LIMITS` 常量从 `useSubscription.ts` 里抽出到 `src/lib/limits.ts`（导出 `PLAN_LIMITS`），让 Admin 与 Hook 共用，避免硬编码漂移。
+1. 引入 `react-i18next` + `i18next` 作为多语言基础设施
+2. 新建 `/settings` 页面，作为后续设置项的统一入口（首发功能：语言切换）
+3. 把 Profile 中"Settings"菜单项接到 `/settings`
+4. 首批接入翻译的界面：BottomNav、Profile、Settings、SiteFooter、AuthPromptDialog 等高频可见区域；其余页面后续逐步迁移（保留英文 fallback，不影响显示）
+5. 语言偏好存储：`localStorage`（首选）+ 登录用户写入 `profiles.locale`（可选同步），下次登录自动应用
 
-**2. `src/lib/limits.ts`（新建）**
+---
+
+## 改动清单
+
+### 新增依赖
+- `i18next`、`react-i18next`、`i18next-browser-languagedetector`
+
+### 新增文件
+- `src/i18n/index.ts` — i18next 初始化（默认按浏览器语言检测，fallback 英文）
+- `src/i18n/locales/zh.json` — 中文翻译资源
+- `src/i18n/locales/en.json` — 英文翻译资源
+- `src/pages/Settings.tsx` — 设置页：
+  - 顶部返回按钮 + 标题"设置 / Settings"
+  - "界面语言 / Language" 卡片，提供两个选项（中文 / English），当前选中高亮
+  - 切换后即时调用 `i18n.changeLanguage()`，写 `localStorage`，已登录则更新 `profiles.locale`
+- `src/hooks/useLocale.ts` — 封装当前语言读取、切换、与 Supabase 同步逻辑
+
+### 修改文件
+- `src/main.tsx` — `import "./i18n"` 提前初始化
+- `src/App.tsx` — 注册 `/settings` 路由
+- `src/pages/Profile.tsx` — Settings 菜单项 `action` 改为 `navigate("/settings")`；常用文案接入 `useTranslation`
+- `src/components/BottomNav.tsx` — 标签文案接入翻译
+- `src/components/SiteFooter.tsx` — 链接文案接入翻译
+- `src/contexts/AuthContext.tsx` — 登录后读取 `profiles.locale` 应用到 i18n（如有）
+
+### 数据库（可选同步，推荐）
+- 给 `public.profiles` 增加 `locale text default 'en'` 字段（migration）
+- 默认 `en`，已有行不影响；写入受现有 RLS 约束（用户只能改自己）
+
+---
+
+## 翻译范围（首批）
+
+为避免一次性改动过大，先翻译以下高频可见文案，其它页面保持英文，后续逐步补全：
+
+- 底部导航（Home / Archive / Assess / Me）
+- Profile 页：Sign In/Sign Up、Sign Out、Plus 卡片标题与按钮、Reports/Vault/Chemistry/Notifications/Settings/Admin 菜单
+- Settings 页全部文案
+- SiteFooter 链接
+- 通用按钮（确认 / 取消 / 保存 / 返回）
+
+未翻译的页面会自然显示英文 key 的 fallback 文案（即原英文），用户体验上不会出现缺字。
+
+---
+
+## 技术细节
+
+### i18n 初始化（`src/i18n/index.ts` 草图）
 ```ts
-export const PLAN_LIMITS = {
-  free: { chat: 20, assessment: 5, deepReport: 0 },
-  plus: { chat: 9999, assessment: 9999, deepReport: 1 },
-};
+i18n.use(LanguageDetector).use(initReactI18next).init({
+  resources: { en: { translation: en }, zh: { translation: zh } },
+  fallbackLng: "en",
+  supportedLngs: ["en", "zh"],
+  detection: {
+    order: ["localStorage", "navigator"],
+    lookupLocalStorage: "app.locale",
+    caches: ["localStorage"],
+  },
+  interpolation: { escapeValue: false },
+});
 ```
-然后 `useSubscription.ts` 改成 `import { PLAN_LIMITS as LIMITS } from "@/lib/limits"`，行为不变。
 
-### 不会改动
-- 数据库结构、RLS、Edge Functions、Paddle 集成
-- 用户端的额度展示与计费流程
-- 其他 Admin 标签（Overview / Purchases / Settings）
+### 切换逻辑
+```ts
+async function setLocale(lng: "en" | "zh") {
+  await i18n.changeLanguage(lng);
+  localStorage.setItem("app.locale", lng);
+  if (user) await supabase.from("profiles").update({ locale: lng }).eq("user_id", user.id);
+}
+```
 
-### 验证
-进入 `/admin` → 用户标签 → 任一用户卡片可见三条额度进度 → 点"管理订阅" → 选 Plus + Yearly + 自定义到期日 → 保存 → toast 成功，卡片重新渲染显示新到期时间和 Plus 上限。切回 Free 同样可用。
+### Settings 页 UI（沿用项目现有卡片样式 / Tailwind tokens）
+```text
+┌─ ← 设置 / Settings ───────────────┐
+│                                    │
+│  界面语言 / Language               │
+│  ┌────────────┐  ┌────────────┐   │
+│  │ ✓ 中文      │  │   English   │   │
+│  └────────────┘  └────────────┘   │
+│                                    │
+│  （后续可加：通知、主题、账号…）    │
+└────────────────────────────────────┘
+```
+
+---
+
+## 不在本次范围
+
+- 全站所有页面文案的完整中文化（量大，建议下个迭代分模块迁移）
+- AI 回复语言切换（chat / assessment 报告内容由后端 prompt 控制，需另行处理）
+- RTL 语言支持
+
+如需把 AI 输出语言也跟随界面语言，请在审批后告知，我会在 chat / assessment edge function 的 prompt 中读取用户 locale 并相应调整。
