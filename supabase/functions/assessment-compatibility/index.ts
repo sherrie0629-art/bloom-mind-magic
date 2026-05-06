@@ -76,7 +76,7 @@ Use therapy-speak naturally. Write in markdown. Warm but professional tone.${lan
     if (quotaError) return quotaError;
 
     const { myProfile, partnerProfile } = body;
-    const systemPrompt = `You are a relationship chemistry expert trained in attachment theory, love languages, and personality psychology. Analyze the compatibility between two people. Use the compatibility_result tool to return results. Respond in the language indicated by LANG below.`;
+    const systemPrompt = `You are a relationship chemistry expert trained in attachment theory, love languages, and personality psychology. Analyze the compatibility between two people. Use the compatibility_result tool to return results. Respond in the language indicated by LANG below.${langInstr}`;
     const userContent = `Me: ${JSON.stringify(myProfile)}\nPartner: ${JSON.stringify(partnerProfile)}\nGenerate relationship chemistry analysis.`;
 
     const tools = [{
