@@ -76,10 +76,13 @@ const AgentProfileDrawer = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs">
               <span className="font-medium text-foreground">
-                Bond: <span className="text-secondary">{BOND_LABELS[bondLevel - 1]}</span>
+                {t("agentDrawer.bondPrefix")}
+                <span className="text-secondary">
+                  {t(`home.bondLabels.${(["stranger","acquaintance","trusted","close","soulbound"][bondLevel - 1]) || "stranger"}`)}
+                </span>
               </span>
               <span className="text-muted-foreground">
-                Lv.{bondLevel} · {totalTurns} turns
+                {t("agentDrawer.lvTurns", { lv: bondLevel, n: totalTurns })}
               </span>
             </div>
             <Progress value={progressPct} className="h-1.5" />
@@ -88,7 +91,7 @@ const AgentProfileDrawer = ({
           {/* Lore entries */}
           <div className="space-y-2.5">
             <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">
-              Story Fragments
+              {t("agentDrawer.storyFragments")}
             </h3>
             {agent.lore.map((entry) => {
               const unlocked = entry.level <= bondLevel;
@@ -106,7 +109,7 @@ const AgentProfileDrawer = ({
                   ) : (
                     <span className="flex items-center gap-1.5">
                       <Lock className="h-3 w-3" />
-                      Deepen your bond to unlock
+                      {t("agentDrawer.lockedHint")}
                     </span>
                   )}
                 </div>
@@ -117,7 +120,7 @@ const AgentProfileDrawer = ({
           {/* Suspense hook */}
           {nextLockedLore && (
             <p className="text-center text-[11px] text-muted-foreground/60 italic">
-              There's a secret {agent.name} has never told anyone…
+              {t("agentDrawer.secretHint", { name: agent.name })}
             </p>
           )}
 
@@ -126,7 +129,7 @@ const AgentProfileDrawer = ({
             onClick={onClose}
             className="w-full rounded-xl bg-primary py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 active:scale-[0.98]"
           >
-            Continue Chatting
+            {t("agentDrawer.continueChat")}
           </button>
         </div>
       </DrawerContent>
