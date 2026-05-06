@@ -33,6 +33,10 @@ interface PurchaseRow {
 
 const Admin = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { locale } = useLocale();
+  const dateLocale = locale === "zh" ? "zh-CN" : "en-US";
+  const productLabel = (k: string) => t(`admin.products.${k}`, { defaultValue: k });
   const { user } = useAuth();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
