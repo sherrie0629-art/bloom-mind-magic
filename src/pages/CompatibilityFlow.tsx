@@ -234,7 +234,7 @@ const CompatibilityFlow = () => {
               ))}
             </div>
             <div className="rounded-2xl bg-card p-5 shadow-card">
-              <h4 className="font-display text-sm font-semibold text-foreground mb-3">✨ Strengths</h4>
+              <h4 className="font-display text-sm font-semibold text-foreground mb-3">{t("assessmentFlow.compatibility.strengths")}</h4>
               <ul className="space-y-2">
                 {result.strengths.map((s, i) => (
                   <li key={i} className="flex items-start gap-2 text-sm text-foreground"><span className="text-secondary mt-0.5">•</span><span className="leading-relaxed">{s}</span></li>
