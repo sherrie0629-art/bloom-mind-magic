@@ -8,6 +8,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useSharePoster } from "@/hooks/useSharePoster";
+import { useLocale } from "@/hooks/useLocale";
+import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import PosterPreviewDialog from "@/components/PosterPreviewDialog";
 
