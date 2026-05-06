@@ -98,13 +98,61 @@ serve(async (req) => {
 
     // === Batch questions mode (no quota check - just generating questions) ===
     if (body.action === "batch-questions") {
+      const isZh = locale === "zh";
+      const styleGuide = isZh ? `
+你是一位会写互动小说的 MBTI 测评设计师。请生成 10 道"剧情化"题目，让用户像玩文字游戏一样穿越 10 个小场景，沉浸式探索自己。
+
+【题干硬性要求】
+- 每题 ≤ 60 字，第二人称（"你…"），有画面感、有钩子（一个谜 / 一个尴尬 / 一个突发事件 / 一个选择困境）。
+- 每题以 1 个 emoji 开头作为场景标识（如 🌙 ☕ 🛸 🪞 🎭 📮 🚪 🎲 🌧 🪐），10 题 emoji 不重复。
+- 场景多样：深夜便利店、平行世界派对、神秘短信、合租房凌晨 3 点、外星观察员、电梯故障、童年抽屉、镜中陌生人、收到匿名礼物、限定 24 小时变形等。
+- 严禁问卷腔："你更倾向于…"、"通常情况下…"、"在工作中…"、"以下哪种…" —— 一律不要。
+
+【选项硬性要求】
+- 4 个选项 (A/B/C/D)，每个 10–22 字，是"我会这样做 / 这样想"的具体行动或念头，自带性格色彩。
+- 不要让 4 个选项明显对应 4 种刻板人格；保持"哪个都有点像我"的微妙感。
+- 允许其中 1 个选项略"反套路 / 黑色幽默 / 中二"作为彩蛋。
+- 不要在选项里出现 E/I/S/N/T/F/J/P 字母或维度名。
+
+【维度覆盖】
+10 题大致均分到 E/I、S/N、T/F、J/P 四个维度（每维 2–3 题）。dimension 字段必须如实标注真实考察维度。
+
+【语言风格】
+中文要自然、年轻、有网感（可适度用"破防""emo""社死""摆烂"等，但全文不超过 2 处），不要翻译腔。
+
+【示例（仅示范风格，不要照抄）】
+题：🌙 凌晨两点，你刷到三年没联系的朋友突然发来一句"在吗"。
+A. 立刻回："在，怎么了？"
+B. 截图甩进闺蜜群："这什么意思"
+C. 划走，假装没看见
+D. 回个"嗯"，等对方先说
+
+必须调用 batch_questions 工具返回 10 道题。` : `
+You are an interactive-fiction MBTI quiz designer. Generate 10 short story-like scenes the user walks through, so the quiz feels like a text-based game, not a questionnaire.
+
+[Question rules]
+- Each ≤ 30 words, 2nd person ("You ..."), vivid and hook-y (a mystery / awkward moment / sudden event / dilemma).
+- Start each question with one scene-setting emoji (🌙 ☕ 🛸 🪞 🎭 📮 🚪 🎲 🌧 🪐 ...), no emoji repeated across the 10 questions.
+- Diverse scenes: late-night convenience store, parallel-universe party, mystery text, 3am in a shared flat, alien observer, stuck elevator, childhood drawer, stranger in the mirror, anonymous gift, 24h shapeshift, etc.
+- Banned phrasing: "Do you prefer...", "In general...", "At work...", "Which of the following..." — none of that.
+
+[Option rules]
+- 4 options (A/B/C/D), each 6–14 words, written as a concrete action or inner thought ("I'd ...").
+- Don't make the 4 options obviously map to 4 stereotypes; keep them all faintly tempting.
+- One option may be slightly off-beat / dark-humour / chaotic as an Easter egg.
+- Never mention E/I/S/N/T/F/J/P or dimension names in option text.
+
+[Dimension coverage]
+Roughly even split across E/I, S/N, T/F, J/P (2–3 each). The dimension field must reflect the true axis.
+
+[Tone]
+Casual, modern, slightly playful — not clinical.
+
+You MUST call the batch_questions tool to return all 10 questions.`;
       const response = await fetchAI(model, {
         messages: [
-          { role: "system", content: `You are a professional MBTI personality assessment expert. Generate 10 MBTI personality quiz questions.
-Questions should cover E/I, S/N, T/F, J/P dimensions. Make them scenario-based, natural, and engaging.
-Each question has 4 options (A/B/C/D). Respond in the language indicated by LANG below.${langInstr}
-You must call the batch_questions tool to return all questions.` },
-          { role: "user", content: "Generate 10 MBTI personality assessment questions covering different personality dimensions." },
+          { role: "system", content: `${styleGuide}${langInstr}` },
+          { role: "user", content: isZh ? "请生成 10 道剧情化的 MBTI 场景题，覆盖 E/I、S/N、T/F、J/P 四个维度。" : "Generate 10 story-driven MBTI scene questions covering E/I, S/N, T/F, J/P." },
         ],
         tools: [{
           type: "function" as const,
@@ -133,7 +181,7 @@ You must call the batch_questions tool to return all questions.` },
           },
         }],
         tool_choice: { type: "function" as const, function: { name: "batch_questions" } },
-        temperature: 0.7, max_tokens: 2048,
+        temperature: 1.0, max_tokens: 2600,
       });
       if (!response.ok) { const t = await response.text(); console.error("Batch questions error:", response.status, t); throw new Error("AI service error"); }
       const data = await response.json();
