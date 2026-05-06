@@ -67,9 +67,9 @@ const Profile = () => {
       });
     } catch (e) {
       console.error(e);
-      toast.error("无法打开结账，请稍后重试");
+      toast.error(t("profile.checkoutFail"));
     }
-  }, [user, billingToggle, openCheckout]);
+  }, [user, billingToggle, openCheckout, t]);
 
   const [portalLoading, setPortalLoading] = useState(false);
   const handleManageSubscription = useCallback(async () => {
@@ -79,30 +79,29 @@ const Profile = () => {
       const { data, error } = await supabase.functions.invoke("paddle-customer-portal");
       if (error) throw error;
       if (!data?.url) throw new Error("No portal URL returned");
-      // Same-tab redirect avoids COOP blocking on cross-origin navigation
       window.location.href = data.url;
     } catch (e: any) {
       console.error(e);
-      toast.error(e?.message || "无法打开管理页面，请稍后重试");
+      toast.error(e?.message || t("profile.portalFail"));
       setPortalLoading(false);
     }
-  }, [user]);
+  }, [user, t]);
 
   const menuItems = [
-    { icon: Star, label: "Reports", count: stats.assessments, action: () => navigate("/assessment-reports") },
-    { icon: Gem, label: "Vault", action: () => navigate("/vault") },
-    { icon: Heart, label: "Chemistry", action: () => navigate("/compatibility-reports") },
-    { icon: Bell, label: "Notifications", action: () => {} },
-    { icon: Settings, label: "Settings", action: () => navigate("/settings") },
-    ...(isAdmin ? [{ icon: Shield, label: "Admin", action: () => navigate("/admin") }] : []),
+    { icon: Star, label: t("profile.menu.reports"), count: stats.assessments, action: () => navigate("/assessment-reports") },
+    { icon: Gem, label: t("profile.menu.vault"), action: () => navigate("/vault") },
+    { icon: Heart, label: t("profile.menu.chemistry"), action: () => navigate("/compatibility-reports") },
+    { icon: Bell, label: t("profile.menu.notifications"), action: () => {} },
+    { icon: Settings, label: t("profile.menu.settings"), action: () => navigate("/settings") },
+    ...(isAdmin ? [{ icon: Shield, label: t("profile.menu.admin"), action: () => navigate("/admin") }] : []),
   ];
 
   const handleLogout = async () => { await signOut(); navigate("/"); };
 
   const plusBenefits = [
-    { label: "Daily Chats", free: "20", plus: "Unlimited" },
-    { label: "Daily Quizzes", free: "5", plus: "Unlimited" },
-    { label: "Deep Reports", free: "—", plus: "1/day" },
+    { label: t("profile.benefitLabels.dailyChats"), free: "20", plus: t("profile.benefitLabels.unlimited") },
+    { label: t("profile.benefitLabels.dailyQuizzes"), free: "5", plus: t("profile.benefitLabels.unlimited") },
+    { label: t("profile.benefitLabels.deepReports"), free: "—", plus: t("profile.benefitLabels.perDay") },
   ];
 
   return (
