@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 interface AssessmentQuestionLayoutProps {
   title: string;
@@ -14,17 +15,11 @@ interface AssessmentQuestionLayoutProps {
   gradientClass?: string;
 }
 
-const defaultLoadingMessages = [
-  "Interpreting your choices...",
-  "AI is diving deeper...",
-  "Tailoring the next question for you...",
-  "Your answers are fascinating...",
-  "Let me think about what to ask next...",
-];
-
 const AssessmentQuestionLayout = ({ title, backPath, questionNumber, totalQuestions, loading, loadingMessage, question, onAnswer, gradientClass = "bg-gradient-golden" }: AssessmentQuestionLayoutProps) => {
   const navigate = useNavigate();
-  const displayLoadingMsg = loadingMessage || defaultLoadingMessages[Math.floor(Math.random() * defaultLoadingMessages.length)];
+  const { t } = useTranslation();
+  const messages = t("assessmentFlow.common.loadingMessages", { returnObjects: true }) as string[];
+  const displayLoadingMsg = loadingMessage || messages[Math.floor(Math.random() * messages.length)];
 
   return (
     <div className="min-h-screen bg-gradient-calm flex flex-col">
