@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import SEO from "@/components/SEO";
 import DesktopLayout from "@/components/DesktopLayout";
 
@@ -7,16 +8,18 @@ const SUPPORT_EMAIL = "islandai_life@outlook.com";
 const LAST_UPDATED = "April 19, 2026";
 
 const Terms = () => {
+  const { t } = useTranslation();
   return (
     <DesktopLayout maxWidth="2xl">
-      <SEO title="Terms of Service — Island AI" description="Island AI terms covering use of the service, subscriptions, billing, refunds, and user responsibilities." />
+      <SEO title={`Terms of Service — ${t("home.appName")}`} description="Island AI terms of service." />
       <div className="min-h-screen bg-gradient-calm px-6 py-10 md:px-8 md:py-14">
         <Link to="/" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-secondary mb-6">
-          <ArrowLeft className="h-3.5 w-3.5" /> Back to Home
+          <ArrowLeft className="h-3.5 w-3.5" /> {t("legal.backHome")}
         </Link>
 
-        <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">Terms of Service</h1>
-        <p className="mt-1 text-xs text-muted-foreground">Last updated: {LAST_UPDATED}</p>
+        <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">{t("footer.terms")}</h1>
+        <p className="mt-1 text-xs text-muted-foreground">{t("legal.lastUpdated", { d: LAST_UPDATED })}</p>
+        {t("legal.noteZhAuto") && <p className="mt-2 text-xs text-muted-foreground italic">{t("legal.noteZhAuto")}</p>}
 
         <div className="mt-8 space-y-6 text-sm text-foreground/90 leading-relaxed">
           <section>

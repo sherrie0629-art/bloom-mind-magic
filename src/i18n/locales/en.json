@@ -599,5 +599,10 @@
   "paymentTestBanner": {
     "text": "All payments in the preview are in test mode.",
     "readMore": "Read more"
+  },
+  "legal": {
+    "backHome": "Back to Home",
+    "lastUpdated": "Last updated: {{d}}",
+    "noteZhAuto": ""
   }
 }
