@@ -146,7 +146,9 @@ ${langLine}`;
         max_tokens: 8000,
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Here are the user's ${typeLabel} assessment results:\n\n${resultSummary}\n\nPlease generate the deep analysis report.` },
+          { role: "user", content: locale === "zh"
+            ? `以下是用户的${typeLabel}测评结果：\n\n${resultSummary}\n\n请生成深度分析报告（全文使用简体中文）。`
+            : `Here are the user's ${typeLabel} assessment results:\n\n${resultSummary}\n\nPlease generate the deep analysis report.` },
         ],
       }),
     });
