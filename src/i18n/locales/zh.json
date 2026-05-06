@@ -444,7 +444,12 @@
     "via": "via 心灵密语",
     "saysSuffix": "{{name}} 说…",
     "quoteCardLoading": "正在生成金句卡片…",
-    "cardFail": "卡片生成失败"
+    "cardFail": "卡片生成失败",
+    "headerTitle": "心灵密语",
+    "headerSub": "你的 AI 疗愈空间",
+    "energy": "能量",
+    "bondLevel": "羁绊等级",
+    "storyFragments": "故事碎片"
   },
   "branchSelector": {
     "yourInnerVoice": "你的内在声音…"
