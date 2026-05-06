@@ -153,8 +153,8 @@
   },
   "assessmentFlow": {
     "common": {
-      "starting": "AI is preparing your questions...",
-      "analyzing": "Analyzing for you...",
+      "starting": "AI is setting the scene, hold on...",
+      "analyzing": "Tossing your choices into the soul blender...",
       "loadFail": "Failed to load, please retry",
       "limitReached": "Daily quiz limit reached ({{n}}) 💫",
       "saveAndShare": "Save Poster",
@@ -163,17 +163,20 @@
       "back": "Back",
       "of": "{{cur}} / {{total}}",
       "loadingMessages": [
-        "Interpreting your choices...",
-        "AI is diving deeper...",
-        "Tailoring the next question for you...",
-        "Your answers are fascinating...",
-        "Let me think about what to ask next..."
+        "Peeking into your subconscious...",
+        "Tossing your choices into the soul blender...",
+        "Jotting down your delightful quirks...",
+        "Building the next scene...",
+        "Your answer made the AI pause for 0.3s...",
+        "Finding the missing puzzle piece in your mind...",
+        "Fumbling for the light switch in your head...",
+        "Hold on, that answer is loaded..."
       ]
     },
     "mbti": {
       "title": "MBTI Personality Quiz",
-      "introTitle": "Decode Your Personality",
-      "introDesc": "AI dynamically adjusts questions based on your answers.\nAbout 10 questions to pinpoint your MBTI type.",
+      "introTitle": "10 scenes. One you.",
+      "introDesc": "Not a clinical questionnaire — 10 tiny stories.\nWalk through them and your personality unfolds.",
       "start": "Start Quiz ✨",
       "resultsTitle": "Your Results",
       "personalityAnalysis": "Personality Analysis",
