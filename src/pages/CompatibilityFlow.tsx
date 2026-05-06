@@ -223,7 +223,7 @@ const CompatibilityFlow = () => {
               <p className="text-xs text-muted-foreground mt-2 leading-relaxed">{result.summary}</p>
             </div>
             <div className="rounded-2xl bg-card p-5 shadow-card space-y-3">
-              <h4 className="font-display text-sm font-semibold text-foreground mb-2">Five Dimensions</h4>
+              <h4 className="font-display text-sm font-semibold text-foreground mb-2">{t("assessmentFlow.compatibility.fiveDimensions")}</h4>
               {Object.entries(result.dimensions).map(([key, value]) => (
                 <div key={key} className="space-y-1">
                   <div className="flex justify-between text-[11px] text-muted-foreground"><span>{DIM_LABELS[key] || key}</span><span>{value}%</span></div>
