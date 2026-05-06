@@ -95,7 +95,8 @@ serve(async (req) => {
       });
     }
 
-    const typeLabel = typeLabels[assessment.assessment_type] || assessment.assessment_type;
+    const labels = typeLabelsByLocale[locale] || typeLabelsByLocale.en;
+    const typeLabel = labels[assessment.assessment_type] || assessment.assessment_type;
     const resultSummary = JSON.stringify(resultData, null, 2);
 
     const sectionTitles = locale === "zh"
