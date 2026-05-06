@@ -599,5 +599,10 @@
   "paymentTestBanner": {
     "text": "预览环境的支付均为测试模式。",
     "readMore": "了解更多"
+  },
+  "legal": {
+    "backHome": "返回首页",
+    "lastUpdated": "最后更新：{{d}}",
+    "noteZhAuto": "（以下条款的官方版本以英文为准；为方便阅读已提供中文摘要。）"
   }
 }
