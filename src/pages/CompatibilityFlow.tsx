@@ -162,8 +162,8 @@ const CompatibilityFlow = () => {
           <motion.div key="input" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} className="px-6 mt-2 space-y-4">
             <div className="rounded-2xl bg-card p-4 shadow-card text-center">
               <Heart className="h-8 w-8 text-rose-warm mx-auto mb-2" />
-              <h3 className="font-display text-base font-bold text-foreground">Relationship Chemistry</h3>
-              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">Enter your personality info and your partner's to get an AI-powered compatibility analysis</p>
+              <h3 className="font-display text-base font-bold text-foreground">{t("assessmentFlow.compatibility.introTitle")}</h3>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t("assessmentFlow.compatibility.introDesc")}</p>
             </div>
             <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
               <div className="flex items-center gap-2">
