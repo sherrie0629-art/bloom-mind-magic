@@ -102,7 +102,7 @@ serve(async (req) => {
         messages: [
           { role: "system", content: `You are a professional MBTI personality assessment expert. Generate 10 MBTI personality quiz questions.
 Questions should cover E/I, S/N, T/F, J/P dimensions. Make them scenario-based, natural, and engaging.
-Each question has 4 options (A/B/C/D). Respond in the language indicated by LANG below.
+Each question has 4 options (A/B/C/D). Respond in the language indicated by LANG below.${langInstr}
 You must call the batch_questions tool to return all questions.` },
           { role: "user", content: "Generate 10 MBTI personality assessment questions covering different personality dimensions." },
         ],
