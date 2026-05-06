@@ -2,7 +2,8 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Heart, Shield, Sparkles, MessageCircleHeart, Compass, Map } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { agents } from "@/data/agents";
+import { agents as RAW_AGENTS } from "@/data/agents";
+import { localizeAgent } from "@/lib/localizeAgent";
 import SEO from "@/components/SEO";
 
 const fadeUp = {
@@ -50,7 +51,7 @@ const Welcome = () => {
   const steps = (t("welcome.steps", { returnObjects: true }) as Array<{ title: string; desc: string }>)
     .map((s, i) => ({ num: `0${i + 1}`, ...s }));
 
-  const displayAgents = agents.slice(0, 4);
+  const displayAgents = RAW_AGENTS.map((a) => localizeAgent(a, t)).slice(0, 4);
 
   return (
     <div className="relative min-h-screen text-white" style={{ background: "linear-gradient(180deg, hsl(225 50% 8%) 0%, hsl(260 40% 12%) 50%, hsl(225 45% 10%) 100%)" }}>

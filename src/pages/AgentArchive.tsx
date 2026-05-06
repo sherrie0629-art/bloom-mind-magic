@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import BottomNav from "@/components/BottomNav";
 import DesktopLayout from "@/components/DesktopLayout";
-import { agents, BOND_THRESHOLDS } from "@/data/agents";
+import { agents as RAW_AGENTS, BOND_THRESHOLDS } from "@/data/agents";
+import { localizeAgent } from "@/lib/localizeAgent";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -16,7 +17,8 @@ const AgentArchive = () => {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [bonds, setBonds] = useState<Record<string, BondData>>({});
-  const [selectedAgent, setSelectedAgent] = useState<string>(agents[0].id);
+  const [selectedAgent, setSelectedAgent] = useState<string>(RAW_AGENTS[0].id);
+  const agents = RAW_AGENTS.map((a) => localizeAgent(a, t));
 
   const bondLabels = [
     t("home.bondLabels.stranger"),
