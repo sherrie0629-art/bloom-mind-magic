@@ -179,7 +179,7 @@ Roughly even split across E/I, S/N, T/F, J/P (2–3 each). The dimension field m
 Casual, modern, slightly playful — not clinical.
 
 You MUST call the batch_questions tool to return all 10 questions.`;
-      const response = await fetchAI(model, {
+      const aiPayload = {
         messages: [
           { role: "system", content: `${styleGuide}${langInstr}` },
           { role: "user", content: isZh ? "请生成 10 道剧情化的 MBTI 场景题，覆盖 E/I、S/N、T/F、J/P 四个维度。" : "Generate 10 story-driven MBTI scene questions covering E/I, S/N, T/F, J/P." },
@@ -211,14 +211,31 @@ You MUST call the batch_questions tool to return all 10 questions.`;
           },
         }],
         tool_choice: { type: "function" as const, function: { name: "batch_questions" } },
-        temperature: 1.0, max_tokens: 2600,
-      });
+        temperature: 0.85, max_tokens: 1800,
+      };
+
+      // Try fast preview model first; fall back to stable model on failure.
+      let response = await fetchAI(model, aiPayload);
+      if (!response.ok) {
+        const t = await response.text();
+        console.warn(`Primary model ${model} failed (${response.status}): ${t}. Falling back.`);
+        response = await fetchAI(fallbackModel, aiPayload);
+      }
       if (!response.ok) { const t = await response.text(); console.error("Batch questions error:", response.status, t); throw new Error("AI service error"); }
       const data = await response.json();
       const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
       if (!toolCall) throw new Error("No tool call in response");
       const args = JSON.parse(toolCall.function.arguments);
-      return new Response(JSON.stringify({ type: "batch", data: args.questions }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+      // Write through to cache (best-effort, non-blocking).
+      if (Array.isArray(args.questions) && args.questions.length >= 10) {
+        adminClient.storage
+          .from(CACHE_BUCKET)
+          .upload(cacheKey, new Blob([JSON.stringify({ questions: args.questions, ts: Date.now() })], { type: "application/json" }), { upsert: true, contentType: "application/json" })
+          .catch((e: unknown) => console.error("Cache write failed:", e));
+      }
+
+      return new Response(JSON.stringify({ type: "batch", data: args.questions, cached: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // === Result mode — check quota server-side ===
