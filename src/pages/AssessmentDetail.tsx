@@ -61,40 +61,41 @@ const AssessmentDetail = () => {
     setDeepLoading(true);
 
     try {
+      const locale = (i18n.resolvedLanguage || i18n.language || "en").startsWith("zh") ? "zh" : "en";
       const { data, error } = await supabase.functions.invoke("generate-deep-report", {
-        body: { assessmentId: id },
+        body: { assessmentId: id, locale },
       });
 
       if (error) {
         const errorBody = typeof error === "object" && "message" in error ? error.message : String(error);
         if (errorBody.includes("402") || errorBody.includes("upgrade")) {
-          toast.error("Upgrade to Plus to unlock deep reports ✨");
+          toast.error(t("assessmentDetail.needUpgrade"));
           return;
         }
         if (errorBody.includes("429") || errorBody.includes("limit")) {
-          toast.error("Daily deep report limit reached (1/day) 🌙");
+          toast.error(t("assessmentDetail.dailyDeepLimit"));
           return;
         }
         throw error;
       }
 
       if (data?.needUpgrade) {
-        toast.error("Upgrade to Plus to unlock deep reports ✨");
+        toast.error(t("assessmentDetail.needUpgrade"));
         return;
       }
 
       if (data?.dailyLimitReached) {
-        toast.error("Daily deep report limit reached (1/day) 🌙");
+        toast.error(t("assessmentDetail.dailyDeepLimit"));
         return;
       }
 
       if (data?.deepReport) {
         setDeepReport(data.deepReport);
         setShowDeepReport(true);
-        toast.success("Deep report generated! ✨");
+        toast.success(t("assessmentDetail.deepDone"));
       }
     } catch (e: any) {
-      toast.error(e.message || "Generation failed, please retry");
+      toast.error(e.message || t("assessmentDetail.deepFail"));
     } finally {
       setDeepLoading(false);
     }
@@ -111,8 +112,8 @@ const AssessmentDetail = () => {
   if (!report) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-calm gap-3">
-        <p className="text-muted-foreground">Report not found</p>
-        <button onClick={() => navigate(-1)} className="text-sm text-secondary underline">Go back</button>
+        <p className="text-muted-foreground">{t("common.noteFound")}</p>
+        <button onClick={() => navigate(-1)} className="text-sm text-secondary underline">{t("common.goBack")}</button>
       </div>
     );
   }
@@ -142,13 +143,14 @@ const AssessmentDetail = () => {
       setShareImageUrl(canvas.toDataURL("image/png"));
       setShareOpen(true);
     } catch {
-      toast.error("Failed to generate share image");
+      toast.error(t("compatibilityDetail.posterFail"));
     }
   };
 
   const formatDate = (s: string) => {
     const dt = new Date(s);
-    return dt.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) + " " +
+    const lang = (i18n.resolvedLanguage || i18n.language || "en").startsWith("zh") ? "zh-CN" : "en-US";
+    return dt.toLocaleDateString(lang, { year: "numeric", month: "short", day: "numeric" }) + " " +
       dt.getHours().toString().padStart(2, "0") + ":" + dt.getMinutes().toString().padStart(2, "0");
   };
 
