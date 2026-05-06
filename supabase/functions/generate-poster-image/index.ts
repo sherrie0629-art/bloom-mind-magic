@@ -6,6 +6,19 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const CACHE_BUCKET = "mbti-poster-art";
+
+function dataUrlToBytes(dataUrl: string): { bytes: Uint8Array; contentType: string } {
+  const match = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!match) throw new Error("Invalid data URL");
+  const contentType = match[1];
+  const b64 = match[2];
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return { bytes, contentType };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -26,7 +39,29 @@ serve(async (req) => {
       });
     }
 
-    const { prompt } = await req.json();
+    const { prompt, cacheKey } = await req.json();
+
+    // Service-role client for storage write (anon RLS only allows read).
+    const adminClient = cacheKey
+      ? createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!)
+      : null;
+
+    // 1) Cache hit fast-path
+    if (cacheKey && adminClient) {
+      const safeKey = String(cacheKey).replace(/[^a-zA-Z0-9_-]/g, "");
+      const objectPath = `${safeKey}.png`;
+      const { data: existing } = await adminClient.storage
+        .from(CACHE_BUCKET)
+        .list("", { search: objectPath, limit: 1 });
+      if (existing && existing.some((f) => f.name === objectPath)) {
+        const { data: urlData } = adminClient.storage.from(CACHE_BUCKET).getPublicUrl(objectPath);
+        return new Response(JSON.stringify({ imageUrl: urlData.publicUrl, cached: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // 2) Generate via AI
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
@@ -38,12 +73,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-3.1-flash-image-preview",
-        messages: [
-          {
-            role: "user",
-            content: prompt,
-          },
-        ],
+        messages: [{ role: "user", content: prompt }],
         modalities: ["image", "text"],
       }),
     });
@@ -55,10 +85,31 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-    if (!imageUrl) throw new Error("No image in response");
+    const aiImageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    if (!aiImageUrl) throw new Error("No image in response");
 
-    return new Response(JSON.stringify({ imageUrl }), {
+    // 3) Upload to cache (best-effort) and return CDN URL
+    if (cacheKey && adminClient && aiImageUrl.startsWith("data:")) {
+      try {
+        const safeKey = String(cacheKey).replace(/[^a-zA-Z0-9_-]/g, "");
+        const objectPath = `${safeKey}.png`;
+        const { bytes, contentType } = dataUrlToBytes(aiImageUrl);
+        const { error: upErr } = await adminClient.storage
+          .from(CACHE_BUCKET)
+          .upload(objectPath, bytes, { contentType, upsert: true });
+        if (!upErr) {
+          const { data: urlData } = adminClient.storage.from(CACHE_BUCKET).getPublicUrl(objectPath);
+          return new Response(JSON.stringify({ imageUrl: urlData.publicUrl, cached: false }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        console.error("Cache upload failed:", upErr);
+      } catch (e) {
+        console.error("Cache upload exception:", e);
+      }
+    }
+
+    return new Response(JSON.stringify({ imageUrl: aiImageUrl }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
