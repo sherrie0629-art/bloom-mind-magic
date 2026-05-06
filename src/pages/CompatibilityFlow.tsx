@@ -253,14 +253,14 @@ const CompatibilityFlow = () => {
               </div>
             </div>
             <div className="rounded-2xl bg-card p-5 shadow-card">
-              <h4 className="font-display text-sm font-semibold text-foreground mb-3">💗 Love Languages</h4>
+              <h4 className="font-display text-sm font-semibold text-foreground mb-3">{t("assessmentFlow.compatibility.loveLanguages")}</h4>
               <div className="grid grid-cols-2 gap-3 mb-3">
                 <div className="rounded-xl bg-muted/30 p-3 text-center">
-                  <p className="text-[10px] text-muted-foreground">{myName || "Me"}</p>
+                  <p className="text-[10px] text-muted-foreground">{myName || t("assessmentFlow.compatibility.me")}</p>
                   <p className="text-sm font-semibold text-foreground mt-1">{result.loveLanguage.mine}</p>
                 </div>
                 <div className="rounded-xl bg-muted/30 p-3 text-center">
-                  <p className="text-[10px] text-muted-foreground">{partnerName || "Them"}</p>
+                  <p className="text-[10px] text-muted-foreground">{partnerName || t("assessmentFlow.compatibility.them")}</p>
                   <p className="text-sm font-semibold text-foreground mt-1">{result.loveLanguage.partner}</p>
                 </div>
               </div>
