@@ -73,15 +73,43 @@ const AssessmentFlow = () => {
     } catch (e: any) { toast.error(e.message || t("assessmentFlow.common.loadFail")); } finally { setLoading(false); }
   };
 
+  // Prefetch a fresh AI-generated batch in the background while user reads the intro.
+  const prefetchedRef = useRef<Promise<any[] | null> | null>(null);
+  useEffect(() => {
+    if (started || prefetchedRef.current) return;
+    prefetchedRef.current = supabase.functions
+      .invoke("assessment", { body: { action: "batch-questions", locale } })
+      .then(({ data, error }) => (!error && data?.type === "batch" && Array.isArray(data.data) && data.data.length >= 10 ? data.data : null))
+      .catch(() => null);
+  }, [started, locale]);
+
   const handleStart = async () => {
     if (!user) { toast.error(t("auth.signInFirst", "请先登录 🌙")); navigate("/auth"); return; }
     if (!canAssess) { toast.error(t("assessmentFlow.common.limitReached", { n: assessmentLimit })); return; }
-    await incrementAssessment(); setStarted(true); setLoading(true); setLoadingMsg(t("assessmentFlow.common.starting"));
-    try {
-      const { data, error } = await supabase.functions.invoke("assessment", { body: { action: "batch-questions", locale } });
-      if (error) throw error;
-      if (data.type === "batch" && data.data?.length > 0) { batchQuestionsRef.current = data.data.slice(1); setCurrentQuestion(data.data[0]); }
-    } catch (e: any) { toast.error(e.message || t("assessmentFlow.common.loadFail")); } finally { setLoading(false); }
+    await incrementAssessment();
+    setStarted(true);
+
+    // 1) Try to use already-prefetched AI batch (often ready by the time user clicks Start).
+    let batch: any[] | null = null;
+    if (prefetchedRef.current) {
+      batch = await Promise.race([
+        prefetchedRef.current,
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 400)),
+      ]);
+    }
+
+    // 2) Fallback to the local curated pool — instant, no network.
+    if (!batch || batch.length < 10) {
+      batch = pickQuestionSet(locale);
+      // Keep the prefetch running so a later session can use it; also kick a new one for next time.
+      if (!prefetchedRef.current) {
+        supabase.functions.invoke("assessment", { body: { action: "batch-questions", locale } }).catch(() => {});
+      }
+    }
+
+    batchQuestionsRef.current = batch.slice(1);
+    setCurrentQuestion(batch[0]);
+    setLoading(false);
   };
 
   const handleAnswer = (option: { label: string; text: string }) => {
