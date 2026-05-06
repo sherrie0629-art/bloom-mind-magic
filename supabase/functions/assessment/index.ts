@@ -181,7 +181,7 @@ You MUST call the batch_questions tool to return all 10 questions.`;
           },
         }],
         tool_choice: { type: "function" as const, function: { name: "batch_questions" } },
-        temperature: 0.7, max_tokens: 2048,
+        temperature: 1.0, max_tokens: 2600,
       });
       if (!response.ok) { const t = await response.text(); console.error("Batch questions error:", response.status, t); throw new Error("AI service error"); }
       const data = await response.json();
