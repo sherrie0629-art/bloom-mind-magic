@@ -59,8 +59,9 @@ interface ZodiacResult {
   socialCaption: string;
 }
 
-const getImagePrompt = (result: ZodiacResult) =>
-  `Create a dreamy celestial illustration representing the zodiac sign ${result.zodiacSign} with ${result.element} element. Soft purple and violet cosmic tones, stars, constellation patterns. Ethereal and magical. Square format, no text.`;
+const getImagePromptForSign = (signName: string, element: string) =>
+  `Create a dreamy celestial illustration representing the zodiac sign ${signName} with ${element} element. Soft purple and violet cosmic tones, stars, constellation patterns. Ethereal and magical. Square format, no text.`;
+const getCacheKeyForSign = (signName: string) => `zodiac_${signName.toLowerCase()}`;
 
 const ZodiacFlow = () => {
   const navigate = useNavigate();
