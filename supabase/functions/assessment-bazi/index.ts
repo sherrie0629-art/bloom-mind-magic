@@ -45,7 +45,7 @@ serve(async (req) => {
         messages: [
           { role: "system", content: `You are an Enneagram personality expert. Generate 10 scenario-based questions to determine a person's Enneagram type (1-9).
 Questions should explore core motivations, fears, desires, and behavioral patterns across different life situations.
-Each question has 4 options (A/B/C/D). All content in English.
+Each question has 4 options (A/B/C/D). Respond in the language indicated by LANG below.
 You must call the batch_questions tool to return all questions.` },
           { role: "user", content: "Generate 10 Enneagram personality assessment questions." },
         ],
@@ -67,7 +67,7 @@ You must call the batch_questions tool to return all questions.` },
 
     const { history } = body;
     const systemPrompt = `You are an Enneagram personality expert. Based on the user's answers, determine their Enneagram type (1-9), wing, core fear, core desire, growth path, and stress arrow.
-Provide professional but accessible analysis. All content in English.
+Provide professional but accessible analysis. Respond in the language indicated by LANG below.
 You must call the enneagram_result tool to return results.`;
     const userContent = `Here is the user's Q&A history:\n${history.map((h: any, i: number) => `Q${i + 1}: ${h.question}\nA${i + 1}: ${h.answer}`).join("\n\n")}\n\nAnalyze the Enneagram type.`;
 

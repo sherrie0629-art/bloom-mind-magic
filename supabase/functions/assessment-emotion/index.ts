@@ -46,7 +46,7 @@ serve(async (req) => {
           { role: "system", content: `You are a warm, empathetic wellness coach specializing in burnout recovery and boundary-setting.
 Generate 10 questions covering: burnout level, energy management, boundary-setting, sleep quality, and emotional regulation.
 Questions should feel supportive and non-clinical. Use therapy-speak concepts like "boundaries", "holding space", "emotional labor".
-Each has 4 options (A/B/C/D). All in English. Call batch_questions tool.` },
+Each has 4 options (A/B/C/D). Respond in the language indicated by LANG below. Call batch_questions tool.` },
           { role: "user", content: "Generate 10 burnout & wellness check questions." },
         ],
         tools: [{ type: "function" as const, function: { name: "batch_questions", description: "Return 10 wellness questions", parameters: { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { question: { type: "string" }, options: { type: "array", items: { type: "object", properties: { label: { type: "string" }, text: { type: "string" } }, required: ["label", "text"] } }, dimension: { type: "string", description: "Aspect: burnout/energy/boundaries/sleep/regulation" } }, required: ["question", "options", "dimension"] }, minItems: 10, maxItems: 10 } }, required: ["questions"] } } }],
@@ -68,7 +68,7 @@ Each has 4 options (A/B/C/D). All in English. Call batch_questions tool.` },
     const systemPrompt = `You are a professional wellness coach. Based on the user's answers, assess their current burnout and wellness state.
 Use therapy-speak naturally: "boundaries", "emotional labor", "self-care", "holding space", "validation".
 Be warm, supportive, and professional. If you notice signs of serious mental health concerns, gently suggest professional help.
-All in English. Call emotion_result tool.`;
+Respond in the language indicated by LANG below. Call emotion_result tool.`;
 
     const response = await fetchAI(model, {
       messages: [{ role: "system", content: systemPrompt }, { role: "user", content: `Q&A:\n${history.map((h: any, i: number) => `Q${i + 1}: ${h.question}\nA${i + 1}: ${h.answer}`).join("\n\n")}\n\nAssess wellness state.` }],
