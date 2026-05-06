@@ -241,9 +241,9 @@ const DailyTarot = () => {
                   <h2 className="font-display text-lg font-bold text-foreground">{result.cardName}</h2>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${result.isReversed ? "bg-rose-warm/20 text-rose-warm" : "bg-secondary/20 text-secondary"}`}>
-                      {result.isReversed ? "Reversed" : "Upright"}
+                      {result.isReversed ? t("dailyTarot.reversed") : t("dailyTarot.upright")}
                     </span>
-                    <span className="text-xs text-muted-foreground">Energy {result.energyScore}/5</span>
+                    <span className="text-xs text-muted-foreground">{t("dailyTarot.energy", { n: result.energyScore })}</span>
                   </div>
                 </div>
               </div>
