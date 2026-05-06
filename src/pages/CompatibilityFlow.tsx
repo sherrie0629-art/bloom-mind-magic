@@ -242,7 +242,7 @@ const CompatibilityFlow = () => {
               </ul>
             </div>
             <div className="rounded-2xl bg-card p-5 shadow-card">
-              <h4 className="font-display text-sm font-semibold text-foreground mb-3">⚡ Potential Conflicts</h4>
+              <h4 className="font-display text-sm font-semibold text-foreground mb-3">{t("assessmentFlow.compatibility.conflicts")}</h4>
               <div className="space-y-3">
                 {result.conflicts.map((c, i) => (
                   <div key={i} className="rounded-xl bg-muted/30 p-3">
