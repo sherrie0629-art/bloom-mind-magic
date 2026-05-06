@@ -293,6 +293,7 @@ serve(async (req) => {
       fullSystemPrompt += `\n\n【Long-term Memory】These are specific memories about this user from past conversations. Reference them naturally and proactively — e.g., "Last time you mentioned work stress, how's that going?" Don't list them robotically, weave them into the conversation at the right moments.\n${memoryContext.join("\n")}`;
     }
 
+    fullSystemPrompt += langLine;
     const requestBody = JSON.stringify({
       model: MODEL,
       max_tokens: 300,
