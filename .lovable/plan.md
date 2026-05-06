@@ -1,58 +1,49 @@
-## 问题诊断
+## 现状
 
-MBTI 结果页的配图慢，根因有三个：
+`/assessment/mbti` 点击"开始"后，要等 `assessment` 边缘函数调用 `gemini-2.5-flash-lite` 生成 10 道剧情题，单次返回 ~2600 tokens、典型耗时 6–12 秒。这段时间用户只能看 loading，体感很糟。
 
-1. **每次都重新调用 AI 生成图片**：`generate-poster-image` 调用 `gemini-3.1-flash-image-preview`，单次耗时 5–15 秒，且**每个用户、每次测评都重跑一次**，即使 MBTI 类型相同（只有 16 种）。
-2. **图片以 base64 dataURL 返回**：体积大（几百 KB～几 MB），写入 `assessment_results.result_data` 后续读取也慢。
-3. **图片请求等结果出来才开始**：`fetchResultImage` 在 `fetchResult` 完成后才触发，串行等待。
+## 优化思路（按收益从大到小）
 
-由于 MBTI 只有 16 种类型，**绝大多数请求其实可以直接命中缓存**，这是最大优化空间。
+### 方案 A · 预置题库 + 后台刷新（推荐，几乎 0 等待）
 
-## 优化方案（不改变视觉与交互）
+**核心：客户端内置 5 套精心打磨过的剧情题（每套 10 道，中英各 5 套），开始测评时随机抽一套立即开题；同时后台异步去 AI 生成新题塞进缓存，下一次优先用。**
 
-### 1. 服务端按 MBTI 类型全局缓存图片（最关键）
+- 新增 `src/data/mbtiQuestionPool.ts`：导出 `zh: QSet[]` 与 `en: QSet[]`，每套结构与现有 `batch-questions` 返回值一致（`question / options / dimension`）。  
+  题目用一次脚本（`/tmp` 跑 `lovable_ai.py` 调 AI）批量生成 + 人工微调后落到该文件，不走运行时 AI。
+- `src/pages/AssessmentFlow.tsx` 的 `handleStart`：
+  1. **同步**：从 pool 随机抽一套 → 立刻 `setCurrentQuestion(set[0])`、`batchQuestionsRef.current = set.slice(1)`、`setLoading(false)`。用户**立刻**看到第 1 题。
+  2. **后台**：`supabase.functions.invoke("assessment", { body: { action: "batch-questions", locale } })` 不 await，返回后写入 `sessionStorage("mbti-fresh-pool")`，下次开测时优先用并补一套新题。
+- 这样：首次 0 秒等待；后续仍有 AI 生成的新鲜感。
 
-- 新建公开 Storage 桶 `mbti-poster-art`，文件名 `mbti-{TYPE}.png`（如 `mbti-INFP.png`）。
-- 改造 `supabase/functions/generate-poster-image/index.ts`：
-  - 接收可选参数 `cacheKey`（客户端传 `mbti-INFP` 这种）。
-  - **先查桶**：若 `{cacheKey}.png` 已存在 → 直接返回其 `getPublicUrl`，跳过 AI 调用。命中后接口耗时 < 200ms。
-  - **未命中**：调用 AI 生成，把返回的 base64 解码成 PNG `Blob` → 上传到桶 → 返回公开 URL。
-  - 仍然兼容旧的"无 cacheKey"调用路径（其他海报场景照常走 AI）。
+### 方案 B · 加速服务端（不改架构，作为补充）
 
-效果：第一个抽到 INFP 的用户付出一次生成成本，之后所有 INFP 用户**几乎立刻**拿到图。
+即便走 AI 路径，也能砍掉一半时间：
 
-### 2. 客户端改为存储/复用公开 URL
+1. **流式返回 + 边到边显示**：把 `batch-questions` 改为 SSE 流，客户端解析到第 1 道完整 JSON 就立即展示，剩下 9 道边下边塞进 ref。Gemini tool-calling 流式确实可行（按 chunk 拼 arguments，监测 `questions[0]` 闭合括号）。  
+   工作量较大、解析脆弱，建议只在方案 A 之外作为锦上添花。
+2. **降负载**：`max_tokens` 2600 → 1800（每题字数已限定）、`temperature` 1.0 → 0.85；首屏只生成 5 题，用户答到第 4 题时再悄悄请求后 5 题。
+3. **更快的模型**：把 `google/gemini-2.5-flash-lite` 换成 `google/gemini-3.1-flash-lite-preview`（同类更新版，吞吐更高）。
+4. **服务端按 locale 预热缓存**：在 `assessment` 函数里加一个 KV/Storage 缓存（`mbti-questions-zh-${date}.json`），1 小时内的请求直接返回。所有用户共享同一套题，AI 只为第一位用户跑。
 
-- `src/pages/AssessmentFlow.tsx` 的 `fetchResultImage` 调用 `generate-poster-image` 时传 `cacheKey: \`mbti-${result.mbtiType}\``。
-- 拿到的 `imageUrl` 现在是一个公开 CDN URL（不是 base64），写入 `assessment_results.result_data.imageUrl` 体积变小、回看历史结果秒开。
-- `src/hooks/useSharePoster.ts` 中 `imageCache` 的 key 改为 cacheKey（命中率更高），并保留按 prompt 兜底。
+### 方案 C · UX 减痛（即便不优化也要做）
 
-### 3. 提前并行预取，缩短感知等待
+- Loading 阶段把现有 `loadingMessages` 改成**进度条 + 渐进文案**（"正在偷看你的潜意识 35%"），并放一段 ~3s 的破冰小问题（如"先选个今天的心情"），把等待变成内容。
+- 在 intro 页 mount 时就预热一次 `batch-questions`（用户读介绍的 5–8 秒可以拿来跑 AI），点击"开始"时直接读 ref。**这一招几乎免费，强烈建议无论选哪个方案都先做。**
 
-- 在 `fetchResult` 拿到 `mbtiType` 后，**同时**触发 `fetchResultImage` 与 `fetchParallelUniverse`（已经并行，保留）。
-- 进一步：在第 10 题被回答后立刻 `prefetch` 一张"通用占位渐变图"（CSS 已有）作为骨架，无需额外网络。
-- 在 `ResultAIImage.tsx` 给 `<img>` 加 `decoding="async"` 与 `loading="eager"`，避免主线程阻塞渲染。
+## 推荐组合
 
-### 4. 兜底：AI 失败时不再让用户干等
-
-- `generate-poster-image` 失败或 30 秒未返回时，客户端不再无限 spin。改为 `setImageLoading(false)`、`resultImageUrl=null`，结果页直接渲染（保留 MBTI 文案、维度条、平行宇宙），不影响主流程。
-- `useSharePoster` 已对 `preloadedImageUrl` 缺失场景做了兼容（直接跳过插图区），无需改动海报逻辑。
+**先做方案 C 的预热（10 行代码）+ 方案 A 的本地题库**：上线后 99% 的用户开测瞬间就能看到第 1 题。  
+方案 B 的服务端缓存可作为兜底，让 AI 调用降到每天个位数次。
 
 ## 涉及文件
 
-- `supabase/functions/generate-poster-image/index.ts`：加 cacheKey 缓存逻辑、上传到新桶。
-- `src/pages/AssessmentFlow.tsx`：调用时传 cacheKey；超时兜底。
-- `src/hooks/useSharePoster.ts`：`fetchAIImage` 支持 cacheKey、缓存 key 调整。
-- `src/components/ResultAIImage.tsx`：`<img>` 加 `decoding="async"`。
-- 新增 Storage 桶 `mbti-poster-art`（public）+ 一条让 service role 可写、anon 可读的策略。
+- `src/pages/AssessmentFlow.tsx`：intro 页预热 + 本地 pool 抽题 + 后台刷新
+- `src/data/mbtiQuestionPool.ts`（新增）：中英各 5 套精修题
+- `supabase/functions/assessment/index.ts`：可选加 Storage 缓存 + 切模型
+- `src/i18n/locales/{zh,en}.json`：可选优化 loading 文案
 
-## 不会动的部分
+## 风险与取舍
 
-- 视觉、布局、文案、海报样式、维度条、平行宇宙模块、分享流程均保持原样。
-- 其他测评（八字、九型等）的海报生成逻辑不受影响（不传 cacheKey 时走旧逻辑）。
-
-## 预期效果
-
-- 首位用户（冷启动）：与现在相同（5–15s）。
-- 之后 16 种类型都被覆盖一次以后：图片加载从 5–15s → **<500ms**（CDN 直出）。
-- `assessment_results` 表存储体积明显下降，历史报告页也会更快。
+- 本地题库会让代码包多几十 KB（10 套 × 10 题，纯文本），完全可接受。
+- 同一套题可能被同一个用户重复抽到。可以记一下 `localStorage("mbti-last-set-id")` 避免连抽同一套。
+- 方案 A 牺牲一点"每次都是 AI 现编"的故事性，但题目质量反而更稳（可控、可审）。
