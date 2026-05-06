@@ -428,6 +428,7 @@ interface EditorProps {
 }
 
 const SubscriptionEditor = ({ currentPlan, currentBilling, currentExpiresAt, saving, onCancel, onSave }: EditorProps) => {
+  const { t } = useTranslation();
   const defaultExpiry = (billing: "monthly" | "yearly") => {
     const d = new Date();
     d.setDate(d.getDate() + (billing === "yearly" ? 365 : 30));
@@ -448,7 +449,7 @@ const SubscriptionEditor = ({ currentPlan, currentBilling, currentExpiresAt, sav
     <div className="space-y-2 rounded-lg border border-border p-2.5">
       <div className="grid grid-cols-2 gap-2">
         <label className="block">
-          <span className="text-[9px] text-muted-foreground">套餐</span>
+          <span className="text-[9px] text-muted-foreground">{t("admin.subEditor.plan")}</span>
           <select
             value={plan}
             onChange={e => setPlan(e.target.value as "free" | "plus")}
@@ -459,20 +460,20 @@ const SubscriptionEditor = ({ currentPlan, currentBilling, currentExpiresAt, sav
           </select>
         </label>
         <label className="block">
-          <span className="text-[9px] text-muted-foreground">计费周期</span>
+          <span className="text-[9px] text-muted-foreground">{t("admin.subEditor.billing")}</span>
           <select
             value={billing}
             disabled={plan === "free"}
             onChange={e => handleBillingChange(e.target.value as "monthly" | "yearly")}
             className="mt-0.5 w-full rounded-md bg-card border border-border px-2 py-1 text-[11px] text-foreground disabled:opacity-50"
           >
-            <option value="monthly">月付 Monthly</option>
-            <option value="yearly">年付 Yearly</option>
+            <option value="monthly">{t("admin.subEditor.monthly")}</option>
+            <option value="yearly">{t("admin.subEditor.yearly")}</option>
           </select>
         </label>
       </div>
       <label className="block">
-        <span className="text-[9px] text-muted-foreground">到期时间</span>
+        <span className="text-[9px] text-muted-foreground">{t("admin.subEditor.expires")}</span>
         <input
           type="date"
           value={expires}
@@ -491,13 +492,13 @@ const SubscriptionEditor = ({ currentPlan, currentBilling, currentExpiresAt, sav
           })}
           className="flex-1 rounded-lg bg-gradient-golden py-1.5 text-[10px] font-semibold text-primary-foreground disabled:opacity-50"
         >
-          {saving ? "保存中..." : "保存"}
+          {saving ? t("admin.subEditor.saving") : t("admin.subEditor.save")}
         </button>
         <button
           onClick={onCancel}
           className="flex-1 rounded-lg bg-muted py-1.5 text-[10px] font-medium text-muted-foreground"
         >
-          取消
+          {t("admin.subEditor.cancel")}
         </button>
       </div>
     </div>
