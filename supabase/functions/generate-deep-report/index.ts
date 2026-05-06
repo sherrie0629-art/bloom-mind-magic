@@ -100,6 +100,10 @@ serve(async (req) => {
     const typeLabel = typeLabels[assessment.assessment_type] || assessment.assessment_type;
     const resultSummary = JSON.stringify(resultData, null, 2);
 
+    const sectionTitles = locale === "zh"
+      ? { core: "## 📋 核心人格画像", attach: "## 🧒 童年依恋模式分析", redflag: "## 💕 亲密关系预警指南", defense: "## 🛡️ 核心心理防御机制", career: "## 💼 职业发展洞察", growth: "## 🌱 个人成长路线图", outlook: "## 🔮 总结与展望" }
+      : { core: "## 📋 Core Personality Profile", attach: "## 🧒 Childhood Attachment Pattern Analysis", redflag: "## 💕 Relationship Red Flags Guide", defense: "## 🛡️ Core Defense Mechanisms", career: "## 💼 Career Development Insights", growth: "## 🌱 Personal Growth Roadmap", outlook: "## 🔮 Summary & Outlook" };
+    const langLine = locale === "zh" ? "- 全文使用简体中文撰写" : "- Write in English";
     const systemPrompt = `You are a senior psychologist and personality analysis expert with 20 years of experience. Based on the user's ${typeLabel} assessment results, generate a 3,000–5,000 word deep psychological analysis report.
 
 The report must include the following sections (in markdown format):
