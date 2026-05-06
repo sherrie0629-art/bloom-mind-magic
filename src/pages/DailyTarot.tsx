@@ -175,7 +175,7 @@ const DailyTarot = () => {
   return (
     <DesktopLayout>
     <div className="min-h-screen bg-gradient-calm pb-24 md:pb-8">
-      <SEO title="Daily Tarot — Soul Sanctuary" description="Draw your daily tarot card for personalized insights and guidance from the universe." />
+      <SEO title={`${t("dailyTarot.title")} — ${t("home.appName")}`} description={t("dailyTarot.subtitle")} />
       {/* Header */}
       <div className="px-6 pt-14 pb-4">
         <div className="flex items-center gap-3">
@@ -183,8 +183,8 @@ const DailyTarot = () => {
             <ArrowLeft className="h-4 w-4 text-foreground" />
           </button>
           <div>
-            <h1 className="font-display text-xl font-bold text-foreground">Daily Tarot</h1>
-            <p className="text-xs text-muted-foreground">Draw a card · Discover today's insight</p>
+            <h1 className="font-display text-xl font-bold text-foreground">{t("dailyTarot.title")}</h1>
+            <p className="text-xs text-muted-foreground">{t("dailyTarot.subtitle")}</p>
           </div>
         </div>
       </div>
