@@ -131,7 +131,7 @@ const AssessmentDetail = () => {
     try {
       const canvas = await generatePoster({
         title: getTitle(),
-        subtitle: cfg.label,
+        subtitle: typeLabel,
         description: d.description || "",
         bars,
         accentColor: "#8b5cf6",
@@ -235,7 +235,7 @@ const AssessmentDetail = () => {
           <button onClick={() => navigate("/assessment-reports")} className="text-muted-foreground">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h2 className="font-display text-sm font-semibold text-foreground">{cfg.label}</h2>
+          <h2 className="font-display text-sm font-semibold text-foreground">{typeLabel}</h2>
         </div>
         <button onClick={handleShare} className="text-muted-foreground hover:text-foreground transition-colors">
           <Share2 className="h-5 w-5" />
@@ -263,7 +263,7 @@ const AssessmentDetail = () => {
           className="rounded-2xl bg-card p-5 shadow-card"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${cfg.gradient}`}>
+            <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${gradient}`}>
               <Icon className="h-6 w-6 text-primary-foreground" />
             </div>
             <div>
