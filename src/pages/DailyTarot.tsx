@@ -293,8 +293,8 @@ const DailyTarot = () => {
         open={shareOpen}
         onClose={() => { setShareOpen(false); setShareDataUrl(null); }}
         imageDataUrl={shareDataUrl}
-        title={result?.cardName || "Daily Tarot"}
-        text="Discover your daily tarot insight ✨"
+        title={result?.cardName || t("dailyTarot.title")}
+        text={t("dailyTarot.shareText")}
       />
       <BottomNav />
     </div>
