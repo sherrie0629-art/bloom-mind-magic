@@ -1,0 +1,65 @@
+{
+  "nav": {
+    "home": "首页",
+    "archive": "档案",
+    "assess": "测评",
+    "me": "我的"
+  },
+  "common": {
+    "back": "返回",
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "loading": "加载中…"
+  },
+  "footer": {
+    "pricing": "定价",
+    "contact": "联系我们",
+    "privacy": "隐私政策",
+    "terms": "服务条款",
+    "rights": "保留所有权利"
+  },
+  "profile": {
+    "signInUp": "登录 / 注册",
+    "signOut": "退出登录",
+    "signInToBegin": "登录以开启你的旅程",
+    "dayOf": "你的心灵之旅第 {{n}} 天 ✨",
+    "traveler": "旅人",
+    "freePlan": "免费版",
+    "plus": "✨ Plus 会员",
+    "expires": "到期时间：{{date}}",
+    "trialEnded": "🚫 免费试用已结束，升级 Plus 继续使用。",
+    "trialLeft": "🎁 免费试用：剩余 {{n}} 天",
+    "todaysChats": "今日对话",
+    "todaysQuizzes": "今日测评",
+    "todaysDeepReports": "今日深度报告",
+    "manageSubscription": "管理订阅 / 取消",
+    "opening": "打开中…",
+    "whyPlus": "为什么选 Plus？",
+    "benefit": "权益",
+    "free": "免费",
+    "monthly": "月付",
+    "yearlySave": "年付 · 省 20%",
+    "getPlusMonthly": "开通 Plus · $4.99/月",
+    "getPlusYearly": "开通 Plus · $47.99/年",
+    "refundNote": "若未使用任何 AI 功能，14 天内可申请退款。详见",
+    "termsLink": "服务条款",
+    "forDetails": "。",
+    "menu": {
+      "reports": "报告",
+      "vault": "宝匣",
+      "chemistry": "缘分",
+      "notifications": "通知",
+      "settings": "设置",
+      "admin": "管理后台"
+    }
+  },
+  "settings": {
+    "title": "设置",
+    "language": "界面语言",
+    "languageDesc": "选择应用的显示语言。",
+    "chinese": "中文",
+    "english": "English",
+    "saved": "语言已更新"
+  }
+}
