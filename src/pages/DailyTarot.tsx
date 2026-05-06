@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, RotateCcw, Share2, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { tarotCards, drawRandomCard } from "@/data/tarotCards";
@@ -28,6 +29,7 @@ interface DrawResult {
 
 const DailyTarot = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, promptLogin } = useAuth();
   const [state, setState] = useState<DrawState>("idle");
   const [result, setResult] = useState<DrawResult | null>(null);
@@ -103,7 +105,7 @@ const DailyTarot = () => {
   }, []);
 
   const handleDraw = async () => {
-    if (!user) { promptLogin("Sign in to draw your daily tarot card"); return; }
+    if (!user) { promptLogin(t("dailyTarot.focus")); return; }
     setState("drawing");
     try {
       const { card, isReversed } = drawRandomCard();
@@ -131,7 +133,7 @@ const DailyTarot = () => {
       if (data.imageStatus === "pending") startPolling(data.id);
     } catch (e: any) {
       console.error("Draw error:", e);
-      toast.error(e.message || "Failed to draw. Please try again.");
+      toast.error(e.message || t("dailyTarot.drawFail"));
       setState("idle");
     }
   };
@@ -140,23 +142,23 @@ const DailyTarot = () => {
     if (!result) return;
     const card = tarotCards.find((c) => c.id === result.cardId);
     try {
-      toast.info("Generating your poster…", { duration: 3000 });
+      toast.info(t("dailyTarot.posterIntro"), { duration: 3000 });
       const canvas = await generatePoster({
         title: result.cardName,
-        subtitle: result.isReversed ? "Reversed" : "Upright",
+        subtitle: result.isReversed ? t("dailyTarot.reversed") : t("dailyTarot.upright"),
         description: result.interpretation.split("\n\n💡")[0],
         bars: [],
         accentColor: "#a78bfa",
         accentColorLight: "#c4b5fd",
         icon: card?.emoji || "🔮",
         caption: result.actionTip,
-        appName: "Soul Sanctuary · Daily Tarot",
+        appName: `${t("home.appName")} · ${t("dailyTarot.title")}`,
         preloadedImageUrl: result.imageUrl || undefined,
       });
       setShareDataUrl(canvas.toDataURL("image/png"));
       setShareOpen(true);
     } catch {
-      toast.error("Failed to generate poster");
+      toast.error(t("dailyTarot.posterFail"));
     }
   };
 
@@ -165,7 +167,7 @@ const DailyTarot = () => {
   if (loadingToday) {
     return (
       <div className="min-h-screen bg-gradient-calm flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground text-sm">Loading...</div>
+        <div className="animate-pulse text-muted-foreground text-sm">{t("dailyTarot.loading")}</div>
       </div>
     );
   }
@@ -173,7 +175,7 @@ const DailyTarot = () => {
   return (
     <DesktopLayout>
     <div className="min-h-screen bg-gradient-calm pb-24 md:pb-8">
-      <SEO title="Daily Tarot — Soul Sanctuary" description="Draw your daily tarot card for personalized insights and guidance from the universe." />
+      <SEO title={`${t("dailyTarot.title")} — ${t("home.appName")}`} description={t("dailyTarot.subtitle")} />
       {/* Header */}
       <div className="px-6 pt-14 pb-4">
         <div className="flex items-center gap-3">
@@ -181,8 +183,8 @@ const DailyTarot = () => {
             <ArrowLeft className="h-4 w-4 text-foreground" />
           </button>
           <div>
-            <h1 className="font-display text-xl font-bold text-foreground">Daily Tarot</h1>
-            <p className="text-xs text-muted-foreground">Draw a card · Discover today's insight</p>
+            <h1 className="font-display text-xl font-bold text-foreground">{t("dailyTarot.title")}</h1>
+            <p className="text-xs text-muted-foreground">{t("dailyTarot.subtitle")}</p>
           </div>
         </div>
       </div>
@@ -199,14 +201,14 @@ const DailyTarot = () => {
                 <span className="text-6xl">🔮</span>
               </motion.div>
               <p className="text-sm text-muted-foreground mb-6 max-w-[260px]">
-                Focus your mind, and let the cards reveal what you need to hear today.
+                {t("dailyTarot.focus")}
               </p>
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={handleDraw}
                 className="flex items-center gap-2 rounded-2xl bg-gradient-golden px-8 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg"
               >
-                <Sparkles className="h-4 w-4" /> Draw Today's Card
+                <Sparkles className="h-4 w-4" /> {t("dailyTarot.drawBtn")}
               </motion.button>
             </div>
           </motion.div>
@@ -222,7 +224,7 @@ const DailyTarot = () => {
               >
                 <span className="text-5xl">✨</span>
               </motion.div>
-              <p className="text-sm text-muted-foreground animate-pulse">Reading the cards...</p>
+              <p className="text-sm text-muted-foreground animate-pulse">{t("dailyTarot.drawing")}</p>
             </div>
           </motion.div>
         )}
@@ -239,9 +241,9 @@ const DailyTarot = () => {
                   <h2 className="font-display text-lg font-bold text-foreground">{result.cardName}</h2>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${result.isReversed ? "bg-rose-warm/20 text-rose-warm" : "bg-secondary/20 text-secondary"}`}>
-                      {result.isReversed ? "Reversed" : "Upright"}
+                      {result.isReversed ? t("dailyTarot.reversed") : t("dailyTarot.upright")}
                     </span>
-                    <span className="text-xs text-muted-foreground">Energy {result.energyScore}/5</span>
+                    <span className="text-xs text-muted-foreground">{t("dailyTarot.energy", { n: result.energyScore })}</span>
                   </div>
                 </div>
               </div>
@@ -253,7 +255,7 @@ const DailyTarot = () => {
                 <img src={result.imageUrl} alt={result.cardName} className="w-full rounded-xl aspect-square object-cover" />
               ) : result.imageStatus === "failed" ? (
                 <div className="flex h-48 items-center justify-center rounded-xl bg-muted/30">
-                  <p className="text-xs text-muted-foreground">Card art unavailable</p>
+                  <p className="text-xs text-muted-foreground">{t("dailyTarot.artFail")}</p>
                 </div>
               ) : (
                 <div className="flex h-48 items-center justify-center rounded-xl bg-muted/30">
@@ -261,7 +263,7 @@ const DailyTarot = () => {
                     <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }}>
                       <RotateCcw className="h-5 w-5 text-secondary mx-auto" />
                     </motion.div>
-                    <p className="text-xs text-muted-foreground mt-2">Generating card art...</p>
+                    <p className="text-xs text-muted-foreground mt-2">{t("dailyTarot.generatingArt")}</p>
                   </div>
                 </div>
               )}
@@ -269,7 +271,7 @@ const DailyTarot = () => {
 
             {/* Interpretation */}
             <div className="rounded-2xl bg-card p-5 shadow-card mb-4">
-              <h3 className="text-xs font-semibold text-secondary uppercase tracking-wider mb-3">Today's Reading</h3>
+              <h3 className="text-xs font-semibold text-secondary uppercase tracking-wider mb-3">{t("dailyTarot.todayReading")}</h3>
               <p className="text-sm leading-relaxed text-foreground whitespace-pre-line">
                 {result.interpretation}
               </p>
@@ -281,7 +283,7 @@ const DailyTarot = () => {
               onClick={handleShare}
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-golden py-3 text-sm font-semibold text-primary-foreground shadow-lg"
             >
-              <Share2 className="h-4 w-4" /> Save & Share
+              <Share2 className="h-4 w-4" /> {t("dailyTarot.saveShare")}
             </motion.button>
           </motion.div>
         )}
@@ -291,8 +293,8 @@ const DailyTarot = () => {
         open={shareOpen}
         onClose={() => { setShareOpen(false); setShareDataUrl(null); }}
         imageDataUrl={shareDataUrl}
-        title={result?.cardName || "Daily Tarot"}
-        text="Discover your daily tarot insight ✨"
+        title={result?.cardName || t("dailyTarot.title")}
+        text={t("dailyTarot.shareText")}
       />
       <BottomNav />
     </div>
