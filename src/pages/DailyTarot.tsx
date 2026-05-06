@@ -105,7 +105,7 @@ const DailyTarot = () => {
   }, []);
 
   const handleDraw = async () => {
-    if (!user) { promptLogin("Sign in to draw your daily tarot card"); return; }
+    if (!user) { promptLogin(t("dailyTarot.focus")); return; }
     setState("drawing");
     try {
       const { card, isReversed } = drawRandomCard();
