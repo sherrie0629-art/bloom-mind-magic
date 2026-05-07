@@ -128,10 +128,27 @@ interface Props {
 export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }: Props) {
   const { t, i18n } = useTranslation();
   const { preface, sections } = useMemo(() => parseSections(markdown || ""), [markdown]);
+  const { generatePoster } = useSharePoster();
+
+  const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const [savingIdx, setSavingIdx] = useState<number | null>(null);
+  const [posterLoading, setPosterLoading] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
+  const [shareTitle, setShareTitle] = useState("");
+
+  const topQuotes = useMemo(() => {
+    const out: string[] = [];
+    const re = /^>\s*💎\s*(.+)$/gm;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(markdown || "")) && out.length < 3) {
+      out.push(m[1].trim().replace(/[（(]≤?\d+\s*字[）)]/g, ""));
+    }
+    return out;
+  }, [markdown]);
 
   const wordCount = useMemo(() => {
     const text = (markdown || "").replace(/[#>*\-_`]/g, "");
-    // Count CJK chars + latin words
     const cjk = (text.match(/[\u4e00-\u9fff]/g) || []).length;
     const words = (text.match(/[A-Za-z]+/g) || []).length;
     return cjk + words;
@@ -144,6 +161,62 @@ export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }:
     const dt = new Date(s);
     const lang = (i18n.resolvedLanguage || i18n.language || "en").startsWith("zh") ? "zh-CN" : "en-US";
     return dt.toLocaleDateString(lang, { year: "numeric", month: "short", day: "numeric" });
+  };
+
+  const handleSaveSection = async (idx: number, sectionTitle: string) => {
+    const node = sectionRefs.current[idx];
+    if (!node) return;
+    setSavingIdx(idx);
+    try {
+      const dataUrl = await toPng(node, {
+        pixelRatio: 2,
+        backgroundColor: "#faf6ee",
+        filter: (n) => !(n instanceof HTMLElement && n.dataset?.exclude === "true"),
+      });
+      setShareImageUrl(dataUrl);
+      setShareTitle(`${typeLabel || ""} · ${sectionTitle}`);
+      setShareOpen(true);
+    } catch (e) {
+      console.error(e);
+      toast.error(t("assessmentDetail.deepSaveFail"));
+    } finally {
+      setSavingIdx(null);
+    }
+  };
+
+  const handleCopyLink = async (idx: number) => {
+    try {
+      const url = `${location.origin}${location.pathname}#deep-section-${idx}`;
+      await navigator.clipboard.writeText(url);
+      toast.success(t("assessmentDetail.deepLinkCopied"));
+    } catch {
+      toast.error(t("assessmentDetail.deepSaveFail"));
+    }
+  };
+
+  const handleSharePoster = async () => {
+    setPosterLoading(true);
+    try {
+      const canvas = await generatePoster({
+        title: typeLabel || t("assessmentDetail.deepTitle"),
+        subtitle: t("assessmentDetail.deepCoverTag", { defaultValue: t("assessmentDetail.deepTitle") }),
+        description: topQuotes[0] || t("assessmentDetail.deepCoverSub", { defaultValue: "为你专属生成的深度内在地图" }),
+        bars: [],
+        accentColor: "#8b5cf6",
+        accentColorLight: "#c4b5fd",
+        icon: "📜",
+        caption: t("assessmentDetail.deepShareCaption"),
+        extraLines: topQuotes.slice(1, 3),
+      });
+      setShareImageUrl(canvas.toDataURL("image/png"));
+      setShareTitle(typeLabel || t("assessmentDetail.deepTitle"));
+      setShareOpen(true);
+    } catch (e) {
+      console.error(e);
+      toast.error(t("assessmentDetail.deepSaveFail"));
+    } finally {
+      setPosterLoading(false);
+    }
   };
 
   return (
