@@ -1,8 +1,12 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { Sparkles, BookOpen, Clock } from "lucide-react";
+import { Sparkles, BookOpen, Clock, Camera, Link as LinkIcon, Share2, Loader2 } from "lucide-react";
+import { toPng } from "html-to-image";
+import { toast } from "sonner";
+import { useSharePoster } from "@/hooks/useSharePoster";
+import ShareSheet from "@/components/ShareSheet";
 
 interface Section {
   emoji: string;
@@ -124,10 +128,27 @@ interface Props {
 export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }: Props) {
   const { t, i18n } = useTranslation();
   const { preface, sections } = useMemo(() => parseSections(markdown || ""), [markdown]);
+  const { generatePoster } = useSharePoster();
+
+  const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const [savingIdx, setSavingIdx] = useState<number | null>(null);
+  const [posterLoading, setPosterLoading] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
+  const [shareTitle, setShareTitle] = useState("");
+
+  const topQuotes = useMemo(() => {
+    const out: string[] = [];
+    const re = /^>\s*💎\s*(.+)$/gm;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(markdown || "")) && out.length < 3) {
+      out.push(m[1].trim().replace(/[（(]≤?\d+\s*字[）)]/g, ""));
+    }
+    return out;
+  }, [markdown]);
 
   const wordCount = useMemo(() => {
     const text = (markdown || "").replace(/[#>*\-_`]/g, "");
-    // Count CJK chars + latin words
     const cjk = (text.match(/[\u4e00-\u9fff]/g) || []).length;
     const words = (text.match(/[A-Za-z]+/g) || []).length;
     return cjk + words;
@@ -140,6 +161,62 @@ export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }:
     const dt = new Date(s);
     const lang = (i18n.resolvedLanguage || i18n.language || "en").startsWith("zh") ? "zh-CN" : "en-US";
     return dt.toLocaleDateString(lang, { year: "numeric", month: "short", day: "numeric" });
+  };
+
+  const handleSaveSection = async (idx: number, sectionTitle: string) => {
+    const node = sectionRefs.current[idx];
+    if (!node) return;
+    setSavingIdx(idx);
+    try {
+      const dataUrl = await toPng(node, {
+        pixelRatio: 2,
+        backgroundColor: "#faf6ee",
+        filter: (n) => !(n instanceof HTMLElement && n.dataset?.exclude === "true"),
+      });
+      setShareImageUrl(dataUrl);
+      setShareTitle(`${typeLabel || ""} · ${sectionTitle}`);
+      setShareOpen(true);
+    } catch (e) {
+      console.error(e);
+      toast.error(t("assessmentDetail.deepSaveFail"));
+    } finally {
+      setSavingIdx(null);
+    }
+  };
+
+  const handleCopyLink = async (idx: number) => {
+    try {
+      const url = `${location.origin}${location.pathname}#deep-section-${idx}`;
+      await navigator.clipboard.writeText(url);
+      toast.success(t("assessmentDetail.deepLinkCopied"));
+    } catch {
+      toast.error(t("assessmentDetail.deepSaveFail"));
+    }
+  };
+
+  const handleSharePoster = async () => {
+    setPosterLoading(true);
+    try {
+      const canvas = await generatePoster({
+        title: typeLabel || t("assessmentDetail.deepTitle"),
+        subtitle: t("assessmentDetail.deepCoverTag", { defaultValue: t("assessmentDetail.deepTitle") }),
+        description: topQuotes[0] || t("assessmentDetail.deepCoverSub", { defaultValue: "为你专属生成的深度内在地图" }),
+        bars: [],
+        accentColor: "#8b5cf6",
+        accentColorLight: "#c4b5fd",
+        icon: "📜",
+        caption: t("assessmentDetail.deepShareCaption"),
+        extraLines: topQuotes.slice(1, 3),
+      });
+      setShareImageUrl(canvas.toDataURL("image/png"));
+      setShareTitle(typeLabel || t("assessmentDetail.deepTitle"));
+      setShareOpen(true);
+    } catch (e) {
+      console.error(e);
+      toast.error(t("assessmentDetail.deepSaveFail"));
+    } finally {
+      setPosterLoading(false);
+    }
   };
 
   return (
@@ -208,24 +285,57 @@ export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }:
         <motion.div
           key={i}
           id={`deep-section-${i}`}
+          ref={(el) => { sectionRefs.current[i] = el; }}
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.35 }}
-          className="rounded-2xl bg-card p-5 shadow-card scroll-mt-20"
+          className="relative rounded-2xl bg-card p-5 shadow-card scroll-mt-20"
         >
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-start gap-3 mb-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-golden text-lg shadow-glow">
               <span>{s.emoji}</span>
             </div>
-            <h3 className="font-display text-base font-bold text-foreground leading-tight">
+            <h3 className="font-display text-base font-bold text-foreground leading-tight flex-1 pt-1.5">
               {s.title}
             </h3>
+            <div data-exclude="true" className="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={() => handleCopyLink(i)}
+                title={t("assessmentDetail.deepCopyLink")}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-secondary hover:bg-muted/60 transition-colors"
+              >
+                <LinkIcon className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSaveSection(i, s.title)}
+                disabled={savingIdx === i}
+                title={t("assessmentDetail.deepShareSection")}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-secondary hover:bg-muted/60 transition-colors disabled:opacity-50"
+              >
+                {savingIdx === i ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+              </button>
+            </div>
           </div>
           <div className="h-px bg-gradient-to-r from-gold/40 via-transparent to-transparent mb-2" />
           <ReactMarkdown components={bodyComponents}>{s.body}</ReactMarkdown>
         </motion.div>
       ))}
+
+      {/* Share full report poster */}
+      <button
+        type="button"
+        onClick={handleSharePoster}
+        disabled={posterLoading}
+        className="w-full rounded-2xl bg-gradient-mystic py-4 text-sm font-semibold text-primary-foreground flex items-center justify-center gap-2 shadow-card hover:shadow-glow transition-shadow disabled:opacity-60"
+      >
+        {posterLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
+        {posterLoading
+          ? t("assessmentDetail.generating")
+          : t("assessmentDetail.deepSharePoster")}
+      </button>
 
       {/* Footer signature */}
       <div className="text-center pt-2 pb-1">
@@ -233,6 +343,14 @@ export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }:
           {t("assessmentDetail.deepSignature", { defaultValue: "—— 心灵密语 · 为你而写" })}
         </p>
       </div>
+
+      <ShareSheet
+        open={shareOpen}
+        onClose={() => { setShareOpen(false); setShareImageUrl(null); }}
+        imageDataUrl={shareImageUrl}
+        title={shareTitle}
+        text={t("assessmentDetail.deepShareCaption")}
+      />
     </div>
   );
 }
