@@ -154,8 +154,9 @@ const ZodiacFlow = () => {
     setLoading(true);
     setLoadingMsg(t("assessmentFlow.common.starting"));
     try {
+      const variant = getNextVariant(`zodiac:${signName}`, locale);
       const { data, error } = await supabase.functions.invoke("assessment-zodiac", {
-        body: { action: "batch-questions", zodiacSign: signName, locale },
+        body: { action: "batch-questions", zodiacSign: signName, locale, variant },
       });
       if (error) throw error;
       if (data.type === "batch" && data.data?.length > 0) {
