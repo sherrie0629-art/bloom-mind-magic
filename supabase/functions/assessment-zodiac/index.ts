@@ -48,7 +48,8 @@ serve(async (req) => {
       const weekStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - now.getUTCDay()));
       const weekKey = weekStart.toISOString().split("T")[0];
       const sign = (body.zodiacSign || "unknown").toString().toLowerCase().replace(/[^a-z0-9]/g, "");
-      const cachePath = `zodiac-questions/${sign}-${locale}-${weekKey}.json`;
+      const PROMPT_VERSION = "v2"; // bump to invalidate stale cached questions
+      const cachePath = `zodiac-questions/${sign}-${locale}-${weekKey}-${PROMPT_VERSION}.json`;
 
       const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
