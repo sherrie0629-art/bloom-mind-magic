@@ -299,7 +299,26 @@ const AssessmentDetail = () => {
             <h4 className="font-display text-sm font-semibold text-foreground mb-2">
               {type === "emotion" ? t("assessmentDetail.wellnessTips") : t("assessmentDetail.advice")}
             </h4>
-            {d.advice && <p className="text-sm text-foreground leading-relaxed">{d.advice}</p>}
+            {d.advice && typeof d.advice === "string" && (
+              <p className="text-sm text-foreground leading-relaxed">{d.advice}</p>
+            )}
+            {d.advice && typeof d.advice === "object" && (
+              <div className="space-y-3 text-sm text-foreground leading-relaxed">
+                {d.advice.mantra && <p className="italic text-secondary">"{d.advice.mantra}"</p>}
+                {Array.isArray(d.advice.doThis) && (
+                  <ul className="space-y-1">
+                    {d.advice.doThis.map((s: string, i: number) => <li key={`do-${i}`}>{s}</li>)}
+                  </ul>
+                )}
+                {Array.isArray(d.advice.avoidThis) && (
+                  <ul className="space-y-1">
+                    {d.advice.avoidThis.map((s: string, i: number) => <li key={`av-${i}`}>{s}</li>)}
+                  </ul>
+                )}
+                {d.advice.luckyMoment && <p>{d.advice.luckyMoment}</p>}
+                {d.advice.crystalOrRitual && <p>{d.advice.crystalOrRitual}</p>}
+              </div>
+            )}
             {type === "emotion" && d.suggestions && (
               <ul className="space-y-2 mt-1">
                 {(d.suggestions as string[]).map((s, i) => (
