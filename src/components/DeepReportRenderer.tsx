@@ -2,10 +2,11 @@ import { useMemo, useRef, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { Sparkles, BookOpen, Clock, Camera, Link as LinkIcon, Share2, Loader2 } from "lucide-react";
+import { Sparkles, BookOpen, Clock, Camera, Link as LinkIcon, Download, Loader2 } from "lucide-react";
 import { toPng } from "html-to-image";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { toast } from "sonner";
-import { useSharePoster } from "@/hooks/useSharePoster";
 import ShareSheet from "@/components/ShareSheet";
 
 interface Section {
@@ -128,8 +129,8 @@ interface Props {
 export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }: Props) {
   const { t, i18n } = useTranslation();
   const { preface, sections } = useMemo(() => parseSections(markdown || ""), [markdown]);
-  const { generatePoster } = useSharePoster();
 
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [savingIdx, setSavingIdx] = useState<number | null>(null);
   const [posterLoading, setPosterLoading] = useState(false);
@@ -137,15 +138,6 @@ export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }:
   const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
   const [shareTitle, setShareTitle] = useState("");
 
-  const topQuotes = useMemo(() => {
-    const out: string[] = [];
-    const re = /^>\s*💎\s*(.+)$/gm;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(markdown || "")) && out.length < 3) {
-      out.push(m[1].trim().replace(/[（(]≤?\d+\s*字[）)]/g, ""));
-    }
-    return out;
-  }, [markdown]);
 
   const wordCount = useMemo(() => {
     const text = (markdown || "").replace(/[#>*\-_`]/g, "");
@@ -195,32 +187,65 @@ export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }:
   };
 
   const handleSharePoster = async () => {
+    const node = rootRef.current;
+    if (!node) return;
     setPosterLoading(true);
+
+    // Force-show motion-hidden sections + neutralize transforms during capture
+    const styleEl = document.createElement("style");
+    styleEl.setAttribute("data-pdf-capture", "true");
+    styleEl.textContent = `
+      [data-pdf-root] *, [data-pdf-root] {
+        opacity: 1 !important;
+        transform: none !important;
+        animation: none !important;
+        transition: none !important;
+      }
+    `;
+    document.head.appendChild(styleEl);
+
     try {
-      const canvas = await generatePoster({
-        title: typeLabel || t("assessmentDetail.deepTitle"),
-        subtitle: t("assessmentDetail.deepCoverTag", { defaultValue: t("assessmentDetail.deepTitle") }),
-        description: topQuotes[0] || t("assessmentDetail.deepCoverSub", { defaultValue: "为你专属生成的深度内在地图" }),
-        bars: [],
-        accentColor: "#8b5cf6",
-        accentColorLight: "#c4b5fd",
-        icon: "📜",
-        caption: t("assessmentDetail.deepShareCaption"),
-        extraLines: topQuotes.slice(1, 3),
+      const canvas = await html2canvas(node, {
+        scale: 2,
+        backgroundColor: "#faf6ee",
+        useCORS: true,
+        logging: false,
+        ignoreElements: (el) => (el as HTMLElement).dataset?.exclude === "true",
       });
-      setShareImageUrl(canvas.toDataURL("image/png"));
-      setShareTitle(typeLabel || t("assessmentDetail.deepTitle"));
-      setShareOpen(true);
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.92);
+      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const imgW = pageW;
+      const imgH = (canvas.height * imgW) / canvas.width;
+
+      let heightLeft = imgH;
+      let position = 0;
+      pdf.addImage(imgData, "JPEG", 0, position, imgW, imgH, undefined, "FAST");
+      heightLeft -= pageH;
+
+      while (heightLeft > 0) {
+        position -= pageH;
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, position, imgW, imgH, undefined, "FAST");
+        heightLeft -= pageH;
+      }
+
+      const safeName = (typeLabel || "deep-report").replace(/[\\/:*?"<>|]/g, "_");
+      pdf.save(`${safeName}.pdf`);
+      toast.success(t("assessmentDetail.deepPdfReady"));
     } catch (e) {
       console.error(e);
       toast.error(t("assessmentDetail.deepSaveFail"));
     } finally {
+      styleEl.remove();
       setPosterLoading(false);
     }
   };
 
   return (
-    <div className="space-y-4">
+    <div ref={rootRef} data-pdf-root className="space-y-4">
       {/* Cover */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-mystic p-6 text-primary-foreground shadow-card">
         <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-gold/30 blur-2xl" />
@@ -327,11 +352,12 @@ export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }:
       {/* Share full report poster */}
       <button
         type="button"
+        data-exclude="true"
         onClick={handleSharePoster}
         disabled={posterLoading}
         className="w-full rounded-2xl bg-gradient-mystic py-4 text-sm font-semibold text-primary-foreground flex items-center justify-center gap-2 shadow-card hover:shadow-glow transition-shadow disabled:opacity-60"
       >
-        {posterLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
+        {posterLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
         {posterLoading
           ? t("assessmentDetail.generating")
           : t("assessmentDetail.deepSharePoster")}
