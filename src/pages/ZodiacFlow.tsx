@@ -13,6 +13,7 @@ import { useLocale } from "@/hooks/useLocale";
 import AssessmentQuestionLayout from "@/components/AssessmentQuestionLayout";
 import ResultAIImage from "@/components/ResultAIImage";
 import PosterPreviewDialog from "@/components/PosterPreviewDialog";
+import { getNextVariant } from "@/lib/assessmentVariant";
 
 interface QA { question: string; answer: string; dimension: string; }
 
