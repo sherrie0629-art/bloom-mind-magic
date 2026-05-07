@@ -16,6 +16,7 @@ import ResultAIImage from "@/components/ResultAIImage";
 import PosterPreviewDialog from "@/components/PosterPreviewDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { pickQuestionSet } from "@/data/mbtiQuestionPool";
+import { getNextVariant } from "@/lib/assessmentVariant";
 
 interface QA { question: string; answer: string; dimension: string; }
 interface MBTIResult { mbtiType: string; title: string; description: string; traits: { E_I: number; S_N: number; T_F: number; J_P: number }; socialCaption: string; }
