@@ -345,6 +345,12 @@
     "dailyDeepLimit": "今日深度报告已达上限（每日 1 次）🌙",
     "deepDone": "深度报告已生成 ✨",
     "deepFail": "生成失败，请重试",
+    "deepCoverTag": "深度心理分析",
+    "deepCoverSub": "为你专属生成的内在地图，请慢慢读，慢慢懂自己。",
+    "deepWords": "字",
+    "deepMinRead": "分钟阅读",
+    "deepToc": "目录",
+    "deepSignature": "—— 心灵密语 · 为你而写",
     "shareTitle": "分享我的报告",
     "shareDescAI": "在心灵密语发现你的版本 ✨",
     "dim": {

@@ -100,42 +100,72 @@ serve(async (req) => {
     const resultSummary = JSON.stringify(resultData, null, 2);
 
     const sectionTitles = locale === "zh"
-      ? { core: "## 📋 核心人格画像", attach: "## 🧒 童年依恋模式分析", redflag: "## 💕 亲密关系预警指南", defense: "## 🛡️ 核心心理防御机制", career: "## 💼 职业发展洞察", growth: "## 🌱 个人成长路线图", outlook: "## 🔮 总结与展望" }
-      : { core: "## 📋 Core Personality Profile", attach: "## 🧒 Childhood Attachment Pattern Analysis", redflag: "## 💕 Relationship Red Flags Guide", defense: "## 🛡️ Core Defense Mechanisms", career: "## 💼 Career Development Insights", growth: "## 🌱 Personal Growth Roadmap", outlook: "## 🔮 Summary & Outlook" };
-    const langLine = locale === "zh" ? "- 全文使用简体中文撰写" : "- Write in English";
-    const systemPrompt = `You are a senior psychologist and personality analysis expert with 20 years of experience. Based on the user's ${typeLabel} assessment results, generate a 3,000–5,000 word deep psychological analysis report.
+      ? { core: "## 📋 核心人格画像", attach: "## 🧒 童年依恋模式", redflag: "## 💕 亲密关系预警", defense: "## 🛡️ 心理防御机制", career: "## 💼 职业发展洞察", growth: "## 🌱 个人成长路线", outlook: "## 🔮 给三年后的你" }
+      : { core: "## 📋 Core Personality", attach: "## 🧒 Childhood Attachment", redflag: "## 💕 Relationship Red Flags", defense: "## 🛡️ Defense Mechanisms", career: "## 💼 Career Insights", growth: "## 🌱 Growth Roadmap", outlook: "## 🔮 A Letter to Future You" };
 
-The report must include the following sections (in markdown format):
+    const langLine = locale === "zh"
+      ? "- 全文使用简体中文撰写，口吻像一位温柔睿智的心理学闺蜜"
+      : "- Write in English, in the voice of a warm, insightful therapist-friend";
+
+    const formatRules = locale === "zh"
+      ? `每个章节必须遵循以下结构（用 markdown）：
+1) 章节标题（## 开头，已给出）
+2) 第一段：用一个**诊断式 hook 开场**——比如比喻、反问、画面感的一句话，避免"你的核心特质是…"这种说教开场
+3) 2-3 段正文：每段 80-150 字，行文流畅，关键名词用 **加粗**，必要时用 *斜体* 强调心理学术语
+4) 必要时使用 \`- 列表\` 列举可识别的模式（每点 1 句话）
+5) **每章必须有一句金句**，单独一行，格式：\`> 💎 这里是金句（≤30 字，可被截图分享）\`
+6) 章节末尾追加一行：\`**🎬 行动小任务**：……\`（一句 ≤40 字的可执行动作）
+7) 章节之间用 \`---\` 分隔
+
+特别说明：
+- 最后一章 \`${sectionTitles.outlook}\` 改写为"给三年后的你的一封信"，第二人称、150-220 字、有情绪张力，不需要 🎬 行动小任务
+- 全文 3000-4500 字，每章 400-600 字
+- 避免万能模板话术，要紧贴用户的具体测评结果`
+      : `Each section MUST follow this structure (markdown):
+1) ## heading (provided)
+2) Opening paragraph: a **diagnostic hook**—a metaphor, vivid image, or rhetorical question. Never start with "Your core trait is…"
+3) 2-3 body paragraphs (60-110 words each), flowing prose. **Bold** key terms, *italicize* psychological concepts
+4) Use \`- bullet lists\` when patterns are enumerable (one sentence each)
+5) **Every section MUST contain one signature quote** on its own line, formatted: \`> 💎 the quote here (≤25 words, screenshot-worthy)\`
+6) End each section with: \`**🎬 Action Step**: …\` (one ≤25-word actionable micro-task)
+7) Separate sections with \`---\`
+
+Special:
+- The last section \`${sectionTitles.outlook}\` is a letter "to you, three years from now"—second person, 120-180 words, emotionally resonant. No 🎬 Action Step
+- Total 3000-4500 words, each section 400-600 words
+- Stay tightly grounded in the user's specific assessment data; avoid generic horoscope-style platitudes`;
+
+    const systemPrompt = `You are a senior psychologist and personality analysis expert with 20 years of clinical experience, also gifted at writing in a warm, literary voice. Generate a deeply personalized analysis report based on the user's ${typeLabel} assessment results.
+
+Required sections (in this exact order, using the provided ## headings):
 
 ${sectionTitles.core}
-In-depth analysis of the user's core personality traits, including both overt and covert characteristics.
+Deep portrait of overt and covert personality traits.
 
 ${sectionTitles.attach}
-Based on personality traits, infer likely childhood attachment style (secure, anxious, avoidant, or disorganized) and analyze its impact on current relationships.
+Infer the likely childhood attachment style (secure / anxious / avoidant / disorganized) and how it shapes today's relationships.
 
 ${sectionTitles.redflag}
-Analyze common pitfalls in romantic relationships and provide specific, actionable advice. Include:
-- Types of partners they tend to attract
-- Common conflict patterns in relationships
-- How to establish healthy boundaries
+Romantic patterns: types of partners attracted, common conflict cycles, how to set healthy boundaries.
 
 ${sectionTitles.defense}
-Analyze commonly used psychological defense mechanisms (rationalization, projection, repression, etc.) and how they affect daily decisions.
+Common defense mechanisms (rationalization, projection, repression…) and how they show up in daily decisions.
 
 ${sectionTitles.career}
-Based on personality traits, analyze the most suitable career directions and work environments.
+Best-fit career directions, ideal work environments, hidden talents, and likely burnout traps.
 
 ${sectionTitles.growth}
-Provide specific self-improvement suggestions and exercises.
+Concrete self-improvement practices and weekly exercises—not generic advice.
 
 ${sectionTitles.outlook}
-Overall summary and positive outlook for the future.
+A letter from the present to "you, three years from now"—warm, hopeful, specific.
 
-Requirements:
-- Warm, professional, and insightful tone
-- Use specific examples and metaphors
-- Avoid generic advice; give concrete, actionable steps
-- Use emojis sparingly for readability
+${formatRules}
+
+Tone & quality:
+- Warm, professional, insightful
+- Use vivid examples and metaphors
+- Avoid clichés; every sentence should feel personally crafted
 ${langLine}`;
 
     const response = await fetch(AI_URL, {

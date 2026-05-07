@@ -9,7 +9,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useSharePoster } from "@/hooks/useSharePoster";
 import ShareSheet from "@/components/ShareSheet";
 import { toast } from "sonner";
-import ReactMarkdown from "react-markdown";
+import DeepReportRenderer from "@/components/DeepReportRenderer";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
 
@@ -390,15 +390,11 @@ const AssessmentDetail = () => {
               )}
             </div>
           ) : (
-            <div className="rounded-2xl bg-card p-5 shadow-card">
-              <div className="flex items-center gap-2 mb-4">
-                <Crown className="h-5 w-5 text-secondary" />
-                <h4 className="font-display text-sm font-semibold text-foreground">{t("assessmentDetail.deepTitle")}</h4>
-              </div>
-              <div className="prose prose-sm max-w-none text-foreground prose-headings:text-foreground prose-headings:font-display prose-h2:text-base prose-h2:mt-6 prose-h2:mb-3 prose-p:text-sm prose-p:leading-relaxed prose-li:text-sm prose-strong:text-foreground">
-                <ReactMarkdown>{deepReport || ""}</ReactMarkdown>
-              </div>
-            </div>
+            <DeepReportRenderer
+              markdown={deepReport || ""}
+              typeLabel={getTitle()}
+              generatedAt={report.created_at}
+            />
           )}
         </motion.div>
       </div>
