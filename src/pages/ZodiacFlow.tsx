@@ -55,7 +55,13 @@ interface ZodiacResult {
   description: string;
   traits: { overall: number; love: number; career: number; fortune: number };
   luckyItems: { color: string; number: string; direction: string };
-  advice: string;
+  advice: string | {
+    mantra: string;
+    doThis: string[];
+    avoidThis: string[];
+    luckyMoment: string;
+    crystalOrRitual: string;
+  };
   socialCaption: string;
 }
 
