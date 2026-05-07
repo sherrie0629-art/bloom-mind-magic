@@ -285,24 +285,57 @@ export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }:
         <motion.div
           key={i}
           id={`deep-section-${i}`}
+          ref={(el) => { sectionRefs.current[i] = el; }}
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.35 }}
-          className="rounded-2xl bg-card p-5 shadow-card scroll-mt-20"
+          className="relative rounded-2xl bg-card p-5 shadow-card scroll-mt-20"
         >
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex items-start gap-3 mb-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-golden text-lg shadow-glow">
               <span>{s.emoji}</span>
             </div>
-            <h3 className="font-display text-base font-bold text-foreground leading-tight">
+            <h3 className="font-display text-base font-bold text-foreground leading-tight flex-1 pt-1.5">
               {s.title}
             </h3>
+            <div data-exclude="true" className="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                onClick={() => handleCopyLink(i)}
+                title={t("assessmentDetail.deepCopyLink")}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-secondary hover:bg-muted/60 transition-colors"
+              >
+                <LinkIcon className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSaveSection(i, s.title)}
+                disabled={savingIdx === i}
+                title={t("assessmentDetail.deepShareSection")}
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-secondary hover:bg-muted/60 transition-colors disabled:opacity-50"
+              >
+                {savingIdx === i ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+              </button>
+            </div>
           </div>
           <div className="h-px bg-gradient-to-r from-gold/40 via-transparent to-transparent mb-2" />
           <ReactMarkdown components={bodyComponents}>{s.body}</ReactMarkdown>
         </motion.div>
       ))}
+
+      {/* Share full report poster */}
+      <button
+        type="button"
+        onClick={handleSharePoster}
+        disabled={posterLoading}
+        className="w-full rounded-2xl bg-gradient-mystic py-4 text-sm font-semibold text-primary-foreground flex items-center justify-center gap-2 shadow-card hover:shadow-glow transition-shadow disabled:opacity-60"
+      >
+        {posterLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
+        {posterLoading
+          ? t("assessmentDetail.generating")
+          : t("assessmentDetail.deepSharePoster")}
+      </button>
 
       {/* Footer signature */}
       <div className="text-center pt-2 pb-1">
@@ -310,6 +343,14 @@ export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }:
           {t("assessmentDetail.deepSignature", { defaultValue: "—— 心灵密语 · 为你而写" })}
         </p>
       </div>
+
+      <ShareSheet
+        open={shareOpen}
+        onClose={() => { setShareOpen(false); setShareImageUrl(null); }}
+        imageDataUrl={shareImageUrl}
+        title={shareTitle}
+        text={t("assessmentDetail.deepShareCaption")}
+      />
     </div>
   );
 }
