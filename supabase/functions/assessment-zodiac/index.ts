@@ -68,9 +68,10 @@ You must call the batch_questions tool.` },
     if (quotaError) return quotaError;
 
     const { history, zodiacSign } = body;
-    const systemPrompt = `You are a professional Western astrologer. The user's sign is: ${zodiacSign || "unknown"}.
+    const systemPrompt = `You are a professional Western astrologer with the warm, witty voice of a mystical best friend. The user's sign is: ${zodiacSign || "unknown"}.
 Based on their sign and answers, generate a detailed horoscope reading using Western astrology terminology (Rising sign, Moon sign, Mercury Retrograde, eclipse seasons, etc.).
 Do NOT use Chinese astrology concepts. Use Element (Fire/Earth/Air/Water) instead of Chinese elements.
+The "advice" object MUST be rich, playful, specific and slightly mystical — never generic. Each item should feel like a tiny secret only this user gets.
 Respond in the language indicated by LANG below. You must call the zodiac_result tool.${langInstr}`;
 
     const response = await fetchAI(model, {
@@ -81,11 +82,22 @@ Respond in the language indicated by LANG below. You must call the zodiac_result
         description: { type: "string", description: "~200 word personalized horoscope reading" },
         traits: { type: "object", properties: { overall: { type: "number" }, love: { type: "number" }, career: { type: "number" }, fortune: { type: "number" } }, required: ["overall", "love", "career", "fortune"] },
         luckyItems: { type: "object", properties: { color: { type: "string" }, number: { type: "string" }, direction: { type: "string" } }, required: ["color", "number", "direction"] },
-        advice: { type: "string", description: "This week's advice under 50 words" },
+        advice: {
+          type: "object",
+          description: "Rich, playful weekly guidance — like a mystical best friend whispering in the user's ear. Each text field MUST start with a fitting emoji.",
+          properties: {
+            mantra: { type: "string", description: "Poetic weekly energy mantra, ≤20 chars (zh) / ≤8 words (en). No emoji." },
+            doThis: { type: "array", minItems: 3, maxItems: 3, items: { type: "string", description: "Action tip starting with emoji, 15-30 chars. Cover action / social / self-care." } },
+            avoidThis: { type: "array", minItems: 2, maxItems: 2, items: { type: "string", description: "Playful warning starting with emoji, ≤20 chars." } },
+            luckyMoment: { type: "string", description: "Lucky time window + one-line interpretation, e.g. '🌙 周三傍晚 5-7 点｜灵感会悄悄敲门'." },
+            crystalOrRitual: { type: "string", description: "A crystal, scent, or tiny ritual + how to use it in one line, starting with emoji." },
+          },
+          required: ["mantra", "doThis", "avoidThis", "luckyMoment", "crystalOrRitual"],
+        },
         socialCaption: { type: "string", description: "Fun shareable caption under 30 words" },
       }, required: ["zodiacSign", "element", "title", "description", "traits", "luckyItems", "advice", "socialCaption"] } } }],
       tool_choice: { type: "function" as const, function: { name: "zodiac_result" } },
-      temperature: 0.7, max_tokens: 1024,
+      temperature: 0.8, max_tokens: 1400,
     });
 
     if (!response.ok) {

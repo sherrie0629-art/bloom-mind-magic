@@ -219,7 +219,12 @@
       "luckyColor": "Lucky Color",
       "luckyNumber": "Lucky Number",
       "luckyDirection": "Lucky Direction",
-      "thisWeek": "💡 This Week",
+      "thisWeek": "💡 Your Week Ahead",
+      "mantraTitle": "Weekly Mantra",
+      "doThis": "🌟 Try This",
+      "avoidThis": "🚫 Avoid This",
+      "luckyMoment": "Lucky Moment",
+      "ritualTitle": "Weekly Ritual",
       "discussMore": "Discuss More",
       "elementSuffix": "Element"
     },

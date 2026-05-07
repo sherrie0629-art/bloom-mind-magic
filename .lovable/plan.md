@@ -1,37 +1,52 @@
-## 优化目标
-星座结果页的 AI 配图生成太慢，原因是图片请求要等问答完成、AI 文本结果返回后才发起，并且每次都重新生成（无缓存命中）。
+## 目标
 
-## 现状
-- `ZodiacFlow.tsx` 中 `fetchResultImage` 在 `fetchResult` 拿到文本结果后才调用。
-- `getImagePrompt` 依赖 `result.zodiacSign + result.element`，但这两个值在用户点选星座时就已经确定（固定 12 种）。
-- 调用 `fetchAIImage(prompt)` 时没有传 `cacheKey`，导致 `generate-poster-image` 边缘函数无法走 storage 缓存命中分支，每个用户每次都重新跑模型。
+把星座结果页"本周建议"从单句优化为有趣、丰富的多卡片内容，让用户更有探索感与仪式感。
 
-## 优化方案
+## 新内容结构
 
-### 1. 提前并行触发图片生成
-在 `handleSelectSign` 选定星座的瞬间就启动 `fetchAIImage`，与 10 题问答和文本结果生成完全并行。等用户答完题、文本结果返回时，图片大概率已就绪可直接展示。
+将 `advice` 从 string 升级为对象，AI 一次性返回以下 5 个字段：
 
-- 用 `imagePromiseRef = useRef<Promise<...> | null>(null)` 持有进行中的图片请求。
-- 进入结果页时 `await` 该 promise 即可（已完成则瞬时拿到）。
-- 若用户中途返回选择其他星座，重置该 ref 并重新触发。
+- `mantra`：本周能量箴言（一句诗意短语，≤20 字）
+- `doThis`：3 条"做这些事"建议（每条带 emoji 图标，约 15-25 字，覆盖行动/社交/自我关怀）
+- `avoidThis`：2 条"避开这些"提示（带 emoji，简短俏皮）
+- `luckyMoment`：本周幸运时刻（如"周三傍晚 5-7 点"+ 一句解读）
+- `crystalOrRitual`：推荐的小仪式或水晶 / 香薰（带一句使用方法）
 
-### 2. 启用 storage 缓存（关键）
-图片只与「星座 + 元素」相关，可用稳定 `cacheKey`，例如 `zodiac_${sign.toLowerCase()}`（如 `zodiac_aries`）。
-首次某星座生成后写入 `mbti-poster-art` bucket，之后所有用户的同一星座请求直接返回 CDN URL，<200ms 完成。
+## 实施步骤
 
-调整 `useSharePoster.fetchAIImage` 的调用，第二个参数传 `{ cacheKey }`；客户端内存缓存 (`imageCache`) 也会用 cacheKey 命中。
+### 1. Edge Function：`supabase/functions/assessment-zodiac/index.ts`
 
-### 3. 图片 prompt 与文本结果解耦
-将 `getImagePrompt` 改为只依赖 `sign.name + sign.element`（来自常量 `ZODIAC_SIGNS`），不再读取 `result.title`。这样才能在选定星座时就提前触发，并且 prompt 稳定 → 缓存键稳定。
+- 在 `zodiac_result` tool schema 中将 `advice` 由 string 改为 object，包含上述 5 个字段（全部 required）。
+- 更新 system prompt，要求"本周建议"丰富、俏皮、像神秘学闺蜜的口吻，并强调字数与 emoji 要求；保持 LANG 多语言指令。
+- `max_tokens` 从 1024 提升到 1400，避免被截断。
 
-### 4. 海报分享复用同一缓存
-`handleSharePoster` 已经传 `preloadedImageUrl: resultImageUrl`，无需变动；若图片未就绪 fallback 走 `imagePrompt` 时也加上同样 `cacheKey`（需要在 `useSharePoster` 中支持 imagePrompt 的 cacheKey，或简单地在调用处直接传 preloaded URL）。
+### 2. 前端：`src/pages/ZodiacFlow.tsx`
+
+- 更新 `Result` 类型中 `advice` 为对象。
+- 替换 277 行的"本周建议"卡片为新的视觉布局：
+  - 顶部：箴言（`mantra`），居中、带渐变金色字体与引号装饰
+  - "Do This"列表：图标 + 文案，带轻微 hover 动画
+  - "Avoid This"列表：以柔和警示色呈现
+  - 底部两个小 chip：`luckyMoment` 与 `crystalOrRitual`，左右排列
+- 海报分享文案 (`generatePoster` 第 194 行) 改为使用 `result.advice.mantra`。
+- 保持现有渐变 / shadow-card 风格，避免新增依赖。
+
+### 3. i18n：`src/i18n/locales/{zh,en}.json`
+
+新增以下 key（在 `assessmentFlow.zodiac` 下）：
+- `mantraTitle`：本周箴言 / Weekly Mantra
+- `doThis`：试试这些 / Try This
+- `avoidThis`：暂避锋芒 / Avoid This
+- `luckyMoment`：幸运时刻 / Lucky Moment
+- `ritualTitle`：今周小仪式 / Weekly Ritual
+
+### 4. 兼容旧数据
+
+历史 `advice` 可能是字符串。在渲染处加判断：若为 string 则按旧 UI 渲染单段文案，避免老结果页崩溃（仅前端兜底，无需迁移数据库）。
 
 ## 涉及文件
-- `src/pages/ZodiacFlow.tsx`：提前触发图片、用 ref 持有 promise、prompt 改为 sign-only。
-- `src/hooks/useSharePoster.ts`：`fetchAIImage` 调用处确保 `cacheKey` 透传（已支持，仅需调用处传入）。
-- `supabase/functions/generate-poster-image/index.ts`：无需改动，已支持 cacheKey 缓存路径。
 
-## 预期效果
-- 首次某星座：图片生成与 10 题问答并行（节省 5–15 秒等待）。
-- 第二次起任何用户同星座：直接命中 storage 缓存，几乎瞬开。
+- `supabase/functions/assessment-zodiac/index.ts`
+- `src/pages/ZodiacFlow.tsx`
+- `src/i18n/locales/zh.json`
+- `src/i18n/locales/en.json`

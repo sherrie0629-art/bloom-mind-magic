@@ -219,7 +219,12 @@
       "luckyColor": "幸运色",
       "luckyNumber": "幸运数字",
       "luckyDirection": "幸运方位",
-      "thisWeek": "💡 本周建议",
+      "thisWeek": "💡 本周指引",
+      "mantraTitle": "本周箴言",
+      "doThis": "🌟 试试这些",
+      "avoidThis": "🚫 暂避锋芒",
+      "luckyMoment": "幸运时刻",
+      "ritualTitle": "今周小仪式",
       "discussMore": "聊聊更多",
       "elementSuffix": "属性"
     },
