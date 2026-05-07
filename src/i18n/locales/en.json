@@ -345,6 +345,12 @@
     "dailyDeepLimit": "Daily deep report limit reached (1/day) 🌙",
     "deepDone": "Deep report generated! ✨",
     "deepFail": "Generation failed, please retry",
+    "deepCoverTag": "Deep Psychological Analysis",
+    "deepCoverSub": "An inner map written just for you. Take your time.",
+    "deepWords": "words",
+    "deepMinRead": "min read",
+    "deepToc": "Contents",
+    "deepSignature": "— Mind Garden · written for you",
     "shareTitle": "Share my report",
     "shareDescAI": "Discover yours at Island AI ✨",
     "dim": {
