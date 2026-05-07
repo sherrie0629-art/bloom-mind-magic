@@ -75,7 +75,7 @@ serve(async (req) => {
 
     if (!isPlus) {
       return new Response(JSON.stringify({ error: "Plus membership required", needUpgrade: true }), {
-        status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -91,7 +91,7 @@ serve(async (req) => {
     const currentCount = usage?.deep_report_count || 0;
     if (currentCount >= 1) {
       return new Response(JSON.stringify({ error: "Daily deep report limit reached (1/day). Come back tomorrow! 🌙", dailyLimitReached: true }), {
-        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
