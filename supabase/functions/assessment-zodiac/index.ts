@@ -48,8 +48,12 @@ serve(async (req) => {
       const weekStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - now.getUTCDay()));
       const weekKey = weekStart.toISOString().split("T")[0];
       const sign = (body.zodiacSign || "unknown").toString().toLowerCase().replace(/[^a-z0-9]/g, "");
-      const PROMPT_VERSION = "v2"; // bump to invalidate stale cached questions
-      const cachePath = `zodiac-questions/${sign}-${locale}-${weekKey}-${PROMPT_VERSION}.json`;
+      const PROMPT_VERSION = "v3"; // bump to invalidate stale cached questions
+      // N variants per (sign, locale, week); client rotates per user.
+      const VARIANT_COUNT = 5;
+      const rawVariant = Number.isFinite(Number(body.variant)) ? Math.floor(Number(body.variant)) : Math.floor(Math.random() * VARIANT_COUNT);
+      const variant = ((rawVariant % VARIANT_COUNT) + VARIANT_COUNT) % VARIANT_COUNT;
+      const cachePath = `zodiac-questions/${sign}-${locale}-${weekKey}-${PROMPT_VERSION}-v${variant}.json`;
 
       const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
