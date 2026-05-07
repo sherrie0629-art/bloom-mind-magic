@@ -245,7 +245,7 @@ export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }:
   };
 
   return (
-    <div className="space-y-4">
+    <div ref={rootRef} data-pdf-root className="space-y-4">
       {/* Cover */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-mystic p-6 text-primary-foreground shadow-card">
         <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-gold/30 blur-2xl" />
