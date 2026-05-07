@@ -356,7 +356,7 @@ export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }:
         disabled={posterLoading}
         className="w-full rounded-2xl bg-gradient-mystic py-4 text-sm font-semibold text-primary-foreground flex items-center justify-center gap-2 shadow-card hover:shadow-glow transition-shadow disabled:opacity-60"
       >
-        {posterLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
+        {posterLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
         {posterLoading
           ? t("assessmentDetail.generating")
           : t("assessmentDetail.deepSharePoster")}
