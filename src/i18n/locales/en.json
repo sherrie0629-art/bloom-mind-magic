@@ -351,6 +351,12 @@
     "deepMinRead": "min read",
     "deepToc": "Contents",
     "deepSignature": "— Mind Garden · written for you",
+    "deepShareSection": "Save section as image",
+    "deepCopyLink": "Copy section link",
+    "deepLinkCopied": "Section link copied ✨",
+    "deepSharePoster": "Generate Report Poster",
+    "deepShareCaption": "Discover your inner map at Mind Garden ✨",
+    "deepSaveFail": "Action failed, please retry",
     "shareTitle": "Share my report",
     "shareDescAI": "Discover yours at Island AI ✨",
     "dim": {

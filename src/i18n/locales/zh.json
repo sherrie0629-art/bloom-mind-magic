@@ -351,6 +351,12 @@
     "deepMinRead": "分钟阅读",
     "deepToc": "目录",
     "deepSignature": "—— 心灵密语 · 为你而写",
+    "deepShareSection": "截图本章",
+    "deepCopyLink": "复制章节链接",
+    "deepLinkCopied": "章节链接已复制 ✨",
+    "deepSharePoster": "生成报告海报",
+    "deepShareCaption": "在心灵密语探索属于你的内在地图 ✨",
+    "deepSaveFail": "操作失败，请重试",
     "shareTitle": "分享我的报告",
     "shareDescAI": "在心灵密语发现你的版本 ✨",
     "dim": {
