@@ -197,7 +197,7 @@ const ZodiacFlow = () => {
         `🎨 ${t("assessmentFlow.zodiac.luckyColor")}: ${result.luckyItems.color}`,
         `🔢 ${t("assessmentFlow.zodiac.luckyNumber")}: ${result.luckyItems.number}`,
         `🧭 ${t("assessmentFlow.zodiac.luckyDirection")}: ${result.luckyItems.direction}`,
-        `💡 ${result.advice}`,
+        `💡 ${typeof result.advice === "string" ? result.advice : result.advice.mantra}`,
       ],
       preloadedImageUrl: resultImageUrl || undefined,
       imagePrompt: !resultImageUrl ? getImagePromptForSign(result.zodiacSign, result.element) : undefined,
