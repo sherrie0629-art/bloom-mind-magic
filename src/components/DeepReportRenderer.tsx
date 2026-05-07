@@ -187,26 +187,59 @@ export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }:
   };
 
   const handleSharePoster = async () => {
+    const node = rootRef.current;
+    if (!node) return;
     setPosterLoading(true);
+
+    // Force-show motion-hidden sections + neutralize transforms during capture
+    const styleEl = document.createElement("style");
+    styleEl.setAttribute("data-pdf-capture", "true");
+    styleEl.textContent = `
+      [data-pdf-root] *, [data-pdf-root] {
+        opacity: 1 !important;
+        transform: none !important;
+        animation: none !important;
+        transition: none !important;
+      }
+    `;
+    document.head.appendChild(styleEl);
+
     try {
-      const canvas = await generatePoster({
-        title: typeLabel || t("assessmentDetail.deepTitle"),
-        subtitle: t("assessmentDetail.deepCoverTag", { defaultValue: t("assessmentDetail.deepTitle") }),
-        description: topQuotes[0] || t("assessmentDetail.deepCoverSub", { defaultValue: "为你专属生成的深度内在地图" }),
-        bars: [],
-        accentColor: "#8b5cf6",
-        accentColorLight: "#c4b5fd",
-        icon: "📜",
-        caption: t("assessmentDetail.deepShareCaption"),
-        extraLines: topQuotes.slice(1, 3),
+      const canvas = await html2canvas(node, {
+        scale: 2,
+        backgroundColor: "#faf6ee",
+        useCORS: true,
+        logging: false,
+        ignoreElements: (el) => (el as HTMLElement).dataset?.exclude === "true",
       });
-      setShareImageUrl(canvas.toDataURL("image/png"));
-      setShareTitle(typeLabel || t("assessmentDetail.deepTitle"));
-      setShareOpen(true);
+
+      const imgData = canvas.toDataURL("image/jpeg", 0.92);
+      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const imgW = pageW;
+      const imgH = (canvas.height * imgW) / canvas.width;
+
+      let heightLeft = imgH;
+      let position = 0;
+      pdf.addImage(imgData, "JPEG", 0, position, imgW, imgH, undefined, "FAST");
+      heightLeft -= pageH;
+
+      while (heightLeft > 0) {
+        position -= pageH;
+        pdf.addPage();
+        pdf.addImage(imgData, "JPEG", 0, position, imgW, imgH, undefined, "FAST");
+        heightLeft -= pageH;
+      }
+
+      const safeName = (typeLabel || "deep-report").replace(/[\\/:*?"<>|]/g, "_");
+      pdf.save(`${safeName}.pdf`);
+      toast.success(t("assessmentDetail.deepPdfReady"));
     } catch (e) {
       console.error(e);
       toast.error(t("assessmentDetail.deepSaveFail"));
     } finally {
+      styleEl.remove();
       setPosterLoading(false);
     }
   };
