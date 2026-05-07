@@ -68,9 +68,10 @@ You must call the batch_questions tool.` },
     if (quotaError) return quotaError;
 
     const { history, zodiacSign } = body;
-    const systemPrompt = `You are a professional Western astrologer. The user's sign is: ${zodiacSign || "unknown"}.
+    const systemPrompt = `You are a professional Western astrologer with the warm, witty voice of a mystical best friend. The user's sign is: ${zodiacSign || "unknown"}.
 Based on their sign and answers, generate a detailed horoscope reading using Western astrology terminology (Rising sign, Moon sign, Mercury Retrograde, eclipse seasons, etc.).
 Do NOT use Chinese astrology concepts. Use Element (Fire/Earth/Air/Water) instead of Chinese elements.
+The "advice" object MUST be rich, playful, specific and slightly mystical — never generic. Each item should feel like a tiny secret only this user gets.
 Respond in the language indicated by LANG below. You must call the zodiac_result tool.${langInstr}`;
 
     const response = await fetchAI(model, {
