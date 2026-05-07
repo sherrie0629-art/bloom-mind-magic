@@ -97,7 +97,7 @@ Write 10 questions covering overall vibe / love / career / money (2-3 each), wra
       const response = await fetchAI(model, {
         messages: [
           { role: "system", content: (locale === "zh" ? zhSystem : enSystem) + langInstr },
-          { role: "user", content: locale === "zh" ? "出 10 道场景化星座小测验题。" : "Generate 10 scene-based horoscope quiz questions." },
+          { role: "user", content: (locale === "zh" ? "出 10 道场景化星座小测验题。" : "Generate 10 scene-based horoscope quiz questions.") + (locale === "zh" ? `\n\n本套编号：#${variant + 1}（共 ${VARIANT_COUNT} 套）。请使用与其他编号截然不同的场景与措辞，5 套之间无重复题目。` : `\n\nVariant #${variant + 1} of ${VARIANT_COUNT}. Use scenes and phrasing clearly different from the other variants — no overlapping questions.`) },
         ],
         tools: [{ type: "function" as const, function: { name: "batch_questions", description: "Return 10 scene-based horoscope quiz questions", parameters: { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { question: { type: "string", description: "A vivid everyday micro-scene + the user's reaction. NOT an abstract feeling question." }, options: { type: "array", items: { type: "object", properties: { label: { type: "string" }, text: { type: "string", description: "8-20 chars, concrete and visual, with emotion/humor/self-deprecation. Never a bare adjective." } }, required: ["label", "text"] } }, dimension: { type: "string", description: "Aspect: overall/love/career/fortune" } }, required: ["question", "options", "dimension"] }, minItems: 10, maxItems: 10 } }, required: ["questions"] } } }],
         tool_choice: { type: "function" as const, function: { name: "batch_questions" } },
