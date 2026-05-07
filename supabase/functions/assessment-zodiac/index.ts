@@ -43,24 +43,54 @@ serve(async (req) => {
     const model = "google/gemini-2.5-flash-lite";
 
     if (body.action === "batch-questions") {
+      // ISO week key — cache refreshes weekly
+      const now = new Date();
+      const weekStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - now.getUTCDay()));
+      const weekKey = weekStart.toISOString().split("T")[0];
+      const sign = (body.zodiacSign || "unknown").toString().toLowerCase().replace(/[^a-z0-9]/g, "");
+      const cachePath = `zodiac-questions/${sign}-${locale}-${weekKey}.json`;
+
+      const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+
+      // Try cache first
+      try {
+        const { data: cached } = await admin.storage.from("assessment-cache").download(cachePath);
+        if (cached) {
+          const text = await cached.text();
+          const questions = JSON.parse(text);
+          if (Array.isArray(questions) && questions.length >= 10) {
+            return new Response(JSON.stringify({ type: "batch", data: questions, cached: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+          }
+        }
+      } catch (_) { /* cache miss */ }
+
       const response = await fetchAI(model, {
         messages: [
-          { role: "system", content: `You are a professional Western astrologer. The user's zodiac sign is: ${body.zodiacSign || "unknown"}.
-Generate 10 questions about their current life situation, feelings, and energy to personalize their horoscope reading.
-Cover overall energy, love life, career, and finances. Make them fun and relatable. Each has 4 options (A/B/C/D). Respond in the language indicated by LANG below.
-Consider current astrological themes like Mercury Retrograde, eclipse seasons, etc.${langInstr}
-You must call the batch_questions tool.` },
-          { role: "user", content: "Generate 10 horoscope reading questions." },
+          { role: "system", content: `Western astrologer. Sign: ${body.zodiacSign || "unknown"}.
+Generate 10 fun, relatable horoscope questions covering overall energy, love, career, finances. Each has 4 options (A/B/C/D).${langInstr}
+Call the batch_questions tool.` },
+          { role: "user", content: "Generate 10 horoscope questions." },
         ],
         tools: [{ type: "function" as const, function: { name: "batch_questions", description: "Return 10 horoscope questions", parameters: { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { question: { type: "string" }, options: { type: "array", items: { type: "object", properties: { label: { type: "string" }, text: { type: "string" } }, required: ["label", "text"] } }, dimension: { type: "string", description: "Aspect: overall/love/career/fortune" } }, required: ["question", "options", "dimension"] }, minItems: 10, maxItems: 10 } }, required: ["questions"] } } }],
         tool_choice: { type: "function" as const, function: { name: "batch_questions" } },
-        temperature: 0.7, max_tokens: 2048,
+        temperature: 0.5, max_tokens: 1200,
       });
       if (!response.ok) { const t = await response.text(); console.error("Batch error:", response.status, t); throw new Error("AI service error"); }
       const data = await response.json();
       const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
       if (!toolCall) throw new Error("No tool call");
-      return new Response(JSON.stringify({ type: "batch", data: JSON.parse(toolCall.function.arguments).questions }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const questions = JSON.parse(toolCall.function.arguments).questions;
+
+      // Write cache (fire and forget)
+      try {
+        await admin.storage.from("assessment-cache").upload(
+          cachePath,
+          new Blob([JSON.stringify(questions)], { type: "application/json" }),
+          { upsert: true, contentType: "application/json" },
+        );
+      } catch (e) { console.error("cache write failed:", e); }
+
+      return new Response(JSON.stringify({ type: "batch", data: questions, cached: false }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Result mode — check quota
