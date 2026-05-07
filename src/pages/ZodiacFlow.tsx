@@ -279,8 +279,65 @@ const ZodiacFlow = () => {
             </div>
           </div>
           <div className="rounded-2xl bg-card p-5 shadow-card mb-4">
-            <h3 className="font-display text-sm font-semibold text-foreground mb-2">{t("assessmentFlow.zodiac.thisWeek")}</h3>
-            <p className="text-sm text-muted-foreground">{result.advice}</p>
+            <h3 className="font-display text-sm font-semibold text-foreground mb-3">{t("assessmentFlow.zodiac.thisWeek")}</h3>
+            {typeof result.advice === "string" ? (
+              <p className="text-sm text-muted-foreground leading-relaxed">{result.advice}</p>
+            ) : (
+              <div className="space-y-4">
+                {/* Mantra */}
+                <div className="relative rounded-xl bg-gradient-mystic/10 border border-primary/15 px-4 py-4 text-center">
+                  <p className="text-[10px] uppercase tracking-widest text-secondary mb-1">{t("assessmentFlow.zodiac.mantraTitle")}</p>
+                  <p className="font-display text-base bg-gradient-golden bg-clip-text text-transparent leading-snug">
+                    "{result.advice.mantra}"
+                  </p>
+                </div>
+
+                {/* Do This */}
+                <div>
+                  <p className="text-xs font-semibold text-foreground mb-2">{t("assessmentFlow.zodiac.doThis")}</p>
+                  <ul className="space-y-2">
+                    {result.advice.doThis.map((item, i) => (
+                      <motion.li
+                        key={i}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.05 * i }}
+                        className="rounded-lg bg-muted/40 px-3 py-2 text-sm text-foreground/90 leading-relaxed"
+                      >
+                        {item}
+                      </motion.li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Avoid This */}
+                <div>
+                  <p className="text-xs font-semibold text-foreground mb-2">{t("assessmentFlow.zodiac.avoidThis")}</p>
+                  <ul className="space-y-2">
+                    {result.advice.avoidThis.map((item, i) => (
+                      <li
+                        key={i}
+                        className="rounded-lg bg-destructive/5 border border-destructive/10 px-3 py-2 text-sm text-foreground/80 leading-relaxed"
+                      >
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Lucky moment + Ritual */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div className="rounded-xl bg-secondary/10 border border-secondary/20 px-3 py-3">
+                    <p className="text-[10px] uppercase tracking-wider text-secondary mb-1">⏰ {t("assessmentFlow.zodiac.luckyMoment")}</p>
+                    <p className="text-xs text-foreground/90 leading-relaxed">{result.advice.luckyMoment}</p>
+                  </div>
+                  <div className="rounded-xl bg-primary/5 border border-primary/15 px-3 py-3">
+                    <p className="text-[10px] uppercase tracking-wider text-primary mb-1">🔮 {t("assessmentFlow.zodiac.ritualTitle")}</p>
+                    <p className="text-xs text-foreground/90 leading-relaxed">{result.advice.crystalOrRitual}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex gap-3">
             <button onClick={handleSharePoster} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-card py-3 text-sm font-medium text-foreground shadow-card">
