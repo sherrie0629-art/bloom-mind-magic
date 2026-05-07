@@ -48,7 +48,8 @@ serve(async (req) => {
       const weekStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - now.getUTCDay()));
       const weekKey = weekStart.toISOString().split("T")[0];
       const sign = (body.zodiacSign || "unknown").toString().toLowerCase().replace(/[^a-z0-9]/g, "");
-      const cachePath = `zodiac-questions/${sign}-${locale}-${weekKey}.json`;
+      const PROMPT_VERSION = "v2"; // bump to invalidate stale cached questions
+      const cachePath = `zodiac-questions/${sign}-${locale}-${weekKey}-${PROMPT_VERSION}.json`;
 
       const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
@@ -64,16 +65,39 @@ serve(async (req) => {
         }
       } catch (_) { /* cache miss */ }
 
+      const zhSystem = `你是一位会占卜的"损友"，正在带朋友玩一场轻松的心理小测验。星座：${body.zodiacSign || "未知"}。
+出 10 道题，覆盖 综合能量 / 爱情 / 事业 / 财运（每个维度 2-3 题），但不要直白点题，用具体生活场景包装。
+
+【硬性要求】
+1. 每题是一个具体小场景 + "你的反应/选择/脑内小剧场"。例如：
+   - "周五晚上手机突然弹出前任的朋友圈，你的第一反应是？"
+   - "工位上的多肉今早莫名歪了，你心想……"
+   - "老板群里发了个意味不明的'嗯'，你脑补的下一句是？"
+2. 4 个选项每个 8-20 字，要有画面感/情绪/自嘲/玄学梗，例如"装作没看见，但已经截图发闺蜜"。
+3. 严禁出现纯形容词选项（如"开心/难过/平静/焦虑"），严禁"你认为/你觉得/你的 X 如何"开头超过 2 题。
+4. 语气像小红书占卜博主，俏皮但不油腻，emoji 最多每题 1 个，可不用。
+5. 必须调用 batch_questions 工具返回。`;
+
+      const enSystem = `You are a witty psychic best friend running a playful personality quiz. Sign: ${body.zodiacSign || "unknown"}.
+Write 10 questions covering overall vibe / love / career / money (2-3 each), wrapped in vivid everyday micro-scenes — never name the dimension out loud.
+
+[Rules]
+1. Each question is a tiny scene + "your reaction/inner monologue", e.g.:
+   - "Your ex's story pops up at 11:47pm. First instinct?"
+   - "Boss replies just 'k' in the group chat. Your brain immediately…"
+2. Each of 4 options is 8-20 words, with imagery, emotion, self-deprecation or cosmic humor (e.g. "Pretend I didn't see it. Already screenshot to bestie though.").
+3. No bare adjective options ("Happy / Sad / Calm"). No more than 2 questions starting with "Do you think / How do you feel".
+4. Voice = Co-Star meets group-chat oracle. Max 1 emoji per question, optional.
+5. Must call batch_questions.`;
+
       const response = await fetchAI(model, {
         messages: [
-          { role: "system", content: `Western astrologer. Sign: ${body.zodiacSign || "unknown"}.
-Generate 10 fun, relatable horoscope questions covering overall energy, love, career, finances. Each has 4 options (A/B/C/D).${langInstr}
-Call the batch_questions tool.` },
-          { role: "user", content: "Generate 10 horoscope questions." },
+          { role: "system", content: (locale === "zh" ? zhSystem : enSystem) + langInstr },
+          { role: "user", content: locale === "zh" ? "出 10 道场景化星座小测验题。" : "Generate 10 scene-based horoscope quiz questions." },
         ],
-        tools: [{ type: "function" as const, function: { name: "batch_questions", description: "Return 10 horoscope questions", parameters: { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { question: { type: "string" }, options: { type: "array", items: { type: "object", properties: { label: { type: "string" }, text: { type: "string" } }, required: ["label", "text"] } }, dimension: { type: "string", description: "Aspect: overall/love/career/fortune" } }, required: ["question", "options", "dimension"] }, minItems: 10, maxItems: 10 } }, required: ["questions"] } } }],
+        tools: [{ type: "function" as const, function: { name: "batch_questions", description: "Return 10 scene-based horoscope quiz questions", parameters: { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { question: { type: "string", description: "A vivid everyday micro-scene + the user's reaction. NOT an abstract feeling question." }, options: { type: "array", items: { type: "object", properties: { label: { type: "string" }, text: { type: "string", description: "8-20 chars, concrete and visual, with emotion/humor/self-deprecation. Never a bare adjective." } }, required: ["label", "text"] } }, dimension: { type: "string", description: "Aspect: overall/love/career/fortune" } }, required: ["question", "options", "dimension"] }, minItems: 10, maxItems: 10 } }, required: ["questions"] } } }],
         tool_choice: { type: "function" as const, function: { name: "batch_questions" } },
-        temperature: 0.5, max_tokens: 1200,
+        temperature: 0.85, max_tokens: 1500,
       });
       if (!response.ok) { const t = await response.text(); console.error("Batch error:", response.status, t); throw new Error("AI service error"); }
       const data = await response.json();

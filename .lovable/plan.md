@@ -1,75 +1,35 @@
-## 目标
+# 让星座运势题目更有趣
 
-在深度报告底部新增"分享与留存"模块，让用户读完想发朋友圈：
-1. **每张章节卡右上角**：📷 截图保存按钮 + 🔗 复制章节锚点链接按钮
-2. **报告底部**：「分享报告封面」按钮 → 生成竖版海报（含类型 + 标志性金句 + 站点名）
-3. **分享文案**预填用户类型 + 第一句金句
+## 单一文件改动：`supabase/functions/assessment-zodiac/index.ts`
 
-## 实施步骤
+### 1. 缓存立即失效（最简方案）
+在 `cachePath` 拼接里加一个 `PROMPT_VERSION = "v2"` 常量：
 
-### 1. 安装依赖
-`html-to-image`（已 `bun add` 完成）—— 用于把单个章节卡 DOM 截成 PNG，比 html2canvas 更轻、对 motion/渐变兼容更好。
-
-### 2. 改造 `src/components/DeepReportRenderer.tsx`
-
-**新增 imports**
 ```ts
-import { useMemo, useRef, useState } from "react";
-import { Camera, Link as LinkIcon, Share2, Loader2 } from "lucide-react";
-import { toPng } from "html-to-image";
-import { toast } from "sonner";
-import { useSharePoster } from "@/hooks/useSharePoster";
-import ShareSheet from "@/components/ShareSheet";
+const PROMPT_VERSION = "v2"; // bump to invalidate stale cached questions
+const cachePath = `zodiac-questions/${sign}-${locale}-${weekKey}-${PROMPT_VERSION}.json`;
 ```
 
-**章节卡右上角工具栏**
-- 用 `useRef<HTMLDivElement[]>([])` 存每张卡的 DOM 引用（`ref={(el) => (sectionRefs.current[i] = el)}`）
-- 📷 按钮：`toPng(sectionRefs.current[i], { pixelRatio: 2, backgroundColor: "#faf6ee" })` → 触发下载 `深度报告-{章节名}.png`，并同时打开 `ShareSheet` 让移动端可"长按保存/分享"
-- 🔗 按钮：`navigator.clipboard.writeText(${location.href}#deep-section-${i})` → toast 提示"链接已复制"
-- 截图前临时把"工具栏"自身 `display: none`（避免按钮被截进图），完成后恢复
+旧 key 自然走不到，无需手动清 storage。后续再调 prompt 只要 bump 版本号。
 
-**报告底部「分享报告封面」按钮**
-- 用 `useSharePoster().generatePoster()` 生成竖版海报：
-  ```ts
-  generatePoster({
-    title: typeLabel,
-    subtitle: t("assessmentDetail.deepCoverTag"),
-    description: firstQuote || coverSubtitle,  // 用第一句 💎 金句作主文案
-    bars: [],                                   // 深度报告不展示维度条
-    accentColor: "#8b5cf6",
-    accentColorLight: "#c4b5fd",
-    icon: "📜",
-    caption: t("assessmentDetail.deepShareCaption"),
-    extraLines: topQuotes,  // 最多 2-3 条金句，作为亮点列表
-  })
-  ```
-- 从 markdown 中提取所有 `> 💎 …` 行作为 `topQuotes`（按出现顺序取前 3 条）
-- 海报通过 `<ShareSheet>` 弹层呈现（与项目其他分享一致，复用现成组件）
+### 2. 重写 batch-questions 的 system prompt
+人设从"占星师出题"改成"会占卜的损友在玩心理小测验"。要求：
 
-### 3. i18n 新增 key（`zh.json` / `en.json`，置于 `assessmentDetail` 命名空间）
+- **场景化提问**：给具体小场景让用户选反应，例如"周五晚上手机突然弹出前任的朋友圈，你的第一反应是…"、"老板群里发了个意味不明的'嗯'，你脑内小剧场是…"、"下班路上挡路的橘猫盯着你，你觉得它在说…"。
+- **选项有戏**：每条 8–20 字，带画面感/情绪/自嘲或玄学梗（如"装作没看见，但已经截图发闺蜜"），杜绝"开心/难过"式纯形容词。
+- **覆盖维度**：综合 / 爱情 / 事业 / 财运 各 2–3 题，但用生活场景包装，不直白点题。
+- **语气**：中文像小红书占卜博主，英文像 Co-Star；emoji 克制使用。
+- **明确禁止**："你认为/你觉得/你的…如何"句式开头不超过 2 题；不要纯形容词选项。
+- 在 prompt 里塞 1–2 个中英 few-shot 示例，稳住输出风格。
 
-| key | zh | en |
-|---|---|---|
-| `deepShareSection` | 截图本章 | Save section |
-| `deepCopyLink` | 复制链接 | Copy link |
-| `deepLinkCopied` | 章节链接已复制 ✨ | Section link copied ✨ |
-| `deepSharePoster` | 生成报告海报 | Generate report poster |
-| `deepShareCaption` | 在心灵密语探索属于你的内在地图 ✨ | Discover your inner map at Mind Garden ✨ |
-| `deepSectionSaved` | 已保存到相册 / 可长按图片转发 | Saved · long-press to share |
-| `deepSaveFail` | 截图失败，请重试 | Save failed, please retry |
+### 3. tool schema 加描述
+给 `question` 和 `options[].text` 字段加 description，强调"场景化、具体、有画面感"。
 
-### 4. 兼容性 / 边界
-- `html-to-image` 在 Safari 上对 `backdrop-blur` 有时丢失，截图前对相关元素加 `data-html2canvas-ignore` 兜底（这里只对工具栏按钮用即可）
-- 截图过程中按钮显示 `<Loader2 className="animate-spin" />`，期间禁用避免重复触发
-- 历史报告（无 💎 金句）：海报 `description` 退回封面副标题，`extraLines` 留空，不报错
+### 4. 调参数
+`temperature: 0.5 → 0.85`，`max_tokens: 1200 → 1500`，给场景化措辞留空间。
 
-## 涉及文件
-
-- `src/components/DeepReportRenderer.tsx`（核心改动）
-- `src/i18n/locales/zh.json`、`src/i18n/locales/en.json`（新增 7 个 key）
-- `package.json` / `bun.lockb`（已加 `html-to-image`）
-
-## 不做的事
-- 不引入二维码（`useSharePoster` 当前未画二维码；如要加，需后续单独迭代海报模板）
-- 不持久化"分享次数"统计（避免新增表/字段）
-- 不为旧版（无金句）报告倒灌内容
+## 不动
+- 题目数量（10）、选项数（4）
+- `zodiac_result`（结果生成）逻辑
+- 配额、缓存读写流程
+- 其他 edge function
