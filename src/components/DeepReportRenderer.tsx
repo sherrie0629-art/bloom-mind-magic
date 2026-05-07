@@ -129,8 +129,8 @@ interface Props {
 export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }: Props) {
   const { t, i18n } = useTranslation();
   const { preface, sections } = useMemo(() => parseSections(markdown || ""), [markdown]);
-  const { generatePoster } = useSharePoster();
 
+  const rootRef = useRef<HTMLDivElement | null>(null);
   const sectionRefs = useRef<Array<HTMLDivElement | null>>([]);
   const [savingIdx, setSavingIdx] = useState<number | null>(null);
   const [posterLoading, setPosterLoading] = useState(false);
@@ -138,15 +138,6 @@ export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }:
   const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
   const [shareTitle, setShareTitle] = useState("");
 
-  const topQuotes = useMemo(() => {
-    const out: string[] = [];
-    const re = /^>\s*💎\s*(.+)$/gm;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(markdown || "")) && out.length < 3) {
-      out.push(m[1].trim().replace(/[（(]≤?\d+\s*字[）)]/g, ""));
-    }
-    return out;
-  }, [markdown]);
 
   const wordCount = useMemo(() => {
     const text = (markdown || "").replace(/[#>*\-_`]/g, "");
