@@ -287,7 +287,7 @@ const ZodiacFlow = () => {
                 {/* Mantra */}
                 <div className="relative rounded-xl bg-gradient-mystic/10 border border-primary/15 px-4 py-4 text-center">
                   <p className="text-[10px] uppercase tracking-widest text-secondary mb-1">{t("assessmentFlow.zodiac.mantraTitle")}</p>
-                  <p className="font-display text-base bg-gradient-golden bg-clip-text text-transparent leading-snug">
+                  <p className="font-display text-base text-gradient-golden leading-snug font-semibold">
                     "{result.advice.mantra}"
                   </p>
                 </div>
