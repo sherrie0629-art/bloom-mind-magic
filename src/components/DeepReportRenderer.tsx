@@ -2,10 +2,11 @@ import { useMemo, useRef, useState } from "react";
 import ReactMarkdown, { type Components } from "react-markdown";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { Sparkles, BookOpen, Clock, Camera, Link as LinkIcon, Share2, Loader2 } from "lucide-react";
+import { Sparkles, BookOpen, Clock, Camera, Link as LinkIcon, Download, Loader2 } from "lucide-react";
 import { toPng } from "html-to-image";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { toast } from "sonner";
-import { useSharePoster } from "@/hooks/useSharePoster";
 import ShareSheet from "@/components/ShareSheet";
 
 interface Section {
