@@ -100,10 +100,16 @@ serve(async (req) => {
 
     // === Batch questions mode (no quota check - just generating questions) ===
     if (body.action === "batch-questions") {
-      // ---- Cache layer: shared, locale-bucketed, 1h TTL ----
+      // ---- Cache layer: shared, locale + variant bucketed, 1h TTL ----
+      // We keep N variants per locale; client rotates variant per user so
+      // the same person rarely sees the same question set twice in a row.
+      const VARIANT_COUNT = 5;
+      const PROMPT_VERSION = "v3"; // bump to invalidate stale caches
+      const rawVariant = Number.isFinite(Number(body.variant)) ? Math.floor(Number(body.variant)) : Math.floor(Math.random() * VARIANT_COUNT);
+      const variant = ((rawVariant % VARIANT_COUNT) + VARIANT_COUNT) % VARIANT_COUNT;
       const CACHE_BUCKET = "assessment-cache";
       const CACHE_TTL_MS = 60 * 60 * 1000;
-      const cacheKey = `mbti-batch-${locale}.json`;
+      const cacheKey = `mbti-batch-${locale}-${PROMPT_VERSION}-v${variant}.json`;
       const adminClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
       try {
@@ -182,7 +188,7 @@ You MUST call the batch_questions tool to return all 10 questions.`;
       const aiPayload = {
         messages: [
           { role: "system", content: `${styleGuide}${langInstr}` },
-          { role: "user", content: isZh ? "请生成 10 道剧情化的 MBTI 场景题，覆盖 E/I、S/N、T/F、J/P 四个维度。" : "Generate 10 story-driven MBTI scene questions covering E/I, S/N, T/F, J/P." },
+          { role: "user", content: (isZh ? "请生成 10 道剧情化的 MBTI 场景题，覆盖 E/I、S/N、T/F、J/P 四个维度。" : "Generate 10 story-driven MBTI scene questions covering E/I, S/N, T/F, J/P.") + (isZh ? `\n\n本套编号：#${variant + 1}（共 ${VARIANT_COUNT} 套）。请避开常见套路，使用与其他编号截然不同的场景、emoji 和措辞，保证 5 套之间无重复题目。` : `\n\nVariant #${variant + 1} of ${VARIANT_COUNT}. Use scenes, emojis, and phrasing that are clearly different from the other variants — no overlapping questions across the 5 sets.`) },
         ],
         tools: [{
           type: "function" as const,

@@ -13,6 +13,7 @@ import { useLocale } from "@/hooks/useLocale";
 import AssessmentQuestionLayout from "@/components/AssessmentQuestionLayout";
 import ResultAIImage from "@/components/ResultAIImage";
 import PosterPreviewDialog from "@/components/PosterPreviewDialog";
+import { getNextVariant } from "@/lib/assessmentVariant";
 
 interface QA { question: string; answer: string; dimension: string; }
 
@@ -153,8 +154,9 @@ const ZodiacFlow = () => {
     setLoading(true);
     setLoadingMsg(t("assessmentFlow.common.starting"));
     try {
+      const variant = getNextVariant(`zodiac:${signName}`, locale);
       const { data, error } = await supabase.functions.invoke("assessment-zodiac", {
-        body: { action: "batch-questions", zodiacSign: signName, locale },
+        body: { action: "batch-questions", zodiacSign: signName, locale, variant },
       });
       if (error) throw error;
       if (data.type === "batch" && data.data?.length > 0) {

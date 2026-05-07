@@ -16,6 +16,7 @@ import ResultAIImage from "@/components/ResultAIImage";
 import PosterPreviewDialog from "@/components/PosterPreviewDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { pickQuestionSet } from "@/data/mbtiQuestionPool";
+import { getNextVariant } from "@/lib/assessmentVariant";
 
 interface QA { question: string; answer: string; dimension: string; }
 interface MBTIResult { mbtiType: string; title: string; description: string; traits: { E_I: number; S_N: number; T_F: number; J_P: number }; socialCaption: string; }
@@ -74,11 +75,14 @@ const AssessmentFlow = () => {
   };
 
   // Prefetch a fresh AI-generated batch in the background while user reads the intro.
+  // Pick a variant up front so prefetch + fallback share the same one (advances once per session).
+  const variantRef = useRef<number | null>(null);
   const prefetchedRef = useRef<Promise<any[] | null> | null>(null);
   useEffect(() => {
     if (started || prefetchedRef.current) return;
+    if (variantRef.current === null) variantRef.current = getNextVariant("mbti", locale);
     prefetchedRef.current = supabase.functions
-      .invoke("assessment", { body: { action: "batch-questions", locale } })
+      .invoke("assessment", { body: { action: "batch-questions", locale, variant: variantRef.current } })
       .then(({ data, error }) => (!error && data?.type === "batch" && Array.isArray(data.data) && data.data.length >= 10 ? data.data : null))
       .catch(() => null);
   }, [started, locale]);
@@ -103,7 +107,8 @@ const AssessmentFlow = () => {
       batch = pickQuestionSet(locale);
       // Keep the prefetch running so a later session can use it; also kick a new one for next time.
       if (!prefetchedRef.current) {
-        supabase.functions.invoke("assessment", { body: { action: "batch-questions", locale } }).catch(() => {});
+        const v = variantRef.current ?? getNextVariant("mbti", locale);
+        supabase.functions.invoke("assessment", { body: { action: "batch-questions", locale, variant: v } }).catch(() => {});
       }
     }
 
