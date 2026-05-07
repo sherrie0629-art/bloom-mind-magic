@@ -100,10 +100,16 @@ serve(async (req) => {
 
     // === Batch questions mode (no quota check - just generating questions) ===
     if (body.action === "batch-questions") {
-      // ---- Cache layer: shared, locale-bucketed, 1h TTL ----
+      // ---- Cache layer: shared, locale + variant bucketed, 1h TTL ----
+      // We keep N variants per locale; client rotates variant per user so
+      // the same person rarely sees the same question set twice in a row.
+      const VARIANT_COUNT = 5;
+      const PROMPT_VERSION = "v3"; // bump to invalidate stale caches
+      const rawVariant = Number.isFinite(Number(body.variant)) ? Math.floor(Number(body.variant)) : Math.floor(Math.random() * VARIANT_COUNT);
+      const variant = ((rawVariant % VARIANT_COUNT) + VARIANT_COUNT) % VARIANT_COUNT;
       const CACHE_BUCKET = "assessment-cache";
       const CACHE_TTL_MS = 60 * 60 * 1000;
-      const cacheKey = `mbti-batch-${locale}.json`;
+      const cacheKey = `mbti-batch-${locale}-${PROMPT_VERSION}-v${variant}.json`;
       const adminClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
       try {
