@@ -352,6 +352,7 @@ export default function DeepReportRenderer({ markdown, typeLabel, generatedAt }:
       {/* Share full report poster */}
       <button
         type="button"
+        data-exclude="true"
         onClick={handleSharePoster}
         disabled={posterLoading}
         className="w-full rounded-2xl bg-gradient-mystic py-4 text-sm font-semibold text-primary-foreground flex items-center justify-center gap-2 shadow-card hover:shadow-glow transition-shadow disabled:opacity-60"
