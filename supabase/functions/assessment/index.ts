@@ -188,7 +188,7 @@ You MUST call the batch_questions tool to return all 10 questions.`;
       const aiPayload = {
         messages: [
           { role: "system", content: `${styleGuide}${langInstr}` },
-          { role: "user", content: isZh ? "请生成 10 道剧情化的 MBTI 场景题，覆盖 E/I、S/N、T/F、J/P 四个维度。" : "Generate 10 story-driven MBTI scene questions covering E/I, S/N, T/F, J/P." },
+          { role: "user", content: (isZh ? "请生成 10 道剧情化的 MBTI 场景题，覆盖 E/I、S/N、T/F、J/P 四个维度。" : "Generate 10 story-driven MBTI scene questions covering E/I, S/N, T/F, J/P.") + (isZh ? `\n\n本套编号：#${variant + 1}（共 ${VARIANT_COUNT} 套）。请避开常见套路，使用与其他编号截然不同的场景、emoji 和措辞，保证 5 套之间无重复题目。` : `\n\nVariant #${variant + 1} of ${VARIANT_COUNT}. Use scenes, emojis, and phrasing that are clearly different from the other variants — no overlapping questions across the 5 sets.`) },
         ],
         tools: [{
           type: "function" as const,
