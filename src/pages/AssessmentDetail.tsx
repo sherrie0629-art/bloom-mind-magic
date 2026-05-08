@@ -10,6 +10,7 @@ import { useSharePoster } from "@/hooks/useSharePoster";
 import ShareSheet from "@/components/ShareSheet";
 import { toast } from "sonner";
 import DeepReportRenderer from "@/components/DeepReportRenderer";
+import DeepReportUnlock from "@/components/DeepReportUnlock";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
 
