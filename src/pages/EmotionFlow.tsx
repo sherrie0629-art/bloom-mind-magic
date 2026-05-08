@@ -135,6 +135,7 @@ const EmotionFlow = () => {
       extraLines: result.suggestions.map((s, i) => `${i + 1}. ${s}`),
       preloadedImageUrl: resultImageUrl || undefined,
       imagePrompt: !resultImageUrl ? getImagePrompt(result) : undefined,
+      imageCacheKey: getImageCacheKey(result),
     });
   };
 
