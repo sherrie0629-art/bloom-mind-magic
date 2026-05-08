@@ -32,9 +32,14 @@ serve(async (req) => {
     }
     const userId = claimsData.claims.sub;
 
-    const { messages, agentId } = await req.json();
+    const { messages, agentId, locale: bodyLocale } = await req.json();
+    const locale = bodyLocale === "zh" ? "zh" : "en";
 
     const conversation = messages.map((m: any) => `${m.role}: ${m.content}`).join("\n");
+
+    const langInstr = locale === "zh"
+      ? "\n\n所有 summary、key_topics、memory 的 content 与 emotion_tag 都必须用简体中文输出。"
+      : "\n\nAll summary, key_topics, memory content and emotion_tag must be in natural English.";
 
     const response = await fetch(AI_URL, {
       method: "POST",
@@ -46,7 +51,7 @@ serve(async (req) => {
             role: "system",
             content: `You are a conversation summarizer and memory extraction assistant. Complete two tasks:
 1. Summarize the conversation in 2-3 sentences, capturing the core content and the user's emotional state. Extract 3-5 key topic tags.
-2. Extract specific memory entries from the conversation (events, emotions, people, preferences, insights). Each memory should be specific enough to reference naturally in future conversations.`,
+2. Extract specific memory entries from the conversation (events, emotions, people, preferences, insights). Each memory should be specific enough to reference naturally in future conversations.${langInstr}`,
           },
           { role: "user", content: conversation },
         ],
