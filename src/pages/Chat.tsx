@@ -453,6 +453,7 @@ const Chat = () => {
           bondLevel: 1,
           accessToken: session?.access_token,
           locale,
+          unlockedShards: [],
           onDelta: upsertAssistant,
           onDone: () => {
             const { cleanContent, branchOptions: parsedOptions } = parseGameMarkers(assistantContent);
