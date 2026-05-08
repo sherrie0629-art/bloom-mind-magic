@@ -866,6 +866,7 @@ const Chat = () => {
         agent={agent}
         bondLevel={bondLevel}
         totalTurns={totalTurns}
+        easterEggsFound={easterEggsFound}
         open={profileOpen}
         onClose={() => setProfileOpen(false)}
       />
