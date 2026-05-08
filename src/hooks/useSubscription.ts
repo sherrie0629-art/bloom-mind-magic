@@ -99,10 +99,10 @@ export function useSubscription(userId: string | undefined, createdAt?: string) 
   // Realtime: refresh when this user's subscription row changes (e.g. after webhook)
   useEffect(() => {
     if (!userId) return;
-    const channel = supabase
-      .channel(`user_subscriptions:${userId}`)
+    const channel = supabase.channel(`user_subscriptions:${userId}`);
+    channel
       .on(
-        "postgres_changes",
+        "postgres_changes" as any,
         {
           event: "*",
           schema: "public",
