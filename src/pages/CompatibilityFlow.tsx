@@ -52,6 +52,7 @@ const CompatibilityFlow = () => {
   const [result, setResult] = useState<CompatibilityResult | null>(null);
   const [deepAnalysis, setDeepAnalysis] = useState("");
   const [deepAnalysisDone, setDeepAnalysisDone] = useState(false);
+  const [savedReportId, setSavedReportId] = useState<string | null>(null);
 
   const [myName, setMyName] = useState("");
   const [myMbti, setMyMbti] = useState("");
