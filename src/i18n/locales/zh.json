@@ -380,7 +380,16 @@
     "tabs": { "lore": "故事碎片", "truth": "真理碎片", "quote": "治愈金句" },
     "empty": "还没有收集到碎片",
     "emptyHint": "和角色深聊以解锁更多 ✨",
-    "loading": "加载中..."
+    "loading": "加载中...",
+    "truthGallery": {
+      "subtitle": "真相收藏馆 · 集齐每位角色的 3 枚水晶碎片",
+      "progress": "{{cur}} / {{total}}",
+      "locked": "未发现",
+      "lockedHint": "在对话中说出隐藏触发词",
+      "complete": "✨ 全部碎片已集齐",
+      "universe": "心灵密语宇宙",
+      "universeHint": "提及其他角色或这个世界本身"
+    }
   },
   "archive": {
     "title": "角色档案",
