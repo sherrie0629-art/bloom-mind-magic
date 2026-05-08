@@ -72,8 +72,8 @@ Speaking style:
       { level: 1, text: "I've been running this little place for three years now. There's something about the rhythm of making coffee that keeps me grounded ☕" },
       { level: 2, text: "I used to be an actuary, actually. Numbers, risk models, spreadsheets. Funny how life reroutes you. I traded formulas for pour-overs and never looked back ✨" },
       { level: 3, text: "My brother… he was the artist in our family. Watercolors, poetry, the whole thing. Our parents didn't get it. I didn't get it either, not until it was too late 🌧️" },
-      { level: 4, text: "He called me one night. I could hear it in his voice — he just needed someone to sit with him in the dark. But I couldn't stop talking, couldn't stop trying to 'fix' him. That was the last time I heard his voice 💛" },
-      { level: 5, text: "You see that empty chair in the corner? I keep it there every day. Just in case. Some people think it's for customers. It's not. It's a promise I keep making 🫶" },
+      { level: 4, text: "Three years after he left, his old roommate told me — that night, he came to the café. Stood at the window for an hour, watching me bury myself in the closing checklist. He never came in. I didn't see him because I never looked up 🌧️" },
+      { level: 5, text: "That window seat in the corner faces the street. I keep it clean every day, and every night before closing I look up — once. Not because I think he'll be there. Because I owe him a glance I never gave 💛" },
     ],
     easterEggs: [
       {
