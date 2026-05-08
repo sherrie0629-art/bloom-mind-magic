@@ -1,35 +1,47 @@
-# 让星座运势题目更有趣
+# 让九型人格题目更有趣（仿星座那一版的思路）
 
-## 单一文件改动：`supabase/functions/assessment-zodiac/index.ts`
+只改一个文件：`supabase/functions/assessment-bazi/index.ts`（这个文件其实就是 enneagram 的后端，名字是历史遗留）。
 
-### 1. 缓存立即失效（最简方案）
-在 `cachePath` 拼接里加一个 `PROMPT_VERSION = "v2"` 常量：
+## 核心思路
+九型人格的本质是"核心恐惧 / 核心渴望 / 应对模式"。直接问"你害怕什么"很无聊；改成**给一个具体生活场景，让用户选第一反应**，从反应里反推类型。每题仍覆盖一个九型维度（motivation/fear/relationship/stress/growth），但用画面感包装。
 
-```ts
-const PROMPT_VERSION = "v2"; // bump to invalidate stale cached questions
-const cachePath = `zodiac-questions/${sign}-${locale}-${weekKey}-${PROMPT_VERSION}.json`;
-```
+## 1. 缓存版本号（防旧题目残留）
+当前 batch-questions 没看到本地 storage 缓存，但前端 `assessmentVariant.ts` 会按 prompt 版本分流。在 system prompt 里加一行 `PROMPT_VERSION: v2`，并在返回 payload 里带上版本号，方便后续 bump。
 
-旧 key 自然走不到，无需手动清 storage。后续再调 prompt 只要 bump 版本号。
+## 2. 重写 batch-questions 的 system prompt
+人设：**"懂九型的损友陪你做心理小测验"**，不是教科书。
 
-### 2. 重写 batch-questions 的 system prompt
-人设从"占星师出题"改成"会占卜的损友在玩心理小测验"。要求：
+要求写进 prompt：
+- **场景化提问**：每题给一个具体小情境，让用户选反应。例如：
+  - "项目临近 deadline，队友交来一份明显不达标的稿，你第一反应是…"（→ 1 号完美 vs 2 号体谅 vs 8 号开怼）
+  - "周末闺蜜临时取消约会，你独自在家时心里冒出的第一句话是…"（→ 4 号 vs 7 号 vs 9 号）
+  - "公司年会让每个人上台说一句新年愿望，轮到你前 30 秒，你在想…"（→ 3 号 vs 5 号 vs 6 号）
+  - "刷到前同事升职的朋友圈，你的第一反应是…"
+  - "深夜睡不着，脑子里循环播放的通常是…"
+- **选项有戏**：每条 10–22 字，带具体动作 / 内心独白 / 自嘲，杜绝"我会很冷静"这种纯形容词。例：
+  - A. "默默重写一遍，顺便列张'下次注意事项'清单"
+  - B. "先夸两句再委婉提建议，怕伤他自尊"
+  - C. "直接说'这不行，重做'，时间不等人"
+  - D. "算了我自己扛，免得场面难看"
+- **覆盖 9 个类型的核心动机**：10 题里要让 type 1–9 的典型反应都至少出现一次（在 prompt 里明确列出 type→关键词映射，让模型分配选项时有依据）。
+- **维度分布**：motivation 3 题、fear 2 题、relationship 2 题、stress 2 题、growth 1 题。
+- **语气**：中文像小红书 MBTI 博主 + 一点损友吐槽；英文像 Co-Star。emoji 克制（最多 1 题带 1 个）。
+- **明确禁止**：
+  - 不要"你认为/你觉得/你的…如何"开头超过 2 题
+  - 不要纯形容词选项（开心/难过/冷静）
+  - 不要直接点明"这是测你的恐惧"
+- 在 prompt 里塞 1 个中文 + 1 个英文 few-shot，把风格钉死。
 
-- **场景化提问**：给具体小场景让用户选反应，例如"周五晚上手机突然弹出前任的朋友圈，你的第一反应是…"、"老板群里发了个意味不明的'嗯'，你脑内小剧场是…"、"下班路上挡路的橘猫盯着你，你觉得它在说…"。
-- **选项有戏**：每条 8–20 字，带画面感/情绪/自嘲或玄学梗（如"装作没看见，但已经截图发闺蜜"），杜绝"开心/难过"式纯形容词。
-- **覆盖维度**：综合 / 爱情 / 事业 / 财运 各 2–3 题，但用生活场景包装，不直白点题。
-- **语气**：中文像小红书占卜博主，英文像 Co-Star；emoji 克制使用。
-- **明确禁止**："你认为/你觉得/你的…如何"句式开头不超过 2 题；不要纯形容词选项。
-- 在 prompt 里塞 1–2 个中英 few-shot 示例，稳住输出风格。
+## 3. tool schema 加 description
+给 `question` 加："必须是具体生活场景，不少于 25 字，带画面感"。
+给 `options[].text` 加："具体动作或内心独白，10–22 字，禁止纯形容词"。
+`dimension` 描述里列出枚举值。
 
-### 3. tool schema 加描述
-给 `question` 和 `options[].text` 字段加 description，强调"场景化、具体、有画面感"。
+## 4. 调参数
+`temperature: 0.7 → 0.9`（题目要花），`max_tokens: 2048` 保持（10 题场景化会更长）。
 
-### 4. 调参数
-`temperature: 0.5 → 0.85`，`max_tokens: 1200 → 1500`，给场景化措辞留空间。
-
-## 不动
-- 题目数量（10）、选项数（4）
-- `zodiac_result`（结果生成）逻辑
-- 配额、缓存读写流程
+## 5. 不动
+- 题目数量（10）、选项数（4）、维度字段
+- `enneagram_result` 结果生成逻辑、tool schema、参数
+- 配额、前端 `EnneagramFlow.tsx`、i18n
 - 其他 edge function
