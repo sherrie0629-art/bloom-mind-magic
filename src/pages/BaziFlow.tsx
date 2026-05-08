@@ -161,6 +161,7 @@ const BaziFlow = () => {
       extraLines: [`💡 ${t("assessmentFlow.bazi.advice")}: ${result.advice}`],
       preloadedImageUrl: resultImageUrl || undefined,
       imagePrompt: !resultImageUrl ? getImagePrompt(result) : undefined,
+      imageCacheKey: `bazi_${(result.dayMaster || "x").charAt(0)}`,
     });
   };
 
