@@ -613,7 +613,7 @@ const Chat = () => {
         const filtered = msgs.filter((m) => m.id !== "welcome");
         const turnCount = filtered.filter(m => m.role === "user").length;
         supabase.functions.invoke("summarize-conversation", {
-          body: { messages: filtered, agentId, userId: u.id },
+          body: { messages: filtered, agentId, userId: u.id, locale },
         }).then(({ data }) => {
           if (data && u) {
             supabase.from("conversation_summaries").insert({
