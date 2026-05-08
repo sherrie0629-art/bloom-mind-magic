@@ -30,7 +30,7 @@ const AssessmentDetail = () => {
   const { user } = useAuth();
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const { generatePoster: _gp } = useSharePoster();
+  const { generatePoster } = useSharePoster();
   const [shareOpen, setShareOpen] = useState(false);
   const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
 
@@ -44,58 +44,9 @@ const AssessmentDetail = () => {
       .single()
       .then(({ data }) => {
         setReport(data);
-        if (data?.result_data && (data.result_data as any).deepReport) {
-          setDeepReport((data.result_data as any).deepReport);
-          setShowDeepReport(true);
-        }
         setLoading(false);
       });
   }, [user, id]);
-
-  const handleUnlockDeepReport = async () => {
-    if (!id || !user) return;
-    setDeepLoading(true);
-
-    try {
-      const locale = (i18n.resolvedLanguage || i18n.language || "en").startsWith("zh") ? "zh" : "en";
-      const { data, error } = await supabase.functions.invoke("generate-deep-report", {
-        body: { assessmentId: id, locale },
-      });
-
-      if (error) {
-        const errorBody = typeof error === "object" && "message" in error ? error.message : String(error);
-        if (errorBody.includes("402") || errorBody.includes("upgrade")) {
-          toast.error(t("assessmentDetail.needUpgrade"));
-          return;
-        }
-        if (errorBody.includes("429") || errorBody.includes("limit")) {
-          toast.error(t("assessmentDetail.dailyDeepLimit"));
-          return;
-        }
-        throw error;
-      }
-
-      if (data?.needUpgrade) {
-        toast.error(t("assessmentDetail.needUpgrade"));
-        return;
-      }
-
-      if (data?.dailyLimitReached) {
-        toast.error(t("assessmentDetail.dailyDeepLimit"));
-        return;
-      }
-
-      if (data?.deepReport) {
-        setDeepReport(data.deepReport);
-        setShowDeepReport(true);
-        toast.success(t("assessmentDetail.deepDone"));
-      }
-    } catch (e: any) {
-      toast.error(e.message || t("assessmentDetail.deepFail"));
-    } finally {
-      setDeepLoading(false);
-    }
-  };
 
   if (loading) {
     return (
