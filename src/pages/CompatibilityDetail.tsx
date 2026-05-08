@@ -244,6 +244,16 @@ const CompatibilityDetail = () => {
             </div>
           </motion.div>
         )}
+
+        {report?.id && (
+          <DeepReportUnlock
+            source="compatibility"
+            reportId={report.id}
+            typeLabel={t("assessmentFlow.compatibility.deepReportLabel", { defaultValue: "Compatibility" })}
+            initialDeepReport={d?.deepReport}
+            createdAt={report.created_at}
+          />
+        )}
       </div>
 
       <ShareSheet
