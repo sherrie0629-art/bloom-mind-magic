@@ -165,6 +165,20 @@ const Chat = () => {
         if (emotionResult) {
           memCtx.push(`[Just assessed] User completed Wellness Check: ${emotionResult.emotionLevel} (${emotionResult.title}). ${emotionResult.description}. Burnout ${emotionResult.traits.burnout}%, Energy ${emotionResult.traits.energy}%, Boundaries ${emotionResult.traits.boundaries}%, Sleep ${emotionResult.traits.sleep}%. Suggestions: ${emotionResult.suggestions.join("; ")}`);
         }
+        if (enneagramResult) {
+          memCtx.push(`[Just assessed] User completed Enneagram assessment: Type ${enneagramResult.type}${enneagramResult.wing ? ` (wing ${enneagramResult.wing})` : ""} — ${enneagramResult.title}. ${enneagramResult.description}. Core fear: ${enneagramResult.coreFear}. Core desire: ${enneagramResult.coreDesire}. Growth path: ${enneagramResult.growthPath}. Under stress: ${enneagramResult.stressArrow}. Advice: ${enneagramResult.advice}`);
+        }
+        if (zodiacResult) {
+          const adv = typeof zodiacResult.advice === "string" ? zodiacResult.advice : JSON.stringify(zodiacResult.advice);
+          memCtx.push(`[Just assessed] User completed Zodiac reading: ${zodiacResult.zodiacSign} (${zodiacResult.element}) — ${zodiacResult.title}. ${zodiacResult.description}. Traits: ${JSON.stringify(zodiacResult.traits)}. Advice: ${adv}`);
+        }
+        if (tarotResult) {
+          memCtx.push(`[Just assessed] User just drew a tarot card: ${tarotResult.cardName} (${tarotResult.isReversed ? "Reversed" : "Upright"}), energy ${tarotResult.energyScore}. Interpretation: ${tarotResult.interpretation}. Action tip: ${tarotResult.actionTip}`);
+        }
+        if (compatibilityResult) {
+          const c = compatibilityResult;
+          memCtx.push(`[Just assessed] User completed Compatibility analysis with ${c.partnerName}${c.partnerMbti ? ` (${c.partnerMbti})` : ""}${c.partnerZodiac ? ` ${c.partnerZodiac}` : ""}. Overall ${c.overallScore}% — ${c.title}. ${c.summary}. Strengths: ${c.strengths.join("; ")}. Conflicts: ${c.conflicts.join("; ")}. Love language — mine: ${c.loveLanguage.mine}, partner: ${c.loveLanguage.partner}. Tip: ${c.loveLanguage.tip}.${c.deepAnalysis ? ` Deep analysis: ${c.deepAnalysis.slice(0, 800)}` : ""}`);
+        }
         if (memories && memories.length > 0) {
           memories.forEach((m) => {
             const daysAgo = Math.floor((Date.now() - new Date(m.created_at || "").getTime()) / 86400000);
