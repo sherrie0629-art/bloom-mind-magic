@@ -9,6 +9,8 @@ import { useSharePoster } from "@/hooks/useSharePoster";
 import ShareSheet from "@/components/ShareSheet";
 import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
+import DeepReportUnlock from "@/components/DeepReportUnlock";
+import { useTranslation } from "react-i18next";
 
 const DIM_LABELS: Record<string, string> = {
   emotional: "Emotional Resonance",
@@ -19,6 +21,7 @@ const DIM_LABELS: Record<string, string> = {
 };
 
 const CompatibilityDetail = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -240,6 +243,16 @@ const CompatibilityDetail = () => {
               <ReactMarkdown>{d.deepAnalysis}</ReactMarkdown>
             </div>
           </motion.div>
+        )}
+
+        {report?.id && (
+          <DeepReportUnlock
+            source="compatibility"
+            reportId={report.id}
+            typeLabel={t("assessmentFlow.compatibility.deepReportLabel", { defaultValue: "Compatibility" })}
+            initialDeepReport={d?.deepReport}
+            createdAt={report.created_at}
+          />
         )}
       </div>
 

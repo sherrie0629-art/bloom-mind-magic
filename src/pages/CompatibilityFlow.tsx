@@ -12,6 +12,7 @@ import { useLocale } from "@/hooks/useLocale";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import PosterPreviewDialog from "@/components/PosterPreviewDialog";
+import DeepReportUnlock from "@/components/DeepReportUnlock";
 
 const MBTI_TYPES = ["INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ", "ENFP", "ISTJ", "ISFJ", "ESTJ", "ESFJ", "ISTP", "ISFP", "ESTP", "ESFP"];
 const ZODIAC_SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
@@ -51,6 +52,7 @@ const CompatibilityFlow = () => {
   const [result, setResult] = useState<CompatibilityResult | null>(null);
   const [deepAnalysis, setDeepAnalysis] = useState("");
   const [deepAnalysisDone, setDeepAnalysisDone] = useState(false);
+  const [savedReportId, setSavedReportId] = useState<string | null>(null);
 
   const [myName, setMyName] = useState("");
   const [myMbti, setMyMbti] = useState("");
@@ -124,7 +126,8 @@ const CompatibilityFlow = () => {
       if (data?.error) throw new Error(data.error);
       setResult(data.result);
       setStep("result");
-      await (supabase as any).from("compatibility_reports").insert({ user_id: user.id, partner_info: { name: partnerName, mbti: partnerMbti, zodiac: partnerZodiac, traits: partnerTraits }, result_data: data.result, is_paid: false });
+      const { data: inserted } = await (supabase as any).from("compatibility_reports").insert({ user_id: user.id, partner_info: { name: partnerName, mbti: partnerMbti, zodiac: partnerZodiac, traits: partnerTraits }, result_data: data.result, is_paid: false }).select("id").single();
+      if (inserted?.id) setSavedReportId(inserted.id);
       streamDeepAnalysis(myProfile, partnerProfile, data.result);
     } catch (e: any) { toast.error(e.message || t("assessmentFlow.compatibility.analyzeFail")); setStep("input"); }
   }, [user, myName, myMbti, myZodiac, myTraits, partnerName, partnerMbti, partnerZodiac, partnerTraits, canAssess, streamDeepAnalysis, locale, t, assessmentLimit, incrementAssessment, navigate]);
@@ -289,6 +292,13 @@ const CompatibilityFlow = () => {
             >
               <Sparkles className="h-4 w-4" /> {t("assessmentFlow.compatibility.talkToBestie")}
             </button>
+            {savedReportId && (
+              <DeepReportUnlock
+                source="compatibility"
+                reportId={savedReportId}
+                typeLabel={t("assessmentFlow.compatibility.deepReportLabel", { defaultValue: "Compatibility" })}
+              />
+            )}
           </motion.div>
         )}
       </AnimatePresence>

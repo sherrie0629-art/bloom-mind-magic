@@ -9,8 +9,8 @@ const corsHeaders = {
 };
 
 const typeLabelsByLocale: Record<string, Record<string, string>> = {
-  en: { mbti: "MBTI Personality", enneagram: "Enneagram", zodiac: "Zodiac", emotion: "Emotional Wellness" },
-  zh: { mbti: "MBTI 性格", enneagram: "九型人格", zodiac: "星座解读", emotion: "心灵体检" },
+  en: { mbti: "MBTI Personality", enneagram: "Enneagram", zodiac: "Zodiac", emotion: "Emotional Wellness", compatibility: "Relationship Compatibility" },
+  zh: { mbti: "MBTI 性格", enneagram: "九型人格", zodiac: "星座解读", emotion: "心灵体检", compatibility: "缘分合盘" },
 };
 
 serve(async (req) => {
@@ -39,26 +39,30 @@ serve(async (req) => {
     }
     const userId = claimsData.claims.sub;
 
-    const { assessmentId, locale: bodyLocale } = await req.json();
+    const body = await req.json();
+    const { assessmentId, reportId, source: bodySource, locale: bodyLocale } = body;
+    const source: "assessment" | "compatibility" = bodySource === "compatibility" ? "compatibility" : "assessment";
+    const targetId = source === "compatibility" ? reportId : assessmentId;
     const locale = bodyLocale || "en";
-    if (!assessmentId) throw new Error("Missing assessmentId");
+    if (!targetId) throw new Error("Missing reportId");
 
-    const { data: assessment, error: fetchErr } = await supabase
-      .from("assessment_results")
+    const tableName = source === "compatibility" ? "compatibility_reports" : "assessment_results";
+    const { data: record, error: fetchErr } = await supabase
+      .from(tableName)
       .select("*")
-      .eq("id", assessmentId)
+      .eq("id", targetId)
       .eq("user_id", userId)
       .single();
 
-    if (fetchErr || !assessment) {
+    if (fetchErr || !record) {
       return new Response(JSON.stringify({ error: "Report not found" }), {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const resultData = assessment.result_data as any;
+    const resultData = record.result_data as any;
 
-    if (resultData.deepReport) {
+    if (resultData?.deepReport) {
       return new Response(JSON.stringify({ deepReport: resultData.deepReport }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -96,7 +100,8 @@ serve(async (req) => {
     }
 
     const labels = typeLabelsByLocale[locale] || typeLabelsByLocale.en;
-    const typeLabel = labels[assessment.assessment_type] || assessment.assessment_type;
+    const typeKey = source === "compatibility" ? "compatibility" : (record as any).assessment_type;
+    const typeLabel = labels[typeKey] || typeKey;
     const resultSummary = JSON.stringify(resultData, null, 2);
 
     const sectionTitles = locale === "zh"
@@ -204,9 +209,9 @@ ${langLine}`;
 
     // Save report and increment usage
     await supabase
-      .from("assessment_results")
+      .from(tableName)
       .update({ result_data: { ...resultData, deepReport } })
-      .eq("id", assessmentId);
+      .eq("id", targetId);
 
     // Increment deep_report_count
     if (usage) {

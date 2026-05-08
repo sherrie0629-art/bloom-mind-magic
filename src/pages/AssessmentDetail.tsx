@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Brain, Compass, Stars, Flame, Share2, Crown, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Brain, Compass, Stars, Flame, Share2 } from "lucide-react";
 import DesktopLayout from "@/components/DesktopLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +9,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { useSharePoster } from "@/hooks/useSharePoster";
 import ShareSheet from "@/components/ShareSheet";
 import { toast } from "sonner";
-import DeepReportRenderer from "@/components/DeepReportRenderer";
+import DeepReportUnlock from "@/components/DeepReportUnlock";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
 
@@ -30,10 +30,6 @@ const AssessmentDetail = () => {
   const { user } = useAuth();
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [deepReport, setDeepReport] = useState<string | null>(null);
-  const [deepLoading, setDeepLoading] = useState(false);
-  const [showDeepReport, setShowDeepReport] = useState(false);
-  const { plan } = useSubscription(user?.id);
   const { generatePoster } = useSharePoster();
   const [shareOpen, setShareOpen] = useState(false);
   const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
@@ -48,58 +44,9 @@ const AssessmentDetail = () => {
       .single()
       .then(({ data }) => {
         setReport(data);
-        if (data?.result_data && (data.result_data as any).deepReport) {
-          setDeepReport((data.result_data as any).deepReport);
-          setShowDeepReport(true);
-        }
         setLoading(false);
       });
   }, [user, id]);
-
-  const handleUnlockDeepReport = async () => {
-    if (!id || !user) return;
-    setDeepLoading(true);
-
-    try {
-      const locale = (i18n.resolvedLanguage || i18n.language || "en").startsWith("zh") ? "zh" : "en";
-      const { data, error } = await supabase.functions.invoke("generate-deep-report", {
-        body: { assessmentId: id, locale },
-      });
-
-      if (error) {
-        const errorBody = typeof error === "object" && "message" in error ? error.message : String(error);
-        if (errorBody.includes("402") || errorBody.includes("upgrade")) {
-          toast.error(t("assessmentDetail.needUpgrade"));
-          return;
-        }
-        if (errorBody.includes("429") || errorBody.includes("limit")) {
-          toast.error(t("assessmentDetail.dailyDeepLimit"));
-          return;
-        }
-        throw error;
-      }
-
-      if (data?.needUpgrade) {
-        toast.error(t("assessmentDetail.needUpgrade"));
-        return;
-      }
-
-      if (data?.dailyLimitReached) {
-        toast.error(t("assessmentDetail.dailyDeepLimit"));
-        return;
-      }
-
-      if (data?.deepReport) {
-        setDeepReport(data.deepReport);
-        setShowDeepReport(true);
-        toast.success(t("assessmentDetail.deepDone"));
-      }
-    } catch (e: any) {
-      toast.error(e.message || t("assessmentDetail.deepFail"));
-    } finally {
-      setDeepLoading(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -339,63 +286,13 @@ const AssessmentDetail = () => {
           transition={{ delay: 0.25 }}
           className="mt-6"
         >
-          {!showDeepReport ? (
-            <div className="rounded-2xl bg-card p-5 shadow-card border border-secondary/20">
-              <div className="flex items-center gap-2 mb-3">
-                <Crown className="h-5 w-5 text-secondary" />
-                <h4 className="font-display text-sm font-semibold text-foreground">{t("assessmentDetail.deepTitle")}</h4>
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-1">
-                {t("assessmentDetail.deepIntroLine")}
-              </p>
-              <ul className="text-xs text-muted-foreground space-y-1 mb-4">
-                {(t("assessmentDetail.deepBullets", { returnObjects: true, defaultValue: [] }) as string[]).map((b, i) => (
-                  <li key={i} className="flex items-center gap-1.5">
-                    <Sparkles className="h-3 w-3 text-secondary" /> {b}
-                  </li>
-                ))}
-              </ul>
-
-              {/* Blurred preview teaser */}
-              <div className="relative mb-4 overflow-hidden rounded-xl">
-                <div className="blur-sm select-none pointer-events-none p-3 bg-muted/30 text-xs text-muted-foreground leading-relaxed">
-                  {t("assessmentDetail.deepTeaser")}
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center bg-card/40">
-                  <span className="text-[11px] text-muted-foreground font-medium">{t("assessmentDetail.unlockToRead")}</span>
-                </div>
-              </div>
-
-              <button
-                onClick={handleUnlockDeepReport}
-                disabled={deepLoading}
-                className="w-full rounded-xl bg-gradient-golden py-3 text-sm font-semibold text-primary-foreground flex items-center justify-center gap-2 disabled:opacity-60"
-              >
-                {deepLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    {t("assessmentDetail.generating")}
-                  </>
-                ) : (
-                  <>
-                    <Crown className="h-4 w-4" />
-                    {plan === "plus" ? t("assessmentDetail.generatePlus") : t("assessmentDetail.upgradeUnlock")}
-                  </>
-                )}
-              </button>
-              {plan !== "plus" && (
-                <p className="text-[10px] text-muted-foreground text-center mt-2">
-                  {t("assessmentDetail.plusPerk")}
-                </p>
-              )}
-            </div>
-          ) : (
-            <DeepReportRenderer
-              markdown={deepReport || ""}
-              typeLabel={getTitle()}
-              generatedAt={report.created_at}
-            />
-          )}
+          <DeepReportUnlock
+            source="assessment"
+            reportId={id!}
+            typeLabel={getTitle()}
+            initialDeepReport={(report.result_data as any)?.deepReport}
+            createdAt={report.created_at}
+          />
         </motion.div>
       </div>
 
