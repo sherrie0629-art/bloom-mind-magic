@@ -209,9 +209,9 @@ ${langLine}`;
 
     // Save report and increment usage
     await supabase
-      .from("assessment_results")
+      .from(tableName)
       .update({ result_data: { ...resultData, deepReport } })
-      .eq("id", assessmentId);
+      .eq("id", targetId);
 
     // Increment deep_report_count
     if (usage) {
