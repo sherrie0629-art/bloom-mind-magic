@@ -34,7 +34,8 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const { cardId, cardName, isReversed, keywords } = await req.json();
+    const { cardId, cardName, isReversed, keywords, locale: bodyLocale } = await req.json();
+    const locale = bodyLocale === "zh" ? "zh" : "en";
     if (cardId === undefined || !cardName) {
       return new Response(JSON.stringify({ error: "Missing card info" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
