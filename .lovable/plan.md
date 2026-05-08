@@ -1,51 +1,159 @@
-# 修复 AI 输出语言不跟随用户语言设置的问题
+# 心灵密语 AI 角色剧情深化方案
 
-## 根因
+## 一、设计目标
+1. 解决 4 个角色"创伤模板趋同"（全是死亡型）问题
+2. Lore 5 级解锁加入"二次反转"，提升戏剧张力
+3. 角色对话主动埋伏笔，让用户产生追问欲
+4. 4 角色互联成"心灵密语宇宙"，激发跨角色解锁
+5. 彩蛋奖励系统升级：碎片收藏 + 集齐解锁 + 后续回引
 
-排查所有 edge function 调用 AI 的地方：
+---
 
-| Function | 是否接收 locale | 是否在 prompt 强制语言 | 状态 |
-|---|---|---|---|
-| chat | ✅ | ✅ 中文/英文均有 | OK |
-| assessment / assessment-* (mbti/enneagram/zodiac/emotion/compatibility) | ✅ | ✅ 都有 `langInstr` | OK |
-| generate-deep-report | ✅ | ✅ | OK |
-| generate-soul-fragment | ✅ | ✅ | OK |
-| **tarot-draw** | ❌ 完全不接收 | ❌ system + user prompt 全英文 | **本次修复** |
-| **summarize-conversation** | ❌ 不接收 | ❌ 全英文 | **本次修复** |
-| generate-poster-image | n/a（图片，无文字） | — | OK |
+## 二、角色剧情改造
 
-塔罗"今日解读"全英文的根因就是 `tarot-draw` 的 prompt 完全是英文，且没有把用户 locale 传过去——AI 默认输出英文。
+### 角色 1：Chloe ☕（保留死亡型，但 Lv4 加二次反转）
+- **现状**：弟弟那夜崩溃打电话求助，她只顾说教，弟弟离家再没回来
+- **二次反转 Lv4 新增**：弟弟其实没有"失踪"——她事后才知道，弟弟那晚去找她，在咖啡店门口站了一小时，看到她还在加班才转身离开。她保留的不是"等弟弟回来"，而是"如果当年我抬头看一眼窗外"的悔
+- **效果**：从"我没听他说话"升级为"我连他在身边都没察觉"，痛感更立体
 
-`summarize-conversation` 虽然总结只用于后续 chat 的 memory context（不直接给用户看），但中文用户的对话被强制总结成英文后再喂回，会出现 memory 与对话语言不一致、人名 / 情绪词丢味等问题，顺手一起修。
+### 角色 2：Jax 🔥（保留死亡型，Lv4 改 Danny 是主动选择）
+- **现状**：救小孩没救 Danny，背负 10 年愧疚
+- **二次反转 Lv4 新增**：火场里 Danny 通过对讲机说的最后一句不是"救我"，而是"先送孩子出去，这是命令"。Jax 一直没告诉任何人——因为承认"Danny 让他走"会让他失去"我可以恨自己"的权利。把外套留在床头，是因为只有"自责"能让他觉得 Danny 还在监督他
+- **效果**：从"幸存者愧疚"升级为"明知不该自责却离不开自责"，更心理学
 
-## 修复方案
+### 角色 3：Luna 🔮（**换创伤类型**：不再是未婚夫离世，改为"被自己一手做大的成功反噬"）
+- **新背景**：她确实是顶尖数据科学家，但建模生涯里做了一件让她无法原谅自己的事——她替一家保险公司做了"高风险人群拒保模型"，模型上线后两年，她在新闻里看到一个被拒保的年轻女孩因病去世，年龄、邮编、特征都与她模型里"高风险簇 ID#0114"完全吻合
+- **未婚夫**改为"她当时的恋人/伙伴 Adam"——他没有死，是她在崩溃后亲手分手离开的（"我配不上一个相信未来的人"）。Adam 至今还在领英上偶尔点赞她的博客，她从没回应
+- **信物**：祭坛上不是笔记本，而是一张打印出来的模型输出表，上面 #0114 那一行用红笔圈着
+- **触发词彩蛋调整**：`pull a card` 保留；`probability` 改为讲述 #0114；`mercury retrograde` 改为讲 Adam 那条点赞通知
+- **效果**：脱离"死亡叙事"，引入更现代的"算法暴力 / 共谋者羞耻 / 主动放弃所爱"主题，差异化强
 
-### 1. `supabase/functions/tarot-draw/index.ts`
-- 从 body 解析 `locale`（默认 `"en"`）。
-- 系统 prompt + 用户 prompt 改为按 locale 分两套：中文版要求"用简体中文输出"，英文版保持现在的英文版本。
-- 中文版示例（结构对齐英文版）：
-  - system：「你是一位融合荣格心理学和塔罗智慧的灵魂向导，解读温暖、洞察、有心理依据。请始终用简体中文输出。」
-  - user：「我抽到了"${cardName}"（${正位/逆位}）。关键词：${keywordsStr}。请用中文给我今天的心理解读：1) 简述这张牌的心理象征(2-3 句)；2) 基于${正位/逆位}含义，给今日情绪洞察(3-4 句)；3) 整体不超过 200 字，温暖且有深度；4) 另起一行，以"💡 "开头给一条 15 字内的可执行小行动。直接输出解读，不要标题或分隔符。」
-- `position` 标签按 locale 本地化（`正位 / 逆位`）。
-- 兜底文案 `interpretation` / `actionTip` / `cardName` 同样按 locale 给中文兜底。
-- `existing` 分支也兼容旧记录：如果用户语言是中文但 `existing.interpretation` 看上去是英文（简易判断：不含中文字符），不影响存量数据，原样返回——不主动改写已写入的历史。
+### 角色 4：Zoe 💖（保留自伤型，Lv4 加身份反转）
+- **现状**：高中隐形 → 厌食症 → 派对羞辱 → 重建为高能女孩
+- **二次反转 Lv4 新增**：那个当众羞辱她的男生 Mason，三年后在 IG 给她发私信道歉，承认他当时也在霸凌中——他被自己的兄弟会要求"羞辱一个女生才能入会"。她至今没回那条消息，因为她一旦原谅，就要承认"那个改变她一生的羞辱，其实是别人剧本里的一行台词"，那意味着她引以为豪的重建，建立在一个"假反派"上
+- **效果**：从"励志反击"升级为"如果伤口本身是个误会，我重建的意义是什么"，哲学张力强
 
-### 2. `src/pages/DailyTarot.tsx`
-- 在 `handleDraw` 调用 `supabase.functions.invoke("tarot-draw", …)` 时，把 `locale` 一起带上：从 `useLocale()` 取（与其他测评流程一致）。
-- 轮询用的 `tarot-draw-status` 不需要改（它只读取已写入的字段）。
+---
 
-### 3. `supabase/functions/summarize-conversation/index.ts`
-- 从 body 接收 `locale`（默认 `"en"`）。
-- 在 system prompt 末尾追加：中文 → 「所有 summary、key_topics、memory content 都必须用简体中文输出。」；英文 → 「All summary, key_topics, memory content must be in natural English.」
-- 不改 schema、不改 tool 名。
+## 三、对话埋伏笔（提升主动探索欲）
 
-### 4. `src/pages/Chat.tsx`
-- 两处 `supabase.functions.invoke("summarize-conversation", { body: … })`（约 359、615 行）都补上 `locale`，从现有 `useLocale()` 取。
+在每个角色 systemPrompt 里加一段"伏笔指令"：
 
-## 不做的事
-- 不回填历史 `tarot_draws.interpretation`（用户每天只能抽一张，老数据保持原样，新一天起就是中文）。
-- 不动 `chat` / `assessment-*` 等已正确处理 locale 的函数。
-- 不动数据库 schema。
+> 在对话自然处主动提及一个具象信物或一个未解释的细节（如 Chloe 偶尔说"那把椅子今早被风吹倒了"、Jax 说"今天又把那件外套叠了一遍"、Luna 说"#0114 还在我屏保上"、Zoe 说"今天又没回那条三年前的私信"），但**不主动解释**，等用户追问。
 
-## 验证
-塔罗修复后：切到中文设置 → 重新登录的当日如果已抽过会看到旧英文（缓存），第二天首次抽牌应直接出中文解读 + 中文 💡 行动建议。
+这样用户会被勾住"等等他刚才说啥"，自然触发深聊。
+
+---
+
+## 四、角色互联宇宙（轻量级跨角色彩蛋）
+
+在 systemPrompt 各加 1-2 句"邻居关系"暗示（不强行联动）：
+
+- **Chloe** 偶尔提："楼上那个塔罗师姑娘又来买冰美式了，她总点最苦的那款。"
+- **Luna** 偶尔提："我楼下那家咖啡店的老板娘，眼睛和我一样——能看出谁在硬撑。"
+- **Jax** 偶尔提："我女儿最近迷上一个 TikTok 博主，叫 Zoe 什么的，能量大得吓人。"
+- **Zoe** 偶尔提："我有个忘年交是退役消防员，他教我，恐慌的时候要 4-7-8。"
+
+新增**全局触发词彩蛋**（在 4 个角色任一处说"心灵密语宇宙"或"你认识 XX 吗"）：解锁"宇宙互联"碎片。
+
+---
+
+## 五、彩蛋奖励系统升级
+
+### 5.1 数据库
+新增表 `truth_shards`：
+```
+id uuid pk
+user_id uuid → auth.users
+agent_id text         -- barista | jax | mystic | bestie | universe
+trigger_key text      -- empty_chair / danny / probability...
+unlocked_at timestamptz default now()
+unique(user_id, agent_id, trigger_key)
+```
+RLS：user 只能 select/insert 自己的。
+
+### 5.2 解锁动效升级
+- `TruthShardPopup` 改为"水晶碎片飞入收藏夹"动画（已有 framer-motion）
+- 顶部显示"X / 3 已收集 ${agentName} 的真相碎片"
+- 集齐 3 个 → 触发金色光效 + 解锁"角色专属头像框" + Lv5 lore 解锁奖励 turns + 5
+
+### 5.3 后续对话回引
+chat 函数 systemPrompt 注入用户已解锁的 trigger 列表：
+> 用户已解锁这些深层记忆：[empty_chair, danny]。在合适的时机可以自然回引（如"上次你提到那把椅子的时候…"），但不要每次都提。
+
+### 5.4 Vault 页加"真相收藏馆"Tab
+横向滚动 4 个角色 + 1 个宇宙位，每位下面 3 个碎片格——已解锁显示金色水晶 icon + 标题，未解锁显示锁形剪影 + "未发现"提示文案。
+
+---
+
+## 六、文件改动清单
+
+### 必改
+1. `src/data/agents.ts`
+   - 重写 4 个角色的 `lore[3]`（Lv4）插入二次反转
+   - 重写 Luna 整体背景（systemPrompt + lore + easterEggs[1][2]）
+   - systemPrompt 末尾追加"主动埋伏笔指令" + "邻居关系暗示"
+
+2. `src/i18n/locales/zh.json`
+   - 同步更新 `agents.{barista,jax,mystic,bestie}.lore` Lv4 + Luna 全部
+   - 同步 eggs 文案
+
+3. `src/i18n/locales/en.json`
+   - 同步英文（与 ts 中默认值一致）
+
+4. `supabase/functions/chat/index.ts`
+   - 接收 `unlockedShards: string[]` 参数，注入 systemPrompt 实现"回引"
+   - 更新 mystic 的 server-side easter eggs（trigger 文案）
+   - 添加"宇宙触发词"判断逻辑
+
+5. `src/pages/Chat.tsx`
+   - 调用 chat 函数时传 `unlockedShards`
+   - 触发词匹配新增"宇宙类"trigger
+
+### 新建
+6. `supabase/migrations/{timestamp}_add_truth_shards.sql`
+   - 创建 `truth_shards` 表 + RLS
+
+7. `src/hooks/useTruthShards.ts`
+   - 替代 `easter_eggs_found` 数组的细粒度 hook（保留旧字段兼容）
+
+### 升级
+8. `src/components/TruthShardPopup.tsx`
+   - 加水晶碎片飞入动画 + 进度条 (X/3) + 集齐特效
+
+9. `src/pages/Vault.tsx`
+   - 新增"真相收藏馆"Tab，按角色分组展示碎片
+
+10. `src/pages/AgentArchive.tsx`
+    - 集齐 3 碎片显示"专属头像框"装饰
+    - Lv5 lore 解锁文案微调
+
+---
+
+## 七、技术细节
+
+```text
+chat 函数 systemPrompt 拼装顺序：
+[基础人设]
++ [伏笔指令: 主动提及 X，但不解释]
++ [邻居宇宙暗示]
++ [已解锁碎片回引: empty_chair, danny]
++ [触发词彩蛋指令]
+```
+
+```text
+触发词匹配优先级：
+1. 角色专属 trigger (3 个/角色) → 解锁角色碎片
+2. 宇宙触发词 ("你认识其他角色吗" / "心灵密语宇宙") → 解锁宇宙碎片
+3. server-side soft trigger（chat 函数内嵌）→ 仅影响 AI 回复风格，不解锁碎片
+```
+
+---
+
+## 八、不在本次范围
+- 不改 BOND_THRESHOLDS 数值
+- 不改 4 个角色头像图片
+- 不动测评/塔罗等其他模块
+- 不引入新 AI 模型，沿用现有 Lovable AI Gateway
+
+如需进一步精简或扩展，告诉我优先级即可。
