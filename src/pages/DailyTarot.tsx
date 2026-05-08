@@ -12,6 +12,7 @@ import BottomNav from "@/components/BottomNav";
 import DesktopLayout from "@/components/DesktopLayout";
 import { toast } from "sonner";
 import SEO from "@/components/SEO";
+import { useLocale } from "@/hooks/useLocale";
 
 type DrawState = "idle" | "drawing" | "result";
 
