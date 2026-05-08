@@ -39,26 +39,30 @@ serve(async (req) => {
     }
     const userId = claimsData.claims.sub;
 
-    const { assessmentId, locale: bodyLocale } = await req.json();
+    const body = await req.json();
+    const { assessmentId, reportId, source: bodySource, locale: bodyLocale } = body;
+    const source: "assessment" | "compatibility" = bodySource === "compatibility" ? "compatibility" : "assessment";
+    const targetId = source === "compatibility" ? reportId : assessmentId;
     const locale = bodyLocale || "en";
-    if (!assessmentId) throw new Error("Missing assessmentId");
+    if (!targetId) throw new Error("Missing reportId");
 
-    const { data: assessment, error: fetchErr } = await supabase
-      .from("assessment_results")
+    const tableName = source === "compatibility" ? "compatibility_reports" : "assessment_results";
+    const { data: record, error: fetchErr } = await supabase
+      .from(tableName)
       .select("*")
-      .eq("id", assessmentId)
+      .eq("id", targetId)
       .eq("user_id", userId)
       .single();
 
-    if (fetchErr || !assessment) {
+    if (fetchErr || !record) {
       return new Response(JSON.stringify({ error: "Report not found" }), {
         status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const resultData = assessment.result_data as any;
+    const resultData = record.result_data as any;
 
-    if (resultData.deepReport) {
+    if (resultData?.deepReport) {
       return new Response(JSON.stringify({ deepReport: resultData.deepReport }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
