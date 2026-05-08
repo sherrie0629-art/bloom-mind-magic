@@ -32,6 +32,7 @@ const DailyTarot = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { user, promptLogin } = useAuth();
+  const { locale } = useLocale();
   const [state, setState] = useState<DrawState>("idle");
   const [result, setResult] = useState<DrawResult | null>(null);
   const [loadingToday, setLoadingToday] = useState(true);
