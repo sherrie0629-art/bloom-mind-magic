@@ -114,7 +114,7 @@ const DailyTarot = () => {
       const keywords = isReversed ? card.reversedKeywords : card.uprightKeywords;
 
       const { data, error } = await supabase.functions.invoke("tarot-draw", {
-        body: { cardId: card.id, cardName: card.name, isReversed, keywords },
+        body: { cardId: card.id, cardName: card.name, isReversed, keywords, locale },
       });
 
       if (error) throw error;
