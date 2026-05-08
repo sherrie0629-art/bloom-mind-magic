@@ -54,8 +54,16 @@ const Chat = () => {
   const agent = localizeAgent(rawAgent, t);
   const mbtiResult = (location.state as any)?.mbtiResult as { mbtiType: string; title: string; description: string; parallelUniverse?: any } | undefined;
   const emotionResult = (location.state as any)?.emotionResult as { emotionLevel: string; title: string; description: string; traits: { burnout: number; energy: number; boundaries: number; sleep: number }; suggestions: string[] } | undefined;
+  const enneagramResult = (location.state as any)?.enneagramResult as { type: number; wing?: string; title: string; description: string; coreFear: string; coreDesire: string; growthPath: string; stressArrow: string; advice: string } | undefined;
+  const zodiacResult = (location.state as any)?.zodiacResult as { zodiacSign: string; element: string; title: string; description: string; traits: any; luckyItems?: any; advice: any } | undefined;
+  const tarotResult = (location.state as any)?.tarotResult as { cardName: string; isReversed: boolean; energyScore: number; interpretation: string; actionTip: string } | undefined;
+  const compatibilityResult = (location.state as any)?.compatibilityResult as { partnerName: string; partnerMbti?: string; partnerZodiac?: string; overallScore: number; title: string; summary: string; dimensions: any; strengths: string[]; conflicts: string[]; loveLanguage: { mine: string; partner: string; tip: string }; deepAnalysis?: string } | undefined;
   const mbtiAutoSentRef = useRef(false);
   const emotionAutoSentRef = useRef(false);
+  const enneagramAutoSentRef = useRef(false);
+  const zodiacAutoSentRef = useRef(false);
+  const tarotAutoSentRef = useRef(false);
+  const compatibilityAutoSentRef = useRef(false);
 
   const getWelcomeMessage = (a: typeof agent) => getAgentWelcome(a, t);
 
