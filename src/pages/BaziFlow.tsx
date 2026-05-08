@@ -76,7 +76,7 @@ const BaziFlow = () => {
   const fetchResultImage = useCallback(async (r: BaziResult) => {
     setImageLoading(true);
     try {
-      const img = await fetchAIImage(getImagePrompt(r));
+      const img = await fetchAIImage(getImagePrompt(r), { cacheKey: `bazi_${(r.dayMaster || "x").charAt(0)}` });
       if (img) {
         setResultImageUrl(img.src);
         if (resultIdRef.current) {
