@@ -225,6 +225,11 @@ const EnneagramFlow = () => {
             <h3 className="font-display text-sm font-semibold text-foreground mb-2">{t("assessmentFlow.enneagram.advice")}</h3>
             <p className="text-sm text-muted-foreground">{result.advice}</p>
           </div>
+          {savedReportId && (
+            <div className="mb-4">
+              <DeepReportUnlock source="assessment" reportId={savedReportId} typeLabel={`Type ${result.type} · ${result.title}`} />
+            </div>
+          )}
           <div className="flex gap-3">
             <button onClick={handleSharePoster} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-card py-3 text-sm font-medium text-foreground shadow-card">
               <Download className="h-4 w-4" /> {t("assessmentFlow.common.saveAndShare")}
