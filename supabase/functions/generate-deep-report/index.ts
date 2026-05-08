@@ -9,8 +9,8 @@ const corsHeaders = {
 };
 
 const typeLabelsByLocale: Record<string, Record<string, string>> = {
-  en: { mbti: "MBTI Personality", enneagram: "Enneagram", zodiac: "Zodiac", emotion: "Emotional Wellness", bazi: "Bazi Destiny" },
-  zh: { mbti: "MBTI 性格", enneagram: "九型人格", zodiac: "星座解读", emotion: "心灵体检", bazi: "八字命理" },
+  en: { mbti: "MBTI Personality", enneagram: "Enneagram", zodiac: "Zodiac", emotion: "Emotional Wellness" },
+  zh: { mbti: "MBTI 性格", enneagram: "九型人格", zodiac: "星座解读", emotion: "心灵体检" },
 };
 
 serve(async (req) => {
