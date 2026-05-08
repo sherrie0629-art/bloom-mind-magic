@@ -204,7 +204,10 @@ const EnneagramFlow = () => {
             <div className="mx-auto mb-4 h-20 w-20 rounded-full bg-gradient-mystic flex items-center justify-center"><span className="text-3xl">🎯</span></div>
             <h1 className="font-display text-xl font-bold text-foreground">Type {result.type} · {result.title}</h1>
             <p className="mt-1 text-xs text-secondary">{t("assessmentFlow.enneagram.wing")}: {result.wing}</p>
-            <p className="mt-1 text-xs text-muted-foreground">"{result.socialCaption}"</p>
+            {result.wingExplanation && (
+              <p className="mt-2 text-[11px] text-muted-foreground/80 leading-relaxed px-2">{result.wingExplanation}</p>
+            )}
+            <p className="mt-2 text-xs text-muted-foreground">"{result.socialCaption}"</p>
           </div>
           <ResultAIImage imageUrl={resultImageUrl} loading={imageLoading} />
           <div className="rounded-2xl bg-card p-5 shadow-card mb-4">
