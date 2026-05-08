@@ -357,12 +357,12 @@ const Chat = () => {
     if (conversationId && messages.length > 4 && user) {
       const msgs = messages.filter((m) => m.id !== "welcome");
       supabase.functions.invoke("summarize-conversation", {
-        body: { messages: msgs, agentId, userId: user.id },
+        body: { messages: msgs, agentId, userId: user.id, locale },
       });
     }
     setConversationId(null);
     setMessages([{ id: "welcome", role: "assistant", content: getWelcomeMessage(agent) }]);
-  }, [conversationId, messages, user, agentId, agent]);
+  }, [conversationId, messages, user, agentId, agent, locale]);
 
   const ensureConversation = useCallback(async () => {
     if (conversationId || !user) return conversationId;
@@ -613,7 +613,7 @@ const Chat = () => {
         const filtered = msgs.filter((m) => m.id !== "welcome");
         const turnCount = filtered.filter(m => m.role === "user").length;
         supabase.functions.invoke("summarize-conversation", {
-          body: { messages: filtered, agentId, userId: u.id },
+          body: { messages: filtered, agentId, userId: u.id, locale },
         }).then(({ data }) => {
           if (data && u) {
             supabase.from("conversation_summaries").insert({

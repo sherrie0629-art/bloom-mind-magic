@@ -34,7 +34,8 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const { cardId, cardName, isReversed, keywords } = await req.json();
+    const { cardId, cardName, isReversed, keywords, locale: bodyLocale } = await req.json();
+    const locale = bodyLocale === "zh" ? "zh" : "en";
     if (cardId === undefined || !cardName) {
       return new Response(JSON.stringify({ error: "Missing card info" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -69,13 +70,13 @@ serve(async (req) => {
     }
 
     const position = isReversed ? "Reversed" : "Upright";
+    const positionZh = isReversed ? "逆位" : "正位";
     const keywordsStr = (keywords || []).join(", ");
 
     // Generate interpretation
-    const whisperResp = await fetchAI("google/gemini-3-flash-preview", {
-      messages: [
-        { role: "system", content: "You are a soul guide who blends Jungian psychology with tarot wisdom. Your readings are warm, insightful, and psychologically grounded." },
-        { role: "user", content: `I drew "${cardName}" in the ${position} position. Keywords: ${keywordsStr}.
+    const systemEn = "You are a soul guide who blends Jungian psychology with tarot wisdom. Your readings are warm, insightful, and psychologically grounded.";
+    const systemZh = "你是一位融合荣格心理学与塔罗智慧的灵魂向导，解读温暖、有洞察、有心理学根基。请始终用简体中文输出，所有文字都必须是中文。";
+    const userEn = `I drew "${cardName}" in the ${position} position. Keywords: ${keywordsStr}.
 
 Please provide a psychological interpretation for my day:
 1. Briefly explain the card's psychological symbolism (2-3 sentences)
@@ -83,7 +84,21 @@ Please provide a psychological interpretation for my day:
 3. Keep it under 200 words, warm yet profound
 4. On a new line, start with "💡 " and give a brief actionable tip (under 15 words)
 
-Output the reading directly without titles or separators.` },
+Output the reading directly without titles or separators.`;
+    const userZh = `我抽到了"${cardName}"（${positionZh}）。关键词：${keywordsStr}。
+
+请用简体中文给我今天的心理解读：
+1. 简述这张牌的心理象征（2-3 句）
+2. 基于${positionZh}含义，给今日情绪洞察（3-4 句）
+3. 整体不超过 200 字，温暖且有深度
+4. 另起一行，以 "💡 " 开头给一条 15 字以内的可执行小行动
+
+直接输出解读，不要任何标题或分隔符。`;
+
+    const whisperResp = await fetchAI("google/gemini-3-flash-preview", {
+      messages: [
+        { role: "system", content: locale === "zh" ? systemZh : systemEn },
+        { role: "user", content: locale === "zh" ? userZh : userEn },
       ],
     });
 
@@ -94,11 +109,13 @@ Output the reading directly without titles or separators.` },
       throw new Error("AI generation failed");
     }
 
+    const fallbackInterpretation = locale === "zh" ? "每一张牌都是一面镜子，映照此刻的你。" : "Every card is a mirror, reflecting who you are right now.";
+    const fallbackActionTip = locale === "zh" ? "给自己片刻安静。" : "Give yourself a moment of stillness.";
     const aiData = await whisperResp.json();
-    const fullText = aiData.choices?.[0]?.message?.content?.trim() || "Every card is a mirror, reflecting who you are right now.";
+    const fullText = aiData.choices?.[0]?.message?.content?.trim() || fallbackInterpretation;
     const tipMatch = fullText.match(/\n\n?💡\s*(.+)/);
     const interpretation = tipMatch ? fullText.slice(0, tipMatch.index).trim() : fullText;
-    const actionTip = tipMatch ? tipMatch[1].trim() : "Give yourself a moment of stillness.";
+    const actionTip = tipMatch ? tipMatch[1].trim() : fallbackActionTip;
 
     // Score energy locally (no AI needed) - based on card position + keyword sentiment
     const POSITIVE_WORDS = new Set([

@@ -1,55 +1,51 @@
-# 修复九型人格报告结果页两个问题
+# 修复 AI 输出语言不跟随用户语言设置的问题
 
 ## 根因
 
-**1. 标题 "Type undefined"**
-后端 `assessment-enneagram` 返回的字段是 `type`（数字 1–9），但前端 `AssessmentReports.tsx` 与 `AssessmentDetail.tsx` 读取的是不存在的 `d.enneagramType`，所以渲染成 `Type undefined · 标题`。
+排查所有 edge function 调用 AI 的地方：
 
-**2. 图片只显示占位符 "AI generated…"**
-`useSharePoster.fetchAIImage()` 内部用 `loadImageViaBlobUrl` 把后端返回的稳定 URL（Supabase Storage 公开链接 / data URI）转成了浏览器临时 `blob:` URL。四个测评流程（Enneagram / MBTI / Zodiac / Emotion）都直接把这个 `blob:` URL 写进了 `assessment_results.result_data.imageUrl`。
-数据库里实际保存的就是 `"imageUrl": "blob:https://…/19d344e3-…"`——这种 URL **只在生成它的那个页面会话内有效**，刷新或换页面后立即失效，所以报告详情页加载时图片永远 404，只剩占位文案。
-（已在网络请求里直接看到 DB 中存了 `blob:` 开头的 imageUrl，验证了根因。）
-
-## 修复方案（仅前端）
-
-### 步骤 1：标题字段兼容
-- `src/pages/AssessmentReports.tsx` `getTitle` 中 enneagram 分支：`Type ${d.enneagramType}` → `Type ${d.type ?? d.enneagramType ?? "?"}`
-- `src/pages/AssessmentDetail.tsx` `getTitle` 中 enneagram 分支：同样改为 `d.type ?? d.enneagramType ?? "?"`
-
-### 步骤 2：持久化稳定 URL（不是 blob）
-在 `fetchAIImage` 已经支持 `returnUrlOnly: true`，直接返回后端给的稳定 URL，无需 blob 包装。把四个流程改为先用 `returnUrlOnly: true` 取到稳定 URL，用它同时作为 `<img>` 显示源 **和** 写入 DB 的 `imageUrl`。
-
-涉及文件：
-- `src/pages/EnneagramFlow.tsx` `fetchResultImage`
-- `src/pages/AssessmentFlow.tsx`（MBTI）对应图片获取逻辑
-- `src/pages/ZodiacFlow.tsx` 对应图片获取逻辑
-- `src/pages/EmotionFlow.tsx` 对应图片获取逻辑
-
-每处改成：
-```ts
-const img = await fetchAIImage(prompt, { cacheKey, returnUrlOnly: true });
-if (img?.src) {
-  setResultImageUrl(img.src);          // 稳定 URL，刷新后仍可用
-  // 同样的 img.src 写入 result_data.imageUrl
-}
-```
-`ResultAIImage` 直接 `<img src={…}>` 渲染，本来就不需要 blob，CORS 也不会受影响。
-
-### 步骤 3：兼容已写脏的旧数据
-在 `AssessmentDetail.tsx` 渲染 `d.imageUrl` 之前加一个判断：若以 `blob:` 开头就不渲染（避免破图），等用户重新生成会写入正确 URL。
-（不做 DB 清理，老数据自然失效；新数据从此正确。）
-
-## 其他测评页排查结果
-
-| 测评 | 标题字段 | 后端实际字段 | 状态 |
+| Function | 是否接收 locale | 是否在 prompt 强制语言 | 状态 |
 |---|---|---|---|
-| MBTI | `d.mbtiType` | `mbtiType` ✅ | OK |
-| Enneagram | `d.enneagramType` | `type` ❌ | 本次修复 |
-| Zodiac | `d.zodiacSign` | `zodiacSign` ✅ | OK |
-| Emotion | `d.emoji + d.title` | 同 ✅ | OK |
+| chat | ✅ | ✅ 中文/英文均有 | OK |
+| assessment / assessment-* (mbti/enneagram/zodiac/emotion/compatibility) | ✅ | ✅ 都有 `langInstr` | OK |
+| generate-deep-report | ✅ | ✅ | OK |
+| generate-soul-fragment | ✅ | ✅ | OK |
+| **tarot-draw** | ❌ 完全不接收 | ❌ system + user prompt 全英文 | **本次修复** |
+| **summarize-conversation** | ❌ 不接收 | ❌ 全英文 | **本次修复** |
+| generate-poster-image | n/a（图片，无文字） | — | OK |
 
-图片 blob 持久化问题：**MBTI / Zodiac / Emotion 都有一样的 bug**，本次一并按步骤 2 修复。
+塔罗"今日解读"全英文的根因就是 `tarot-draw` 的 prompt 完全是英文，且没有把用户 locale 传过去——AI 默认输出英文。
+
+`summarize-conversation` 虽然总结只用于后续 chat 的 memory context（不直接给用户看），但中文用户的对话被强制总结成英文后再喂回，会出现 memory 与对话语言不一致、人名 / 情绪词丢味等问题，顺手一起修。
+
+## 修复方案
+
+### 1. `supabase/functions/tarot-draw/index.ts`
+- 从 body 解析 `locale`（默认 `"en"`）。
+- 系统 prompt + 用户 prompt 改为按 locale 分两套：中文版要求"用简体中文输出"，英文版保持现在的英文版本。
+- 中文版示例（结构对齐英文版）：
+  - system：「你是一位融合荣格心理学和塔罗智慧的灵魂向导，解读温暖、洞察、有心理依据。请始终用简体中文输出。」
+  - user：「我抽到了"${cardName}"（${正位/逆位}）。关键词：${keywordsStr}。请用中文给我今天的心理解读：1) 简述这张牌的心理象征(2-3 句)；2) 基于${正位/逆位}含义，给今日情绪洞察(3-4 句)；3) 整体不超过 200 字，温暖且有深度；4) 另起一行，以"💡 "开头给一条 15 字内的可执行小行动。直接输出解读，不要标题或分隔符。」
+- `position` 标签按 locale 本地化（`正位 / 逆位`）。
+- 兜底文案 `interpretation` / `actionTip` / `cardName` 同样按 locale 给中文兜底。
+- `existing` 分支也兼容旧记录：如果用户语言是中文但 `existing.interpretation` 看上去是英文（简易判断：不含中文字符），不影响存量数据，原样返回——不主动改写已写入的历史。
+
+### 2. `src/pages/DailyTarot.tsx`
+- 在 `handleDraw` 调用 `supabase.functions.invoke("tarot-draw", …)` 时，把 `locale` 一起带上：从 `useLocale()` 取（与其他测评流程一致）。
+- 轮询用的 `tarot-draw-status` 不需要改（它只读取已写入的字段）。
+
+### 3. `supabase/functions/summarize-conversation/index.ts`
+- 从 body 接收 `locale`（默认 `"en"`）。
+- 在 system prompt 末尾追加：中文 → 「所有 summary、key_topics、memory content 都必须用简体中文输出。」；英文 → 「All summary, key_topics, memory content must be in natural English.」
+- 不改 schema、不改 tool 名。
+
+### 4. `src/pages/Chat.tsx`
+- 两处 `supabase.functions.invoke("summarize-conversation", { body: … })`（约 359、615 行）都补上 `locale`，从现有 `useLocale()` 取。
 
 ## 不做的事
-- 不动数据库 schema，不动 edge function。
-- 不做后台清理脚本（旧 blob 数据让前端静默不渲染即可）。
+- 不回填历史 `tarot_draws.interpretation`（用户每天只能抽一张，老数据保持原样，新一天起就是中文）。
+- 不动 `chat` / `assessment-*` 等已正确处理 locale 的函数。
+- 不动数据库 schema。
+
+## 验证
+塔罗修复后：切到中文设置 → 重新登录的当日如果已抽过会看到旧英文（缓存），第二天首次抽牌应直接出中文解读 + 中文 💡 行动建议。

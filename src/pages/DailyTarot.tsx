@@ -12,6 +12,7 @@ import BottomNav from "@/components/BottomNav";
 import DesktopLayout from "@/components/DesktopLayout";
 import { toast } from "sonner";
 import SEO from "@/components/SEO";
+import { useLocale } from "@/hooks/useLocale";
 
 type DrawState = "idle" | "drawing" | "result";
 
@@ -31,6 +32,7 @@ const DailyTarot = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { user, promptLogin } = useAuth();
+  const { locale } = useLocale();
   const [state, setState] = useState<DrawState>("idle");
   const [result, setResult] = useState<DrawResult | null>(null);
   const [loadingToday, setLoadingToday] = useState(true);
@@ -112,7 +114,7 @@ const DailyTarot = () => {
       const keywords = isReversed ? card.reversedKeywords : card.uprightKeywords;
 
       const { data, error } = await supabase.functions.invoke("tarot-draw", {
-        body: { cardId: card.id, cardName: card.name, isReversed, keywords },
+        body: { cardId: card.id, cardName: card.name, isReversed, keywords, locale },
       });
 
       if (error) throw error;
