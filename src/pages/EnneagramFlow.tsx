@@ -85,7 +85,7 @@ const EnneagramFlow = () => {
     setLoading(true);
     setLoadingMsg(t("assessmentFlow.common.analyzing"));
     try {
-      const { data, error } = await supabase.functions.invoke("assessment-bazi", {
+      const { data, error } = await supabase.functions.invoke("assessment-enneagram", {
         body: { history: finalHistory, locale },
       });
       if (error) throw error;
@@ -112,7 +112,7 @@ const EnneagramFlow = () => {
     setLoading(true);
     setLoadingMsg(t("assessmentFlow.common.starting"));
     try {
-      const { data, error } = await supabase.functions.invoke("assessment-bazi", {
+      const { data, error } = await supabase.functions.invoke("assessment-enneagram", {
         body: { action: "batch-questions", locale },
       });
       if (error) throw error;
