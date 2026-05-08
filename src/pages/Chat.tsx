@@ -357,12 +357,12 @@ const Chat = () => {
     if (conversationId && messages.length > 4 && user) {
       const msgs = messages.filter((m) => m.id !== "welcome");
       supabase.functions.invoke("summarize-conversation", {
-        body: { messages: msgs, agentId, userId: user.id },
+        body: { messages: msgs, agentId, userId: user.id, locale },
       });
     }
     setConversationId(null);
     setMessages([{ id: "welcome", role: "assistant", content: getWelcomeMessage(agent) }]);
-  }, [conversationId, messages, user, agentId, agent]);
+  }, [conversationId, messages, user, agentId, agent, locale]);
 
   const ensureConversation = useCallback(async () => {
     if (conversationId || !user) return conversationId;
