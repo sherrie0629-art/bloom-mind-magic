@@ -213,7 +213,7 @@ const EnneagramFlow = () => {
             <button onClick={handleSharePoster} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-card py-3 text-sm font-medium text-foreground shadow-card">
               <Download className="h-4 w-4" /> {t("assessmentFlow.common.saveAndShare")}
             </button>
-            <button onClick={() => navigate(`/chat?agent=mentor`)} className="flex-1 rounded-xl bg-gradient-golden py-3 text-sm font-semibold text-primary-foreground">
+            <button onClick={() => navigate(`/chat?agent=barista`)} className="flex-1 rounded-xl bg-gradient-golden py-3 text-sm font-semibold text-primary-foreground">
               {t("assessmentFlow.enneagram.discussWith")}
             </button>
           </div>
