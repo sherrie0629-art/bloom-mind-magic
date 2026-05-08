@@ -178,7 +178,10 @@ const ZodiacFlow = () => {
           generateSoulFragment(user.id, "assessment", "zodiac", `Horoscope: ${data.data.zodiacSign} ${data.data.title}. ${data.data.description}`);
         }
       }
-    } catch (e: any) { toast.error(e.message || t("assessmentFlow.common.loadFail")); } finally { setLoading(false); }
+    } catch (e: any) {
+      if (isDailyLimitError(e)) toast.error(t("assessmentFlow.common.limitReached", { n: 20 }));
+      else toast.error(e.message || t("assessmentFlow.common.loadFail"));
+    } finally { setLoading(false); }
   };
 
   const handleSelectSign = async (signName: string) => {
@@ -200,7 +203,10 @@ const ZodiacFlow = () => {
         batchQuestionsRef.current = data.data.slice(1);
         setCurrentQuestion(data.data[0]);
       }
-    } catch (e: any) { toast.error(e.message || t("assessmentFlow.common.loadFail")); } finally { setLoading(false); }
+    } catch (e: any) {
+      if (isDailyLimitError(e)) toast.error(t("assessmentFlow.common.limitReached", { n: 20 }));
+      else toast.error(e.message || t("assessmentFlow.common.loadFail"));
+    } finally { setLoading(false); }
   };
 
   const handleAnswer = (option: { label: string; text: string }) => {
