@@ -30,8 +30,21 @@ interface EnneagramResult {
   socialCaption: string;
 }
 
-const getImagePrompt = (result: EnneagramResult) =>
-  `Create an elegant, modern illustration representing Enneagram Type ${result.type} "${result.title}". Use soft geometric shapes, warm gradients of amber and teal, symbolizing inner growth and self-discovery. Abstract and artistic. Square format, no text.`;
+const ENNEA_SCENE: Record<number, { scene: string; colors: string }> = {
+  1: { scene: "a tidy desk scene with perfectly aligned pencils, a small ruler, and a single neat stack of paper", colors: "ivory, slate blue and a touch of sage" },
+  2: { scene: "two warm hands offering a steaming mug of cocoa, with little hearts floating above", colors: "peach, rose pink and cream" },
+  3: { scene: "a stylish character climbing stacked golden trophies and medals toward a glowing star", colors: "champagne gold, tangerine and warm beige" },
+  4: { scene: "a dreamy artist painting under moonlight with floating colorful brushstrokes and stars", colors: "deep violet, dusk blue and lilac" },
+  5: { scene: "a curious character with headphones surrounded by floating books, telescopes and tiny equations", colors: "olive green, charcoal and parchment" },
+  6: { scene: "a small lighthouse guiding a tiny boat through gentle waves under a starry sky", colors: "sea blue, amber lantern glow and ivory" },
+  7: { scene: "a joyful character riding a hot air balloon through candy-colored clouds and confetti", colors: "coral, lemon yellow and sky blue" },
+  8: { scene: "a bold lion silhouette standing on a rocky cliff with subtle ember and lava textures", colors: "brick red, burnt orange and obsidian" },
+  9: { scene: "a peaceful character napping on a fluffy cloud above soft hot-spring ripples", colors: "matcha green, cream and powder pink" },
+};
+const getImagePrompt = (result: EnneagramResult) => {
+  const meta = ENNEA_SCENE[result.type] || ENNEA_SCENE[9];
+  return `Playful, modern editorial illustration in a contemporary collage style for Enneagram Type ${result.type} "${result.title}". Feature ${meta.scene}. Use a warm lively palette of ${meta.colors}, soft paper textures, hand-drawn linework, slightly whimsical character vibe (think New Yorker meets Apple memoji art). Square format, no text, no letters.`;
+};
 
 const EnneagramFlow = () => {
   const navigate = useNavigate();
