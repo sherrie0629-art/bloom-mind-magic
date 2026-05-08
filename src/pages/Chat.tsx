@@ -92,7 +92,7 @@ const Chat = () => {
   const { generateQuoteCard } = useQuoteCard();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { bondLevel, totalTurns, pendingLevelUp, incrementTurn, recordEasterEgg, dismissLevelUp } =
+  const { bondLevel, totalTurns, easterEggsFound, pendingLevelUp, incrementTurn, recordEasterEgg, dismissLevelUp } =
     useBond(user?.id, agentId);
   const { canChat, chatCount, chatLimit, plan, freeTrialExpired, incrementChat } = useSubscription(user?.id, user?.created_at);
   const { newlyUnlocked, checkAchievements, dismissAchievement } = useAchievements(user?.id);
