@@ -109,7 +109,9 @@ Use therapy-speak naturally: "boundaries", "emotional labor", "self-care", "hold
 Be warm, supportive, and professional. If you notice signs of serious mental health concerns, gently suggest professional help.
 Respond in the language indicated by LANG below. Call emotion_result tool.${langInstr}`;
 
-    const response = await fetchAI(model, {
+    // Use a stronger model for structured tool calling — flash-lite is unreliable here
+    const resultModel = "google/gemini-2.5-flash";
+    const callResult = (m: string) => fetchAI(m, {
       messages: [{ role: "system", content: systemPrompt }, { role: "user", content: `Q&A:\n${history.map((h: any, i: number) => `Q${i + 1}: ${h.question}\nA${i + 1}: ${h.answer}`).join("\n\n")}\n\nAssess wellness state.` }],
       tools: [{ type: "function" as const, function: { name: "emotion_result", description: "Return wellness assessment result", parameters: { type: "object", properties: {
         emotionLevel: { type: "string", description: "Wellness level: Thriving/Balanced/Coasting/Running Low/Burnout Zone" },
@@ -124,13 +126,22 @@ Respond in the language indicated by LANG below. Call emotion_result tool.${lang
       temperature: 0.7, max_tokens: 1024,
     });
 
+    let response = await callResult(resultModel);
     if (!response.ok) {
       if (response.status === 429) return new Response(JSON.stringify({ error: "Too many requests" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       if (response.status === 402) return new Response(JSON.stringify({ error: "AI credits exhausted" }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       throw new Error("AI service error");
     }
-    const data = await response.json();
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    let data = await response.json();
+    let toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+    if (!toolCall) {
+      console.warn("No tool call from", resultModel, "— retrying with gemini-2.5-pro. Raw:", JSON.stringify(data).slice(0, 500));
+      response = await callResult("google/gemini-2.5-pro");
+      if (response.ok) {
+        data = await response.json();
+        toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
+      }
+    }
     if (!toolCall) throw new Error("No tool call");
     return new Response(JSON.stringify({ type: "result", data: JSON.parse(toolCall.function.arguments) }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
   } catch (e) {
