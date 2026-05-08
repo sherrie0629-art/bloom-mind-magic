@@ -34,7 +34,7 @@ const AssessmentReports = () => {
     const d = r.result_data as any;
     const tp = r.assessment_type || r.type;
     if (tp === "mbti") return `${d.mbtiType} — ${d.title}`;
-    if (tp === "enneagram") return `Type ${d.enneagramType} · ${d.title}`;
+    if (tp === "enneagram") return `Type ${d.type ?? d.enneagramType ?? "?"} · ${d.title}`;
     if (tp === "zodiac") return `${d.zodiacSign} · ${d.title}`;
     if (tp === "emotion") return `${d.emoji || "🎭"} ${d.title}`;
     return d.title || tp;
