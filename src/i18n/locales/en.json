@@ -426,6 +426,7 @@
     "energy": "Energy {{n}}/5",
     "todayReading": "Today's Reading",
     "saveShare": "Save & Share",
+    "talkToLuna": "Ask Luna 🌙",
     "generatingArt": "Generating card art...",
     "artFail": "Card art unavailable",
     "drawFail": "Failed to draw. Please try again.",
