@@ -21,8 +21,28 @@ import { getNextVariant } from "@/lib/assessmentVariant";
 interface QA { question: string; answer: string; dimension: string; }
 interface MBTIResult { mbtiType: string; title: string; description: string; traits: { E_I: number; S_N: number; T_F: number; J_P: number }; socialCaption: string; }
 
-const getImagePrompt = (result: MBTIResult) =>
-  `Create an abstract artistic illustration representing the MBTI personality type ${result.mbtiType} "${result.title}". Use deep indigo and violet tones with geometric and organic shapes. Intellectual and introspective mood. Square format, no text.`;
+const MBTI_MOTIF: Record<string, string> = {
+  INTJ: "a chess king on a starry strategic board with subtle architectural blueprint lines",
+  INTP: "floating equations, a half-open book and a curious magnifying glass orbiting a small planet",
+  ENTJ: "a tall castle silhouette with rising arrows and a bold compass pointing forward",
+  ENTP: "a brain-shaped lightbulb sparking ideas, surrounded by paper airplanes",
+  INFJ: "a single candle flame in a quiet temple, a gentle moon and rippling water",
+  INFP: "floating poetry pages and pressed flowers around a crescent moon",
+  ENFJ: "a warm hand guiding glowing little stars upward like a teacher and students",
+  ENFP: "a vibrant burst of confetti, balloons and a sketchbook full of wild ideas",
+  ISTJ: "an open pocket watch with precise gears and a stack of neatly tied scrolls",
+  ISFJ: "a cozy knitted blanket, a teapot and a warmly lit window at dusk",
+  ESTJ: "a strong oak tree with a banner, organized files and a clear horizon",
+  ESFJ: "a long dinner table with candles, flowers and gifts being shared",
+  ISTP: "a half-disassembled motorcycle engine with floating tools and a small spark",
+  ISFP: "a painter's palette, drifting petals and a soft watercolor wash",
+  ESTP: "a skateboard mid-air with motion lines, neon sparks and city lights",
+  ESFP: "a microphone, party streamers and a disco ball raining colorful light",
+};
+const getImagePrompt = (result: MBTIResult) => {
+  const motif = MBTI_MOTIF[result.mbtiType] || "abstract symbolic shapes";
+  return `Modern editorial illustration for MBTI ${result.mbtiType} "${result.title}", featuring ${motif}. Deep indigo and violet palette with one warm accent color (gold or coral), mix of geometric and organic shapes, intellectual yet poetic mood, hand-drawn linework with subtle paper texture. Square format, no text, no letters.`;
+};
 
 const AssessmentFlow = () => {
   const navigate = useNavigate();

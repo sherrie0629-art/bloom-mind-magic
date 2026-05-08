@@ -66,8 +66,43 @@ interface ZodiacResult {
   socialCaption: string;
 }
 
-const getImagePromptForSign = (signName: string, element: string) =>
-  `Create a dreamy celestial illustration representing the zodiac sign ${signName} with ${element} element. Soft purple and violet cosmic tones, stars, constellation patterns. Ethereal and magical. Square format, no text.`;
+const ZODIAC_MOTIF: Record<string, string> = {
+  Aries: "a bold ram with curling horns and a streak of fiery comet trails",
+  Taurus: "a strong bull resting in a blooming flower field at golden hour",
+  Gemini: "two mirrored figures holding hands among floating playing cards and feathers",
+  Cancer: "a delicate crab beside ocean waves under a glowing crescent moon",
+  Leo: "a regal lion with a mane shaped like a sunburst, surrounded by gold sparks",
+  Virgo: "a graceful figure holding wheat sheaves with falling petals and tiny stars",
+  Libra: "a balanced golden scale floating between two soft clouds and rose petals",
+  Scorpio: "a mysterious scorpion silhouette with a glowing tail under deep night sky",
+  Sagittarius: "a centaur archer drawing a bow toward a distant constellation",
+  Capricorn: "a sea-goat climbing a rocky mountain peak under starry sky",
+  Aquarius: "a figure pouring a stream of stars and water from a celestial vase",
+  Pisces: "two koi-like fish swimming in a circle through cosmic bubbles",
+  白羊座: "a bold ram with curling horns and a streak of fiery comet trails",
+  金牛座: "a strong bull resting in a blooming flower field at golden hour",
+  双子座: "two mirrored figures holding hands among floating playing cards and feathers",
+  巨蟹座: "a delicate crab beside ocean waves under a glowing crescent moon",
+  狮子座: "a regal lion with a mane shaped like a sunburst, surrounded by gold sparks",
+  处女座: "a graceful figure holding wheat sheaves with falling petals and tiny stars",
+  天秤座: "a balanced golden scale floating between two soft clouds and rose petals",
+  天蝎座: "a mysterious scorpion silhouette with a glowing tail under deep night sky",
+  射手座: "a centaur archer drawing a bow toward a distant constellation",
+  摩羯座: "a sea-goat climbing a rocky mountain peak under starry sky",
+  水瓶座: "a figure pouring a stream of stars and water from a celestial vase",
+  双鱼座: "two koi-like fish swimming in a circle through cosmic bubbles",
+};
+const ELEMENT_PARTICLES: Record<string, string> = {
+  Fire: "drifting embers and warm sparks", 火: "drifting embers and warm sparks",
+  Earth: "floating crystals and small stones", 土: "floating crystals and small stones",
+  Air: "soft wind swirls and feathers", 风: "soft wind swirls and feathers", 气: "soft wind swirls and feathers",
+  Water: "rippling water droplets and bubbles", 水: "rippling water droplets and bubbles",
+};
+const getImagePromptForSign = (signName: string, element: string) => {
+  const motif = ZODIAC_MOTIF[signName] || "an iconic celestial creature";
+  const particles = ELEMENT_PARTICLES[element] || "twinkling starlight";
+  return `Dreamy celestial illustration of the ${signName} zodiac, featuring ${motif} surrounded by ${particles}. Cosmic violet and indigo palette with starlight gold highlights, magical art-nouveau line accents, slightly playful and full of life. Square format, no text, no letters.`;
+};
 const getCacheKeyForSign = (signName: string) => `zodiac_${signName.toLowerCase()}`;
 
 const ZodiacFlow = () => {

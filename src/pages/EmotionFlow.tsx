@@ -26,8 +26,10 @@ interface WellnessResult {
   socialCaption: string;
 }
 
+const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "").slice(0, 32) || "default";
 const getImagePrompt = (result: WellnessResult) =>
-  `Create a gentle, warm watercolor illustration representing "${result.title}" wellness state. Use soft warm rose and coral tones, abstract flowing shapes suggesting inner peace and self-care. Square format, no text.`;
+  `Cozy, warm editorial illustration depicting a person's emotional state titled "${result.title}". Show a relatable everyday scene that visually expresses this feeling — for example soft window light, a cup of tea, a blanket, a cat curled nearby, or a person taking a deep breath in their room. Style: gentle gouache with subtle risograph grain, hand-drawn linework, slightly playful and full of life, palette of warm rose, coral, butter yellow and soft cream, a touch of sage green. Single focused composition, square format, no text, no letters.`;
+const getImageCacheKey = (result: WellnessResult) => `wellness_${slugify(result.title)}`;
 
 const EmotionFlow = () => {
   const navigate = useNavigate();
@@ -51,7 +53,7 @@ const EmotionFlow = () => {
   const fetchResultImage = useCallback(async (r: WellnessResult) => {
     setImageLoading(true);
     try {
-      const img = await fetchAIImage(getImagePrompt(r));
+      const img = await fetchAIImage(getImagePrompt(r), { cacheKey: getImageCacheKey(r) });
       if (img) {
         setResultImageUrl(img.src);
         if (resultIdRef.current) {
@@ -133,6 +135,7 @@ const EmotionFlow = () => {
       extraLines: result.suggestions.map((s, i) => `${i + 1}. ${s}`),
       preloadedImageUrl: resultImageUrl || undefined,
       imagePrompt: !resultImageUrl ? getImagePrompt(result) : undefined,
+      imageCacheKey: getImageCacheKey(result),
     });
   };
 
