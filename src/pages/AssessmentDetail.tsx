@@ -339,63 +339,13 @@ const AssessmentDetail = () => {
           transition={{ delay: 0.25 }}
           className="mt-6"
         >
-          {!showDeepReport ? (
-            <div className="rounded-2xl bg-card p-5 shadow-card border border-secondary/20">
-              <div className="flex items-center gap-2 mb-3">
-                <Crown className="h-5 w-5 text-secondary" />
-                <h4 className="font-display text-sm font-semibold text-foreground">{t("assessmentDetail.deepTitle")}</h4>
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-1">
-                {t("assessmentDetail.deepIntroLine")}
-              </p>
-              <ul className="text-xs text-muted-foreground space-y-1 mb-4">
-                {(t("assessmentDetail.deepBullets", { returnObjects: true, defaultValue: [] }) as string[]).map((b, i) => (
-                  <li key={i} className="flex items-center gap-1.5">
-                    <Sparkles className="h-3 w-3 text-secondary" /> {b}
-                  </li>
-                ))}
-              </ul>
-
-              {/* Blurred preview teaser */}
-              <div className="relative mb-4 overflow-hidden rounded-xl">
-                <div className="blur-sm select-none pointer-events-none p-3 bg-muted/30 text-xs text-muted-foreground leading-relaxed">
-                  {t("assessmentDetail.deepTeaser")}
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center bg-card/40">
-                  <span className="text-[11px] text-muted-foreground font-medium">{t("assessmentDetail.unlockToRead")}</span>
-                </div>
-              </div>
-
-              <button
-                onClick={handleUnlockDeepReport}
-                disabled={deepLoading}
-                className="w-full rounded-xl bg-gradient-golden py-3 text-sm font-semibold text-primary-foreground flex items-center justify-center gap-2 disabled:opacity-60"
-              >
-                {deepLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    {t("assessmentDetail.generating")}
-                  </>
-                ) : (
-                  <>
-                    <Crown className="h-4 w-4" />
-                    {plan === "plus" ? t("assessmentDetail.generatePlus") : t("assessmentDetail.upgradeUnlock")}
-                  </>
-                )}
-              </button>
-              {plan !== "plus" && (
-                <p className="text-[10px] text-muted-foreground text-center mt-2">
-                  {t("assessmentDetail.plusPerk")}
-                </p>
-              )}
-            </div>
-          ) : (
-            <DeepReportRenderer
-              markdown={deepReport || ""}
-              typeLabel={getTitle()}
-              generatedAt={report.created_at}
-            />
-          )}
+          <DeepReportUnlock
+            source="assessment"
+            reportId={id!}
+            typeLabel={getTitle()}
+            initialDeepReport={(report.result_data as any)?.deepReport}
+            createdAt={report.created_at}
+          />
         </motion.div>
       </div>
 
