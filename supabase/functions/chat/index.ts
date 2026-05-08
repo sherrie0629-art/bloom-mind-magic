@@ -325,6 +325,10 @@ serve(async (req) => {
       });
     }
 
+    if (Array.isArray(unlockedShards) && unlockedShards.length > 0) {
+      fullSystemPrompt += `\n\n【Previously Unlocked Memories】The user has already heard you reveal these deep memories: ${unlockedShards.join(", ")}. At natural moments you may briefly call back to them ("remember when I told you about the empty chair…") — but do NOT re-tell the whole story, and do NOT do this every reply. One subtle callback every 3-5 turns at most.`;
+    }
+
     if (memoryContext && memoryContext.length > 0) {
       fullSystemPrompt += `\n\n【Long-term Memory】These are specific memories about this user from past conversations. Reference them naturally and proactively — e.g., "Last time you mentioned work stress, how's that going?" Don't list them robotically, weave them into the conversation at the right moments.\n${memoryContext.join("\n")}`;
     }
