@@ -380,7 +380,16 @@
     "tabs": { "lore": "Story Fragments", "truth": "Truth Shards", "quote": "Healing Quotes" },
     "empty": "No fragments collected yet",
     "emptyHint": "Chat deeper with characters to unlock more ✨",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "truthGallery": {
+      "subtitle": "Truth Gallery · Collect 3 crystal shards from each character",
+      "progress": "{{cur}} / {{total}}",
+      "locked": "Undiscovered",
+      "lockedHint": "Speak a hidden trigger phrase in chat",
+      "complete": "✨ All shards collected",
+      "universe": "Whispers Universe",
+      "universeHint": "Mention another character or the world itself"
+    }
   },
   "archive": {
     "title": "Character Archive",
