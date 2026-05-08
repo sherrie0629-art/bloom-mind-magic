@@ -285,6 +285,38 @@ const Chat = () => {
     }
   }, [historyLoaded, emotionResult, user]);
 
+  useEffect(() => {
+    if (enneagramResult && historyLoaded && !enneagramAutoSentRef.current && user) {
+      enneagramAutoSentRef.current = true;
+      setConversationId(null);
+      handleSend(`I just did the Enneagram quiz — I'm Type ${enneagramResult.type} (${enneagramResult.title}). Core fear: ${enneagramResult.coreFear}; core desire: ${enneagramResult.coreDesire}. Wanna unpack this with me? 💭`);
+    }
+  }, [historyLoaded, enneagramResult, user]);
+
+  useEffect(() => {
+    if (zodiacResult && historyLoaded && !zodiacAutoSentRef.current && user) {
+      zodiacAutoSentRef.current = true;
+      setConversationId(null);
+      handleSend(`Luna, I just got my ${zodiacResult.zodiacSign} reading — "${zodiacResult.title}". Can you read into what this means for me right now? ✨🌙`);
+    }
+  }, [historyLoaded, zodiacResult, user]);
+
+  useEffect(() => {
+    if (tarotResult && historyLoaded && !tarotAutoSentRef.current && user) {
+      tarotAutoSentRef.current = true;
+      setConversationId(null);
+      handleSend(`Luna, I just drew ${tarotResult.cardName} (${tarotResult.isReversed ? "reversed" : "upright"}) today. What does it really mean for me? 🔮`);
+    }
+  }, [historyLoaded, tarotResult, user]);
+
+  useEffect(() => {
+    if (compatibilityResult && historyLoaded && !compatibilityAutoSentRef.current && user) {
+      compatibilityAutoSentRef.current = true;
+      setConversationId(null);
+      handleSend(`I just ran a compatibility report with ${compatibilityResult.partnerName} — we matched ${compatibilityResult.overallScore}% (${compatibilityResult.title}). Tell me real talk, what should I actually do with this? 💕`);
+    }
+  }, [historyLoaded, compatibilityResult, user]);
+
   const startNewConversation = useCallback(() => {
     if (conversationId && messages.length > 4 && user) {
       const msgs = messages.filter((m) => m.id !== "welcome");
