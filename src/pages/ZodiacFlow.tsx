@@ -13,6 +13,7 @@ import { useLocale } from "@/hooks/useLocale";
 import AssessmentQuestionLayout from "@/components/AssessmentQuestionLayout";
 import ResultAIImage from "@/components/ResultAIImage";
 import PosterPreviewDialog from "@/components/PosterPreviewDialog";
+import DeepReportUnlock from "@/components/DeepReportUnlock";
 import { getNextVariant } from "@/lib/assessmentVariant";
 
 interface QA { question: string; answer: string; dimension: string; }
@@ -122,6 +123,7 @@ const ZodiacFlow = () => {
   const [imageLoading, setImageLoading] = useState(false);
 
   const resultIdRef = useRef<string | null>(null);
+  const [savedReportId, setSavedReportId] = useState<string | null>(null);
   const batchQuestionsRef = useRef<any[]>([]);
   const imagePromiseRef = useRef<Promise<string | null> | null>(null);
 
@@ -172,7 +174,7 @@ const ZodiacFlow = () => {
           const { data: inserted } = await supabase.from("assessment_results").insert({
             user_id: user.id, assessment_type: "zodiac", result_data: data.data,
           }).select("id").single();
-          if (inserted) resultIdRef.current = inserted.id;
+          if (inserted) { resultIdRef.current = inserted.id; setSavedReportId(inserted.id); }
           generateSoulFragment(user.id, "assessment", "zodiac", `Horoscope: ${data.data.zodiacSign} ${data.data.title}. ${data.data.description}`);
         }
       }
@@ -376,6 +378,11 @@ const ZodiacFlow = () => {
               </div>
             )}
           </div>
+          {savedReportId && (
+            <div className="mb-4">
+              <DeepReportUnlock source="assessment" reportId={savedReportId} typeLabel={`${result.zodiacSign} · ${result.title}`} />
+            </div>
+          )}
           <div className="flex gap-3">
             <button onClick={handleSharePoster} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-card py-3 text-sm font-medium text-foreground shadow-card">
               <Download className="h-4 w-4" /> {t("assessmentFlow.common.saveAndShare")}
