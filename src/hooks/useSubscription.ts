@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { PLAN_LIMITS as LIMITS } from "@/lib/limits";
 
@@ -97,12 +97,17 @@ export function useSubscription(userId: string | undefined, createdAt?: string) 
   }, [load]);
 
   // Realtime: refresh when this user's subscription row changes (e.g. after webhook)
+  const loadRef = useRef(load);
+  useEffect(() => {
+    loadRef.current = load;
+  }, [load]);
+
   useEffect(() => {
     if (!userId) return;
     const channel = supabase
-      .channel(`user_subscriptions:${userId}`)
+      .channel(`user_subscriptions:${userId}:${Math.random().toString(36).slice(2)}`)
       .on(
-        "postgres_changes",
+        "postgres_changes" as any,
         {
           event: "*",
           schema: "public",
@@ -110,7 +115,7 @@ export function useSubscription(userId: string | undefined, createdAt?: string) 
           filter: `user_id=eq.${userId}`,
         },
         () => {
-          load();
+          loadRef.current();
         }
       )
       .subscribe();
@@ -118,7 +123,7 @@ export function useSubscription(userId: string | undefined, createdAt?: string) 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, load]);
+  }, [userId]);
 
   const incrementChat = useCallback(async () => {
     if (!userId) return false;
