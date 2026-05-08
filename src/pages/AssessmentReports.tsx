@@ -12,7 +12,7 @@ const typeIcons: Record<string, { icon: typeof Brain; gradient: string }> = {
   enneagram: { icon: Compass, gradient: "bg-gradient-to-br from-secondary to-gold" },
   zodiac: { icon: Stars, gradient: "bg-gradient-to-br from-lavender to-rose-warm" },
   emotion: { icon: Flame, gradient: "bg-gradient-to-br from-rose-warm to-gold" },
-  bazi: { icon: Flame, gradient: "bg-gradient-to-br from-gold to-secondary" },
+  
 };
 
 interface Report { id: string; assessment_type: string; type?: string; result_data: any; created_at: string; }
