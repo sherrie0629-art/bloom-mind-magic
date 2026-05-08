@@ -13,6 +13,7 @@ import { useLocale } from "@/hooks/useLocale";
 import AssessmentQuestionLayout from "@/components/AssessmentQuestionLayout";
 import ResultAIImage from "@/components/ResultAIImage";
 import PosterPreviewDialog from "@/components/PosterPreviewDialog";
+import DeepReportUnlock from "@/components/DeepReportUnlock";
 
 interface QA { question: string; answer: string; dimension: string; }
 
@@ -48,6 +49,7 @@ const EmotionFlow = () => {
   const [imageLoading, setImageLoading] = useState(false);
 
   const resultIdRef = useRef<string | null>(null);
+  const [savedReportId, setSavedReportId] = useState<string | null>(null);
   const batchQuestionsRef = useRef<any[]>([]);
 
   const fetchResultImage = useCallback(async (r: WellnessResult) => {
@@ -80,7 +82,7 @@ const EmotionFlow = () => {
           const { data: inserted } = await supabase.from("assessment_results").insert({
             user_id: user.id, assessment_type: "emotion", result_data: data.data,
           }).select("id").single();
-          if (inserted) resultIdRef.current = inserted.id;
+          if (inserted) { resultIdRef.current = inserted.id; setSavedReportId(inserted.id); }
           generateSoulFragment(user.id, "assessment", "emotion", `Wellness: ${data.data.emotionLevel} ${data.data.title}. ${data.data.description}`);
         }
       }

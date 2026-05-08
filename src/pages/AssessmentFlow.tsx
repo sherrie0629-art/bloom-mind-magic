@@ -14,6 +14,7 @@ import { useLocale } from "@/hooks/useLocale";
 import AssessmentQuestionLayout from "@/components/AssessmentQuestionLayout";
 import ResultAIImage from "@/components/ResultAIImage";
 import PosterPreviewDialog from "@/components/PosterPreviewDialog";
+import DeepReportUnlock from "@/components/DeepReportUnlock";
 import { Skeleton } from "@/components/ui/skeleton";
 import { pickQuestionSet } from "@/data/mbtiQuestionPool";
 import { getNextVariant } from "@/lib/assessmentVariant";
@@ -62,6 +63,7 @@ const AssessmentFlow = () => {
   const [parallelData, setParallelData] = useState<{ magic: { role: string; description: string }; cyberpunk: { role: string; description: string } } | null>(null);
   const [parallelLoading, setParallelLoading] = useState(false);
   const resultIdRef = useRef<string | null>(null);
+  const [savedReportId, setSavedReportId] = useState<string | null>(null);
   const batchQuestionsRef = useRef<any[]>([]);
 
   const fetchResultImage = useCallback(async (r: MBTIResult) => {
@@ -89,7 +91,7 @@ const AssessmentFlow = () => {
       if (error) throw error;
       if (data.type === "result") {
         setResult(data.data); setCurrentQuestion(null); fetchResultImage(data.data); fetchParallelUniverse(data.data.mbtiType);
-        if (user) { const { data: inserted } = await supabase.from("assessment_results").insert({ user_id: user.id, assessment_type: "mbti", result_data: data.data }).select("id").single(); if (inserted) resultIdRef.current = inserted.id; generateSoulFragment(user.id, "assessment", "mbti", `MBTI result: ${data.data.mbtiType} ${data.data.title}. ${data.data.description}`); }
+        if (user) { const { data: inserted } = await supabase.from("assessment_results").insert({ user_id: user.id, assessment_type: "mbti", result_data: data.data }).select("id").single(); if (inserted) { resultIdRef.current = inserted.id; setSavedReportId(inserted.id); } generateSoulFragment(user.id, "assessment", "mbti", `MBTI result: ${data.data.mbtiType} ${data.data.title}. ${data.data.description}`); }
       }
     } catch (e: any) { toast.error(e.message || t("assessmentFlow.common.loadFail")); } finally { setLoading(false); }
   };
