@@ -21,6 +21,7 @@ const DIM_LABELS: Record<string, string> = {
 };
 
 const CompatibilityDetail = () => {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
