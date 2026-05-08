@@ -159,6 +159,7 @@ ${langInstr}
       tools: [{ type: "function" as const, function: { name: "enneagram_result", description: "Return Enneagram analysis result with vivid, scene-based language", parameters: { type: "object", properties: {
         type: { type: "number", description: "Enneagram type 1-9" },
         wing: { type: "string", description: "Wing, e.g. '4w5' or '7w6'" },
+        wingExplanation: { type: "string", description: "40-70 字 / 30-60 words. 用一句生活化的话解释主类型 w 侧翼组合带来的味道差异，必须含具体场景或行为对比。禁止'侧翼是相邻类型对主类型的影响''融合了 X 与 Y 的特质'这类定义腔。例：'1w2 的你是带着热心肠的完美主义——会一边帮同事改方案到凌晨，一边在心里默默给他扣 3 分。'" },
         title: { type: "string", description: "Type name, e.g. 'The Reformer', 'The Helper'" },
         coreFear: { type: "string", description: "10-20 字 / 8-15 words. 画面化短句，禁止抽象定义。例：'被人发现你其实在硬撑的那一秒'" },
         coreDesire: { type: "string", description: "10-20 字 / 8-15 words. 画面化短句，禁止抽象定义" },
@@ -166,9 +167,9 @@ ${langInstr}
         traits: { type: "object", properties: { selfAwareness: { type: "number" }, empathy: { type: "number" }, resilience: { type: "number" }, growth: { type: "number" } }, required: ["selfAwareness", "empathy", "resilience", "growth"] },
         growthPath: { type: "string", description: "60-100 字 / 50-90 words. 给 1 个本周可执行小动作 + 1 句温柔提醒。禁止'你应该学会...'句式" },
         stressArrow: { type: "string", description: "60-100 字 / 50-90 words. 描述压力下的具体行为（拉黑、熬夜刷手机、突然清空购物车…），带一点自嘲" },
-        advice: { type: "string", description: "50-80 字 / 40-70 words. 像朋友递杯咖啡时说的话，可带 1 个 emoji。禁止'建议你...'开头" },
+        advice: { type: "string", description: "50-80 字 / 40-70 words. 闺蜜在 24h 便利店递关东煮的语气：必须含 1 个具体小动作或场景；可带 1 个 emoji；允许俏皮、自嘲、轻吐槽。禁止以'建议你''你应该''你需要''记住'开头；禁用'保持初心''坚持自我''学会爱自己''相信自己''做最好的自己'等鸡汤短语" },
         socialCaption: { type: "string", description: "≤30 字 / ≤25 words. 小红书标题感，可带反转或 hashtag" },
-      }, required: ["type", "wing", "title", "coreFear", "coreDesire", "description", "traits", "growthPath", "stressArrow", "advice", "socialCaption"] } } }],
+      }, required: ["type", "wing", "wingExplanation", "title", "coreFear", "coreDesire", "description", "traits", "growthPath", "stressArrow", "advice", "socialCaption"] } } }],
       tool_choice: { type: "function" as const, function: { name: "enneagram_result" } },
       temperature: 0.95, max_tokens: 1536,
     });
