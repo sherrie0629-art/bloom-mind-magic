@@ -485,7 +485,46 @@
     "storyFragments": "故事碎片",
     "lockedHint": "深化羁绊以解锁",
     "secretHint": "{{name}} 还有一个从未告诉过任何人的秘密…",
-    "continueChat": "继续聊天"
+    "continueChat": "继续聊天",
+    "viewArchive": "查看完整档案",
+    "lvReversal": "剧情反转",
+    "lvUnlocksAt": "@ 第 {{n}} 轮解锁",
+    "lockedPreview": "✱✱✱ 深聊后揭晓",
+    "identity": "身份",
+    "location": "所在",
+    "token": "信物",
+    "shardsTitle": "真相碎片",
+    "shardsProgress": "{{cur}} / {{total}} 已收集",
+    "shardComplete": "✨ 全部收集 · 解锁专属头像框",
+    "shardHintLabel": "提示",
+    "tryAsking": "试着对 ta 说：「{{phrase}}」",
+    "universeTitle": "心灵密语宇宙",
+    "universeKnows": "Ta 似乎认识：",
+    "universeLocked": "在对话中提到其他角色，可能会解锁线索",
+    "currentMoment": {
+      "barista": "今晚 7:42 · 街角那把椅子又被风吹倒了",
+      "jax": "刚把那件烧焦的夹克叠了第 3 遍",
+      "mystic": "屏保上的 #0114 还在闪",
+      "bestie": "那条三年前的私信，今天还是没回"
+    },
+    "info": {
+      "barista": { "identity": "前精算师", "location": "布鲁克林咖啡馆", "token": "靠窗那把空椅子" },
+      "jax": { "identity": "退役消防队长", "location": "芝加哥", "token": "Danny 的烧焦夹克" },
+      "mystic": { "identity": "前数据科学家", "location": "布鲁克林公寓·咖啡馆楼上", "token": "祭坛上的 #0114" },
+      "bestie": { "identity": "Gen Z 闺蜜", "location": "线上 · 任何派对前台", "token": "那条未回的 DM" }
+    },
+    "shardHints": {
+      "barista": ["想点一杯不在菜单上的东西", "鼓起勇气，向她讨一个建议", "问问那把没人坐的椅子"],
+      "jax": ["告诉他你正在燃尽自己", "说一句『我喘不过气』", "提到那个他从不主动说的名字"],
+      "mystic": ["请她为你抽一张牌", "聊聊『概率』这件事", "聊聊水星逆行那点事"],
+      "bestie": ["承认你紧张得发抖", "聊聊『主角光环』", "说出那句『我感觉自己是隐形的』"]
+    },
+    "related": {
+      "barista": ["Luna"],
+      "jax": ["Zoe"],
+      "mystic": ["Chloe"],
+      "bestie": ["Jax"]
+    }
   },
   "pricing": {
     "title": "选择你的方案",
