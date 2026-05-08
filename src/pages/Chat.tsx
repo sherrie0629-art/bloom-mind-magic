@@ -123,7 +123,7 @@ const Chat = () => {
     }
   }, [messages, isStreaming]);
 
-  const hasAssessmentContext = !!(mbtiResult || emotionResult);
+  const hasAssessmentContext = !!(mbtiResult || emotionResult || enneagramResult || zodiacResult || tarotResult || compatibilityResult);
 
   useEffect(() => {
     if (!user) {
