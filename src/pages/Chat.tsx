@@ -155,29 +155,48 @@ const Chat = () => {
         ]);
 
         const memCtx: string[] = [];
+        const isZh = locale === "zh";
         if (mbtiResult) {
-          let mbtiSummary = `[Just assessed] User completed MBTI assessment: ${mbtiResult.mbtiType} (${mbtiResult.title}). Description: ${mbtiResult.description}`;
-          if (mbtiResult.parallelUniverse) {
-            mbtiSummary += `. Parallel universe: Fantasy-${mbtiResult.parallelUniverse.magic?.role}, Cyberpunk-${mbtiResult.parallelUniverse.cyberpunk?.role}`;
+          if (isZh) {
+            let s = `[刚刚完成测评] 用户完成了 MBTI 测评：${mbtiResult.mbtiType}（${mbtiResult.title}）。描述：${mbtiResult.description}`;
+            if (mbtiResult.parallelUniverse) {
+              s += `。平行宇宙：奇幻—${mbtiResult.parallelUniverse.magic?.role}，赛博朋克—${mbtiResult.parallelUniverse.cyberpunk?.role}`;
+            }
+            memCtx.push(s);
+          } else {
+            let s = `[Just assessed] User completed MBTI assessment: ${mbtiResult.mbtiType} (${mbtiResult.title}). Description: ${mbtiResult.description}`;
+            if (mbtiResult.parallelUniverse) {
+              s += `. Parallel universe: Fantasy-${mbtiResult.parallelUniverse.magic?.role}, Cyberpunk-${mbtiResult.parallelUniverse.cyberpunk?.role}`;
+            }
+            memCtx.push(s);
           }
-          memCtx.push(mbtiSummary);
         }
         if (emotionResult) {
-          memCtx.push(`[Just assessed] User completed Wellness Check: ${emotionResult.emotionLevel} (${emotionResult.title}). ${emotionResult.description}. Burnout ${emotionResult.traits.burnout}%, Energy ${emotionResult.traits.energy}%, Boundaries ${emotionResult.traits.boundaries}%, Sleep ${emotionResult.traits.sleep}%. Suggestions: ${emotionResult.suggestions.join("; ")}`);
+          memCtx.push(isZh
+            ? `[刚刚完成测评] 用户完成了心灵体验测评：${emotionResult.emotionLevel}（${emotionResult.title}）。${emotionResult.description}。倦怠 ${emotionResult.traits.burnout}%、能量 ${emotionResult.traits.energy}%、边界 ${emotionResult.traits.boundaries}%、睡眠 ${emotionResult.traits.sleep}%。建议：${emotionResult.suggestions.join("；")}`
+            : `[Just assessed] User completed Wellness Check: ${emotionResult.emotionLevel} (${emotionResult.title}). ${emotionResult.description}. Burnout ${emotionResult.traits.burnout}%, Energy ${emotionResult.traits.energy}%, Boundaries ${emotionResult.traits.boundaries}%, Sleep ${emotionResult.traits.sleep}%. Suggestions: ${emotionResult.suggestions.join("; ")}`);
         }
         if (enneagramResult) {
-          memCtx.push(`[Just assessed] User completed Enneagram assessment: Type ${enneagramResult.type}${enneagramResult.wing ? ` (wing ${enneagramResult.wing})` : ""} — ${enneagramResult.title}. ${enneagramResult.description}. Core fear: ${enneagramResult.coreFear}. Core desire: ${enneagramResult.coreDesire}. Growth path: ${enneagramResult.growthPath}. Under stress: ${enneagramResult.stressArrow}. Advice: ${enneagramResult.advice}`);
+          memCtx.push(isZh
+            ? `[刚刚完成测评] 用户完成了九型人格测评：${enneagramResult.type}号${enneagramResult.wing ? `（侧翼 ${enneagramResult.wing}）` : ""}—${enneagramResult.title}。${enneagramResult.description}。核心恐惧：${enneagramResult.coreFear}。核心渴望：${enneagramResult.coreDesire}。成长路径：${enneagramResult.growthPath}。压力下：${enneagramResult.stressArrow}。建议：${enneagramResult.advice}`
+            : `[Just assessed] User completed Enneagram assessment: Type ${enneagramResult.type}${enneagramResult.wing ? ` (wing ${enneagramResult.wing})` : ""} — ${enneagramResult.title}. ${enneagramResult.description}. Core fear: ${enneagramResult.coreFear}. Core desire: ${enneagramResult.coreDesire}. Growth path: ${enneagramResult.growthPath}. Under stress: ${enneagramResult.stressArrow}. Advice: ${enneagramResult.advice}`);
         }
         if (zodiacResult) {
           const adv = typeof zodiacResult.advice === "string" ? zodiacResult.advice : JSON.stringify(zodiacResult.advice);
-          memCtx.push(`[Just assessed] User completed Zodiac reading: ${zodiacResult.zodiacSign} (${zodiacResult.element}) — ${zodiacResult.title}. ${zodiacResult.description}. Traits: ${JSON.stringify(zodiacResult.traits)}. Advice: ${adv}`);
+          memCtx.push(isZh
+            ? `[刚刚完成测评] 用户完成了星座解读：${zodiacResult.zodiacSign}（${zodiacResult.element}）—${zodiacResult.title}。${zodiacResult.description}。特质：${JSON.stringify(zodiacResult.traits)}。建议：${adv}`
+            : `[Just assessed] User completed Zodiac reading: ${zodiacResult.zodiacSign} (${zodiacResult.element}) — ${zodiacResult.title}. ${zodiacResult.description}. Traits: ${JSON.stringify(zodiacResult.traits)}. Advice: ${adv}`);
         }
         if (tarotResult) {
-          memCtx.push(`[Just assessed] User just drew a tarot card: ${tarotResult.cardName} (${tarotResult.isReversed ? "Reversed" : "Upright"}), energy ${tarotResult.energyScore}. Interpretation: ${tarotResult.interpretation}. Action tip: ${tarotResult.actionTip}`);
+          memCtx.push(isZh
+            ? `[刚刚完成测评] 用户刚抽了一张塔罗牌：${tarotResult.cardName}（${tarotResult.isReversed ? "逆位" : "正位"}），能量值 ${tarotResult.energyScore}。解读：${tarotResult.interpretation}。行动建议：${tarotResult.actionTip}`
+            : `[Just assessed] User just drew a tarot card: ${tarotResult.cardName} (${tarotResult.isReversed ? "Reversed" : "Upright"}), energy ${tarotResult.energyScore}. Interpretation: ${tarotResult.interpretation}. Action tip: ${tarotResult.actionTip}`);
         }
         if (compatibilityResult) {
           const c = compatibilityResult;
-          memCtx.push(`[Just assessed] User completed Compatibility analysis with ${c.partnerName}${c.partnerMbti ? ` (${c.partnerMbti})` : ""}${c.partnerZodiac ? ` ${c.partnerZodiac}` : ""}. Overall ${c.overallScore}% — ${c.title}. ${c.summary}. Strengths: ${c.strengths.join("; ")}. Conflicts: ${c.conflicts.join("; ")}. Love language — mine: ${c.loveLanguage.mine}, partner: ${c.loveLanguage.partner}. Tip: ${c.loveLanguage.tip}.${c.deepAnalysis ? ` Deep analysis: ${c.deepAnalysis.slice(0, 800)}` : ""}`);
+          memCtx.push(isZh
+            ? `[刚刚完成测评] 用户完成了与 ${c.partnerName}${c.partnerMbti ? `（${c.partnerMbti}）` : ""}${c.partnerZodiac ? ` ${c.partnerZodiac}` : ""} 的缘分配对。整体匹配度 ${c.overallScore}%—${c.title}。${c.summary}。优势：${c.strengths.join("；")}。冲突点：${c.conflicts.join("；")}。爱的语言——我的：${c.loveLanguage.mine}，对方：${c.loveLanguage.partner}。建议：${c.loveLanguage.tip}。${c.deepAnalysis ? ` 深度分析：${c.deepAnalysis.slice(0, 800)}` : ""}`
+            : `[Just assessed] User completed Compatibility analysis with ${c.partnerName}${c.partnerMbti ? ` (${c.partnerMbti})` : ""}${c.partnerZodiac ? ` ${c.partnerZodiac}` : ""}. Overall ${c.overallScore}% — ${c.title}. ${c.summary}. Strengths: ${c.strengths.join("; ")}. Conflicts: ${c.conflicts.join("; ")}. Love language — mine: ${c.loveLanguage.mine}, partner: ${c.loveLanguage.partner}. Tip: ${c.loveLanguage.tip}.${c.deepAnalysis ? ` Deep analysis: ${c.deepAnalysis.slice(0, 800)}` : ""}`);
         }
         if (memories && memories.length > 0) {
           memories.forEach((m) => {
