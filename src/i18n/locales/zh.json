@@ -426,6 +426,7 @@
     "energy": "能量 {{n}}/5",
     "todayReading": "今日解读",
     "saveShare": "保存 & 分享",
+    "talkToLuna": "找 Luna 解牌 🌙",
     "generatingArt": "正在生成牌面图…",
     "artFail": "牌面图暂不可用",
     "drawFail": "抽牌失败，请重试",
