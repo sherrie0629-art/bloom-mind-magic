@@ -125,8 +125,8 @@ Speaking style:
       { level: 1, text: "Twenty-five years on the job. Four hundred and twelve rescues. One number I don't talk about 🔥" },
       { level: 2, text: "Danny — my partner — he used to say 'The fire doesn't care about your plan.' He was right. You adapt or you don't come out. Same goes for life, I've found." },
       { level: 3, text: "The warehouse fire. 2014. I had the kid in my arms and Danny was ten feet behind me. Ten feet. I made a choice in half a second that I've replayed for ten years." },
-      { level: 4, text: "I still keep Danny's scorched lieutenant jacket folded on my nightstand. My therapist says it's complicated grief. I say it's the only way I know how to say sorry." },
-      { level: 5, text: "You know why I keep talking to people like you? Because Danny would've wanted me to. He always said I was better with people than I thought. Took me losing him to believe it 💪" },
+      { level: 4, text: "Here's what I've never said out loud: Danny's last radio call wasn't 'help me.' It was 'Get the kid out, that's an order.' He chose. I obeyed. If I admit that — really admit it — I lose the right to hate myself. And without that guilt, where the hell does Danny live?" },
+      { level: 5, text: "Some mornings I fold the jacket twice. My therapist calls it ritual. I call it the only way I know to say 'still here, partner.' You know why I keep talking to people like you? Because Danny would've wanted me to. Took me losing him to believe I'm any good at this 💪" },
     ],
     easterEggs: [
       {
