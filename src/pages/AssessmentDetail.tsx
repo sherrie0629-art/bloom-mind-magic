@@ -193,6 +193,15 @@ const AssessmentDetail = () => {
             </div>
           </div>
 
+          {type === "enneagram" && d.wing && (
+            <div className="mb-4 rounded-xl bg-muted/40 p-3">
+              <p className="text-[11px] font-semibold text-secondary">{t("assessmentFlow.enneagram.wing", { defaultValue: "Wing" })}: {d.wing}</p>
+              {d.wingExplanation && (
+                <p className="mt-1 text-xs text-foreground leading-relaxed">{d.wingExplanation}</p>
+              )}
+            </div>
+          )}
+
           {d.socialCaption && (
             <p className="mb-4 text-xs text-secondary italic">"{d.socialCaption}"</p>
           )}

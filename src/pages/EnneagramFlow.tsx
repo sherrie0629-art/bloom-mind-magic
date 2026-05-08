@@ -21,6 +21,7 @@ interface QA { question: string; answer: string; dimension: string; }
 interface EnneagramResult {
   type: number;
   wing: string;
+  wingExplanation?: string;
   title: string;
   coreFear: string;
   coreDesire: string;
@@ -33,19 +34,19 @@ interface EnneagramResult {
 }
 
 const ENNEA_SCENE: Record<number, { scene: string; colors: string }> = {
-  1: { scene: "a tidy desk scene with perfectly aligned pencils, a small ruler, and a single neat stack of paper", colors: "ivory, slate blue and a touch of sage" },
-  2: { scene: "two warm hands offering a steaming mug of cocoa, with little hearts floating above", colors: "peach, rose pink and cream" },
-  3: { scene: "a stylish character climbing stacked golden trophies and medals toward a glowing star", colors: "champagne gold, tangerine and warm beige" },
-  4: { scene: "a dreamy artist painting under moonlight with floating colorful brushstrokes and stars", colors: "deep violet, dusk blue and lilac" },
-  5: { scene: "a curious character with headphones surrounded by floating books, telescopes and tiny equations", colors: "olive green, charcoal and parchment" },
-  6: { scene: "a small lighthouse guiding a tiny boat through gentle waves under a starry sky", colors: "sea blue, amber lantern glow and ivory" },
-  7: { scene: "a joyful character riding a hot air balloon through candy-colored clouds and confetti", colors: "coral, lemon yellow and sky blue" },
-  8: { scene: "a bold lion silhouette standing on a rocky cliff with subtle ember and lava textures", colors: "brick red, burnt orange and obsidian" },
-  9: { scene: "a peaceful character napping on a fluffy cloud above soft hot-spring ripples", colors: "matcha green, cream and powder pink" },
+  1: { scene: "a young girl at a tidy desk with perfectly aligned pencils, a small ruler, and a single neat stack of paper, soft focused smile", colors: "ivory, slate blue and a touch of sage" },
+  2: { scene: "a young girl with a soft warm smile holding a steaming mug of cocoa with little hearts floating above her hands", colors: "peach, rose pink and cream" },
+  3: { scene: "a stylish young girl in a cute blazer climbing stacked golden trophies and medals toward a glowing star, confident bright expression", colors: "champagne gold, tangerine and warm beige" },
+  4: { scene: "a dreamy young girl artist painting under moonlight with floating colorful brushstrokes and stars, gentle wistful smile", colors: "deep violet, dusk blue and lilac" },
+  5: { scene: "a curious young girl with oversized headphones surrounded by floating books, telescopes and tiny equations, bright eyes", colors: "olive green, charcoal and parchment" },
+  6: { scene: "a small lighthouse guiding a tiny boat through gentle waves under a starry sky, with a young girl waving cheerfully from the shore", colors: "sea blue, amber lantern glow and ivory" },
+  7: { scene: "a joyful young girl riding a hot air balloon through candy-colored clouds and confetti, laughing freely", colors: "coral, lemon yellow and sky blue" },
+  8: { scene: "a confident young girl in a cool jacket standing on a rocky cliff with a small lion cub beside her, subtle ember and lava textures, brave but fresh-faced", colors: "brick red, burnt orange and obsidian" },
+  9: { scene: "a peaceful young girl napping on a fluffy cloud above soft hot-spring ripples, cozy and serene", colors: "matcha green, cream and powder pink" },
 };
 const getImagePrompt = (result: EnneagramResult) => {
   const meta = ENNEA_SCENE[result.type] || ENNEA_SCENE[9];
-  return `Playful, modern editorial illustration in a contemporary collage style for Enneagram Type ${result.type} "${result.title}". Feature ${meta.scene}. Use a warm lively palette of ${meta.colors}, soft paper textures, hand-drawn linework, slightly whimsical character vibe (think New Yorker meets Apple memoji art). Square format, no text, no letters.`;
+  return `Cute, bright, modern editorial illustration in a contemporary Xiaohongshu × Apple memoji art style for Enneagram Type ${result.type} "${result.title}". Feature ${meta.scene}. Use a warm lively palette of ${meta.colors}, soft paper textures, hand-drawn linework, youthful fresh atmosphere. STRICT character rule: any human figure MUST be a bright, fresh young girl in her late teens to early twenties, soft cheerful expression, dewy light makeup vibe, casual modern outfit. Absolutely NO middle-aged women, NO mothers, NO mature or stern adult characters, NO heavy or somber moods. Square format, no text, no letters.`;
 };
 
 const EnneagramFlow = () => {
@@ -203,7 +204,10 @@ const EnneagramFlow = () => {
             <div className="mx-auto mb-4 h-20 w-20 rounded-full bg-gradient-mystic flex items-center justify-center"><span className="text-3xl">🎯</span></div>
             <h1 className="font-display text-xl font-bold text-foreground">Type {result.type} · {result.title}</h1>
             <p className="mt-1 text-xs text-secondary">{t("assessmentFlow.enneagram.wing")}: {result.wing}</p>
-            <p className="mt-1 text-xs text-muted-foreground">"{result.socialCaption}"</p>
+            {result.wingExplanation && (
+              <p className="mt-2 text-[11px] text-muted-foreground/80 leading-relaxed px-2">{result.wingExplanation}</p>
+            )}
+            <p className="mt-2 text-xs text-muted-foreground">"{result.socialCaption}"</p>
           </div>
           <ResultAIImage imageUrl={resultImageUrl} loading={imageLoading} />
           <div className="rounded-2xl bg-card p-5 shadow-card mb-4">

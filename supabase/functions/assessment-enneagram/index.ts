@@ -124,7 +124,7 @@ You MUST call the batch_questions tool with all 10 questions.`;
     if (quotaError) return quotaError;
 
     const { history } = body;
-    const RESULT_PROMPT_VERSION = "v3";
+    const RESULT_PROMPT_VERSION = "v4";
     const systemPrompt = `RESULT_PROMPT_VERSION: ${RESULT_PROMPT_VERSION}
 你是个懂九型的损友 / 心理博主，正在给朋友写一份"她会截图发朋友圈"的测评结果。不是教科书，不是星座号，是会让人笑着说"靠这就是我"的那种。
 
@@ -136,15 +136,18 @@ You MUST call the batch_questions tool with all 10 questions.`;
 
 【字段要求】
 - description (~200 字)：前两句必须是"你大概率有过这个瞬间"的具体画面（凌晨 2 点改 PPT、群里被 @ 心跳加速…），中间解释类型动机，结尾给一句温柔锐评
+- wingExplanation (40–70 字)：用一句生活化的话解释"主类型 w 侧翼"组合带来的味道差异，必须含具体场景 / 行为对比。禁止"侧翼是相邻类型对主类型的影响""融合了 X 与 Y 的特质"这种定义腔。例："1w2 的你是带着热心肠的完美主义——会一边帮同事改方案到凌晨，一边在心里默默给他扣 3 分。"
 - coreFear / coreDesire (10–20 字)：画面化短句。例如不要"害怕失控"，要"被人发现你其实在硬撑的那一秒"
 - growthPath (60–100 字)：1 个本周可执行小动作 + 1 句温柔提醒；禁止"你应该学会..."句式
 - stressArrow (60–100 字)：压力下你会做的具体行为（突然拉黑、熬夜刷购物车、给所有人发"在吗"…），带一点自嘲
-- advice (50–80 字)：像朋友递杯热咖啡时说的话，可带 1 个 emoji；禁止"建议你..."开头
+- advice (50–80 字)：像闺蜜在 24h 便利店递关东煮时随口说的话。硬性要求：① 必须有 1 个具体小动作或场景（楼下便利店买热奶茶 / 把手机调飞行模式 30 分钟 / 把没回的群消息全标已读…）；② 可以带 1 个 emoji；③ 允许俏皮、自嘲、轻吐槽；④ **禁止**以"建议你""你应该""你需要""记住"开头；⑤ **禁用**"保持初心""坚持自我""学会爱自己""相信自己""做最好的自己"这类鸡汤短语
 - socialCaption (≤30 字)：小红书标题感，可带反转或 hashtag
 
 【中文 few-shot - Type 4 风格示例】
 description 开头："你大概率有过这种瞬间——朋友说'你最近挺好的吧'，你笑着点头，回家把同一首歌单曲循环 47 遍。你不是矫情，你只是觉得，被理解这件事比想象中稀有。"
-advice："今晚别再写那条没人看的小作文了 ☕ 给最近想你的人发条语音，60 秒就好。你以为的'没人懂'，其实是你先把门关上了。"
+wingExplanation 示例："4w5 的你是会把情绪写成观察日记的那种——别人哭完发朋友圈，你哭完先研究自己'为什么哭'，再分三段写成小作文存草稿箱。"
+advice 示例 1："今晚关掉那 17 个待办 ☕ 楼下便利店买根烤肠，边走边骂老板两句，回家直接躺平——你真的不是机器，地球今晚没你照样转。"
+advice 示例 2："明天上班路上听首土到爆的口水歌 🎧 别再循环那首'懂我的人'了。情绪也需要换季，不然真的会发霉。"
 stressArrow："压力上头时你会突然清空购物车、把头像换成黑色、给三个月没联系的人发'在吗'，然后秒删。睡前还要给自己写 800 字内心独白当存档。"
 
 ${langInstr}
@@ -156,6 +159,7 @@ ${langInstr}
       tools: [{ type: "function" as const, function: { name: "enneagram_result", description: "Return Enneagram analysis result with vivid, scene-based language", parameters: { type: "object", properties: {
         type: { type: "number", description: "Enneagram type 1-9" },
         wing: { type: "string", description: "Wing, e.g. '4w5' or '7w6'" },
+        wingExplanation: { type: "string", description: "40-70 字 / 30-60 words. 用一句生活化的话解释主类型 w 侧翼组合带来的味道差异，必须含具体场景或行为对比。禁止'侧翼是相邻类型对主类型的影响''融合了 X 与 Y 的特质'这类定义腔。例：'1w2 的你是带着热心肠的完美主义——会一边帮同事改方案到凌晨，一边在心里默默给他扣 3 分。'" },
         title: { type: "string", description: "Type name, e.g. 'The Reformer', 'The Helper'" },
         coreFear: { type: "string", description: "10-20 字 / 8-15 words. 画面化短句，禁止抽象定义。例：'被人发现你其实在硬撑的那一秒'" },
         coreDesire: { type: "string", description: "10-20 字 / 8-15 words. 画面化短句，禁止抽象定义" },
@@ -163,9 +167,9 @@ ${langInstr}
         traits: { type: "object", properties: { selfAwareness: { type: "number" }, empathy: { type: "number" }, resilience: { type: "number" }, growth: { type: "number" } }, required: ["selfAwareness", "empathy", "resilience", "growth"] },
         growthPath: { type: "string", description: "60-100 字 / 50-90 words. 给 1 个本周可执行小动作 + 1 句温柔提醒。禁止'你应该学会...'句式" },
         stressArrow: { type: "string", description: "60-100 字 / 50-90 words. 描述压力下的具体行为（拉黑、熬夜刷手机、突然清空购物车…），带一点自嘲" },
-        advice: { type: "string", description: "50-80 字 / 40-70 words. 像朋友递杯咖啡时说的话，可带 1 个 emoji。禁止'建议你...'开头" },
+        advice: { type: "string", description: "50-80 字 / 40-70 words. 闺蜜在 24h 便利店递关东煮的语气：必须含 1 个具体小动作或场景；可带 1 个 emoji；允许俏皮、自嘲、轻吐槽。禁止以'建议你''你应该''你需要''记住'开头；禁用'保持初心''坚持自我''学会爱自己''相信自己''做最好的自己'等鸡汤短语" },
         socialCaption: { type: "string", description: "≤30 字 / ≤25 words. 小红书标题感，可带反转或 hashtag" },
-      }, required: ["type", "wing", "title", "coreFear", "coreDesire", "description", "traits", "growthPath", "stressArrow", "advice", "socialCaption"] } } }],
+      }, required: ["type", "wing", "wingExplanation", "title", "coreFear", "coreDesire", "description", "traits", "growthPath", "stressArrow", "advice", "socialCaption"] } } }],
       tool_choice: { type: "function" as const, function: { name: "enneagram_result" } },
       temperature: 0.95, max_tokens: 1536,
     });
