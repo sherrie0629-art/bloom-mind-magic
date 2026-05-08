@@ -43,17 +43,73 @@ serve(async (req) => {
     const model = "google/gemini-2.5-flash-lite";
 
     if (body.action === "batch-questions") {
+      const PROMPT_VERSION = "v2";
+      const systemZh = `PROMPT_VERSION: ${PROMPT_VERSION}
+你是个懂九型人格的损友，正在陪朋友做一份"心理小剧场"测验。不是教科书，不要学术腔。
+
+【目标】
+出 10 道题，从用户在具体生活场景里的**第一反应**反推九型人格类型(1-9)。
+
+【九型核心动机速记，分配选项时参考】
+1完美/对错  2付出/被需要  3成就/被认可  4独特/真我  5知识/独立
+6安全/忠诚  7快乐/避痛  8掌控/力量  9和谐/避冲突
+
+【题目硬要求】
+- 每题必须是一个**具体生活小情境**(>=25 字)，让用户选第一反应。例如:
+  · "项目临近 deadline，队友交来一份明显不达标的稿，你脑子里第一句话是…"
+  · "刷到前同事升职的朋友圈，你停顿了 3 秒，心里其实在…"
+  · "深夜失眠，反复在脑子里循环播放的通常是…"
+- 4 个选项每条 10–22 字，必须是**具体动作或内心独白**，最好分别对应不同九型类型的典型反应。
+  · 好例:"默默重写一遍，顺便列张'下次注意'清单"
+  · 坏例:"我会很冷静"(纯形容词，禁止)
+- 10 道题里，type 1–9 的典型反应都至少要在某个选项里出现一次。
+- 维度分布:motivation 3 题 / fear 2 题 / relationship 2 题 / stress 2 题 / growth 1 题。
+- 语气像小红书博主带点损友吐槽，emoji 整套题最多用 1 个。
+- 禁止:"你认为/你觉得/你的…如何"开头超过 2 题；禁止纯形容词选项；禁止直接点明"这是测你的恐惧/动机"。
+
+【风格示例(参考，不要照抄)】
+Q: "周五加班到 10 点，老板群里发了个意味不明的'嗯'，你脑内小剧场是…"
+A. "完了是不是哪里做错了，翻聊天记录复盘"  (6 号)
+B. "他累了懒得打字吧，明天再说"  (9 号)
+C. "管他什么意思，先把活干完证明给他看"  (3 号)
+D. "想这么多干嘛，下班！周末计划要紧"  (7 号)
+
+必须调用 batch_questions 工具返回 10 题。`;
+      const systemEn = `PROMPT_VERSION: ${PROMPT_VERSION}
+You are a witty friend who knows the Enneagram, running a "inner-monologue mini quiz" for a friend. Not a textbook—no academic tone.
+
+GOAL: 10 questions that infer the user's Enneagram type (1-9) from their **first reaction** to specific life scenes.
+
+ENNEAGRAM CORE MOTIVES (use when crafting options):
+1 perfection  2 being needed  3 achievement  4 being unique  5 knowledge
+6 security  7 pleasure/avoid pain  8 control  9 harmony
+
+HARD RULES:
+- Every question is a **concrete tiny scene** (>=20 words). Ask for the user's first reaction.
+- 4 options, each 8–18 words, must be a **specific action or inner thought** mapped to a distinct type.
+  · Good: "Quietly rewrite it and draft a 'lessons learned' note."
+  · Bad: "I'd stay calm." (pure adjective—forbidden)
+- Across 10 questions, cover all 9 types at least once via the options.
+- Dimension mix: motivation 3 / fear 2 / relationship 2 / stress 2 / growth 1.
+- Tone like Co-Star—dry, clever, slightly self-aware. At most 1 emoji across the whole set.
+- Forbidden: more than 2 questions starting with "Do you / How would you…"; pure adjective options; revealing what the question measures.
+
+STYLE EXAMPLE:
+Q: "Friday 10pm, your boss drops a vague 'hm' in the group chat. Your brain immediately…"
+A. "Scrolls up to check what I might've done wrong."  (6)
+B. "Assumes they're tired—deal with it tomorrow."  (9)
+C. "Doubles down on finishing the work to prove myself."  (3)
+D. "Stop overthinking. Weekend plans matter more."  (7)
+
+You MUST call the batch_questions tool with all 10 questions.`;
       const response = await fetchAI(model, {
         messages: [
-          { role: "system", content: `You are an Enneagram personality expert. Generate 10 scenario-based questions to determine a person's Enneagram type (1-9).
-Questions should explore core motivations, fears, desires, and behavioral patterns across different life situations.
-Each question has 4 options (A/B/C/D). Respond in the language indicated by LANG below.${langInstr}
-You must call the batch_questions tool to return all questions.` },
-          { role: "user", content: "Generate 10 Enneagram personality assessment questions." },
+          { role: "system", content: locale === "zh" ? systemZh : systemEn },
+          { role: "user", content: locale === "zh" ? "出 10 道场景化的九型人格测试题。" : "Generate 10 scenario-based Enneagram questions." },
         ],
-        tools: [{ type: "function" as const, function: { name: "batch_questions", description: "Return 10 Enneagram questions", parameters: { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { question: { type: "string" }, options: { type: "array", items: { type: "object", properties: { label: { type: "string" }, text: { type: "string" } }, required: ["label", "text"] } }, dimension: { type: "string", description: "Aspect: motivation/fear/relationship/stress/growth" } }, required: ["question", "options", "dimension"] }, minItems: 10, maxItems: 10 } }, required: ["questions"] } } }],
+        tools: [{ type: "function" as const, function: { name: "batch_questions", description: "Return 10 scenario-based Enneagram questions", parameters: { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { question: { type: "string", description: "A concrete life scenario asking for the user's first reaction. Min 25 chars (zh) / 20 words (en). No abstract framing." }, options: { type: "array", items: { type: "object", properties: { label: { type: "string", description: "A / B / C / D" }, text: { type: "string", description: "Specific action or inner monologue, 10-22 chars (zh) / 8-18 words (en). NO pure adjectives." } }, required: ["label", "text"] }, minItems: 4, maxItems: 4 }, dimension: { type: "string", description: "One of: motivation | fear | relationship | stress | growth" } }, required: ["question", "options", "dimension"] }, minItems: 10, maxItems: 10 } }, required: ["questions"] } } }],
         tool_choice: { type: "function" as const, function: { name: "batch_questions" } },
-        temperature: 0.7, max_tokens: 2048,
+        temperature: 0.9, max_tokens: 2048,
       });
       if (!response.ok) { const t = await response.text(); console.error("Batch error:", response.status, t); throw new Error("AI service error"); }
       const data = await response.json();
