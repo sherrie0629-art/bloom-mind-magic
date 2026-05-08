@@ -30,11 +30,7 @@ const AssessmentDetail = () => {
   const { user } = useAuth();
   const [report, setReport] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [deepReport, setDeepReport] = useState<string | null>(null);
-  const [deepLoading, setDeepLoading] = useState(false);
-  const [showDeepReport, setShowDeepReport] = useState(false);
-  const { plan } = useSubscription(user?.id);
-  const { generatePoster } = useSharePoster();
+  const { generatePoster: _gp } = useSharePoster();
   const [shareOpen, setShareOpen] = useState(false);
   const [shareImageUrl, setShareImageUrl] = useState<string | null>(null);
 
