@@ -207,7 +207,8 @@
       "growth": "Growth",
       "underStress": "Under Stress",
       "advice": "💡 Advice",
-      "discussWith": "Chat with the Barista ☕"
+      "discussWith": "Chat with the Barista ☕",
+      "talkToBestie": "Chat with Bestie 💗"
     },
     "zodiac": {
       "title": "Horoscope Reading",
@@ -226,6 +227,7 @@
       "luckyMoment": "Lucky Moment",
       "ritualTitle": "Weekly Ritual",
       "discussMore": "Discuss More",
+      "talkToLuna": "Talk to Luna 🌙",
       "elementSuffix": "Element"
     },
     "emotion": {
@@ -270,6 +272,7 @@
       "deepAnalysisLoading": "Generating deep analysis…",
       "tryAgain": "Try Again",
       "savePoster": "Save Poster",
+      "talkToBestie": "Chat with Bestie 💗",
       "pleaseSignIn": "Please sign in 🌙",
       "dailyLimitReached": "Daily limit reached ({{n}}) 💫",
       "me": "Me",
@@ -423,6 +426,7 @@
     "energy": "Energy {{n}}/5",
     "todayReading": "Today's Reading",
     "saveShare": "Save & Share",
+    "talkToLuna": "Ask Luna 🌙",
     "generatingArt": "Generating card art...",
     "artFail": "Card art unavailable",
     "drawFail": "Failed to draw. Please try again.",

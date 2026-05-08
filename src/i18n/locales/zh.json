@@ -207,7 +207,8 @@
       "growth": "成长方向",
       "underStress": "压力之下",
       "advice": "💡 建议",
-      "discussWith": "找咖啡师聊聊 ☕"
+      "discussWith": "找咖啡师聊聊 ☕",
+      "talkToBestie": "找闺蜜聊聊 💗"
     },
     "zodiac": {
       "title": "星座运势",
@@ -226,6 +227,7 @@
       "luckyMoment": "幸运时刻",
       "ritualTitle": "今周小仪式",
       "discussMore": "聊聊更多",
+      "talkToLuna": "找 Luna 解读 🌙",
       "elementSuffix": "属性"
     },
     "emotion": {
@@ -270,6 +272,7 @@
       "deepAnalysisLoading": "正在生成深度解析…",
       "tryAgain": "再测一次",
       "savePoster": "保存海报",
+      "talkToBestie": "找闺蜜聊聊 💗",
       "pleaseSignIn": "请先登录 🌙",
       "dailyLimitReached": "今日测评次数已用完（{{n}}）💫",
       "me": "我",
@@ -423,6 +426,7 @@
     "energy": "能量 {{n}}/5",
     "todayReading": "今日解读",
     "saveShare": "保存 & 分享",
+    "talkToLuna": "找 Luna 解牌 🌙",
     "generatingArt": "正在生成牌面图…",
     "artFail": "牌面图暂不可用",
     "drawFail": "抽牌失败，请重试",

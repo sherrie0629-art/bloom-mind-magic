@@ -1,43 +1,58 @@
-## 八字模块清理 + 顺手修复函数错位
 
-入口已下线，本次把所有八字残留代码删除；同时顺手解决之前发现的"`assessment-bazi` 函数实际跑的是九型逻辑"这个错位 bug。
+## 目标
+
+每个测评/抽卡结果页可一键进入对应 AI 角色聊天，并把刚完成的测评结果作为本次会话的"刚发生事件"传给该角色。
+
+| 入口 | 跳转角色 | 当前状态 |
+|---|---|---|
+| MBTI 性格测评 | barista（咖啡师） | ✅ 已实现 |
+| 心灵体检 Emotion | jax | ✅ 已实现 |
+| 九型人格 Enneagram | bestie（闺蜜） | ❌ 当前→barista，无上下文 |
+| 星座测评 Zodiac | mystic（Luna） | ❌ 当前→barista，无上下文 |
+| 每日塔罗 DailyTarot | mystic（Luna） | ❌ 无聊天入口 |
+| 关系合盘 Compatibility | bestie（闺蜜） | ❌ 无聊天入口 |
 
 ## 改动清单
 
-### 删除
-- `src/pages/BaziFlow.tsx`
-- `supabase/functions/assessment-bazi/`（同时调用 `delete_edge_functions` 卸掉线上部署）
+### 1. `src/pages/EnneagramFlow.tsx`
+- 跳转改为 `/chat?agent=bestie`，state 传 `enneagramResult`：`type`、`title`、`description`、`coreFear`、`coreDesire`、`growthPath`、`stressArrow`、`advice`。
+- 按钮文案 i18n key 改为 `assessmentFlow.enneagram.talkToBestie`。
 
-### 重命名（防止未来再串台）
-- 把原 `assessment-bazi/index.ts` 内容（其实是九型逻辑）整体迁到新建的 `supabase/functions/assessment-enneagram/index.ts`
+### 2. `src/pages/ZodiacFlow.tsx`
+- 跳转改为 `/chat?agent=mystic`，state 传 `zodiacResult`：`sign`、`title`、`description`、`traits`、`advice`（含 ritual/crystal）。
+- 按钮文案 key 改为 `assessmentFlow.zodiac.talkToLuna`。
 
-### 修改
+### 3. `src/pages/DailyTarot.tsx`（result 状态区）
+- 在「保存海报」按钮下方新增次级按钮「找 Luna 解牌」，跳转 `/chat?agent=mystic`，state 传 `tarotResult`：`cardName`、`isReversed`、`energyScore`、`interpretation`、`actionTip`、`drawDate`。
+- 新增 i18n key `dailyTarot.talkToLuna`。
 
-**`src/App.tsx`**
-- 删除 `Route path="/assessment/bazi"` 这一行（旧入口已下线）
+### 4. `src/pages/CompatibilityFlow.tsx`（result 步骤）
+- 在底部按钮组新增第三个按钮「找闺蜜聊聊」，跳转 `/chat?agent=bestie`，state 传 `compatibilityResult`：`overallScore`、`title`、`summary`、`dimensions`、`strengths`、`conflicts`、`loveLanguage`、`partnerName`、`partnerMbti`/`partnerZodiac`，以及已生成的 `deepAnalysis`（若 ready）。
+- 新增 i18n key `assessmentFlow.compatibility.talkToBestie`。
 
-**`src/pages/EnneagramFlow.tsx`**
-- 两处 `invoke("assessment-bazi", …)` 改为 `invoke("assessment-enneagram", …)`
+### 5. `src/pages/Chat.tsx`（核心改动）
+- `location.state` 解析新增四个上下文：`enneagramResult`、`zodiacResult`、`tarotResult`、`compatibilityResult`。
+- `hasAssessmentContext` 扩展为六种之一即为 true。
+- 在记忆上下文构建处，为每一种新增 `[Just assessed] …` 摘要字符串注入 `memCtx`，与现有 mbti/emotion 相同风格（英文摘要供模型读取）。
+- 新增四个 `useRef` 防重发标志和对应的 `useEffect`：在 `historyLoaded && user` 后自动发送一条用户口吻的开场消息：
+  - 九型 → bestie：「我刚做完九型人格，结果是 X 号 …，咱聊聊？」
+  - 星座 → Luna：「我刚测了星座（XX 座）…」
+  - 塔罗 → Luna：「我今天抽到 XXX（正/逆位）…」
+  - 合盘 → bestie：「我刚跟 [伙伴名] 测了关系合盘，匹配 X% …，给点建议？」
+- 自动开场消息每次 mount 只触发一次，并 `setConversationId(null)` 起新会话，避免污染历史。
 
-**`src/pages/AssessmentReports.tsx`**
-- 删除 meta 表里的 `bazi: { icon: Flame, … }` 一项；如 `Flame` 图标无其他引用则同时删除该 import
+### 6. i18n（`src/i18n/locales/zh.json` & `en.json`）
+新增 4 个 key：
+- `assessmentFlow.enneagram.talkToBestie`：「找闺蜜聊聊」/ "Chat with Bestie"
+- `assessmentFlow.zodiac.talkToLuna`：「找 Luna 解读」/ "Talk to Luna"
+- `dailyTarot.talkToLuna`：「找 Luna 解牌」/ "Ask Luna about this card"
+- `assessmentFlow.compatibility.talkToBestie`：「找闺蜜聊聊」/ "Chat with Bestie"
 
-**`src/i18n/locales/zh.json` / `en.json`**
-- 删除 `assessmentFlow.bazi` 整段（zh/en 各 ~22 行）
-- 删除 `assessmentReports.labels.bazi`
+## 不改动
+- 角色数据 `src/data/agents.ts`（mystic=Luna，bestie=闺蜜，已存在）。
+- 数据库结构、agent_bonds、user_memories：测评结果只随 `location.state` 内存传递、不持久化（与现有 mbti/emotion 行为保持一致）。
+- MBTI/Emotion 流程已正确，不动。
 
-**`supabase/functions/generate-deep-report/index.ts`**
-- 从 `kindLabels` 的 `en` 与 `zh` 中移除 `bazi` 键
-
-### 数据保留策略
-数据库 `assessment_results.assessment_type = 'bazi'` 的历史记录**保留**（不删迁移），仅在 `AssessmentReports` 列表里因为 meta 表无对应项而隐藏；这样老用户数据不丢，未来想恢复入口也容易。如希望硬清理也可以一句 SQL 迁移，本次默认不动。
-
-## 不动
-- 八字相关的 storage bucket / 历史结果数据
-- 其他 4 个测评的逻辑
-
-## 验收
-- `rg -i "bazi|八字"` 在 `src/` 与 `supabase/functions/` 内只剩 `generate-deep-report` 之外 0 命中（或全部清理后 0 命中）
-- 路由 `/assessment/bazi` 进入 NotFound
-- 九型测评仍能正常出题、出结果（函数名变更但逻辑不变）
-- 测评报告列表不再出现八字条目，老九型/MBTI/星座/心灵体验报告正常显示
+## 关键约束
+- 所有自动开场消息只发一次（`useRef` 防重）。
+- 跳转后 Chat 页 agentId 取自 URL `?agent=`，状态里的 result 与对应 agent 解耦渲染——若用户手动改 URL 跳到别的角色，对应 result 仍会注入（不强校验，简化逻辑），与现有 mbti/emotion 一致。

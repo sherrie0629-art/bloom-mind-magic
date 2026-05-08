@@ -54,8 +54,16 @@ const Chat = () => {
   const agent = localizeAgent(rawAgent, t);
   const mbtiResult = (location.state as any)?.mbtiResult as { mbtiType: string; title: string; description: string; parallelUniverse?: any } | undefined;
   const emotionResult = (location.state as any)?.emotionResult as { emotionLevel: string; title: string; description: string; traits: { burnout: number; energy: number; boundaries: number; sleep: number }; suggestions: string[] } | undefined;
+  const enneagramResult = (location.state as any)?.enneagramResult as { type: number; wing?: string; title: string; description: string; coreFear: string; coreDesire: string; growthPath: string; stressArrow: string; advice: string } | undefined;
+  const zodiacResult = (location.state as any)?.zodiacResult as { zodiacSign: string; element: string; title: string; description: string; traits: any; luckyItems?: any; advice: any } | undefined;
+  const tarotResult = (location.state as any)?.tarotResult as { cardName: string; isReversed: boolean; energyScore: number; interpretation: string; actionTip: string } | undefined;
+  const compatibilityResult = (location.state as any)?.compatibilityResult as { partnerName: string; partnerMbti?: string; partnerZodiac?: string; overallScore: number; title: string; summary: string; dimensions: any; strengths: string[]; conflicts: string[]; loveLanguage: { mine: string; partner: string; tip: string }; deepAnalysis?: string } | undefined;
   const mbtiAutoSentRef = useRef(false);
   const emotionAutoSentRef = useRef(false);
+  const enneagramAutoSentRef = useRef(false);
+  const zodiacAutoSentRef = useRef(false);
+  const tarotAutoSentRef = useRef(false);
+  const compatibilityAutoSentRef = useRef(false);
 
   const getWelcomeMessage = (a: typeof agent) => getAgentWelcome(a, t);
 
@@ -115,7 +123,7 @@ const Chat = () => {
     }
   }, [messages, isStreaming]);
 
-  const hasAssessmentContext = !!(mbtiResult || emotionResult);
+  const hasAssessmentContext = !!(mbtiResult || emotionResult || enneagramResult || zodiacResult || tarotResult || compatibilityResult);
 
   useEffect(() => {
     if (!user) {
@@ -156,6 +164,20 @@ const Chat = () => {
         }
         if (emotionResult) {
           memCtx.push(`[Just assessed] User completed Wellness Check: ${emotionResult.emotionLevel} (${emotionResult.title}). ${emotionResult.description}. Burnout ${emotionResult.traits.burnout}%, Energy ${emotionResult.traits.energy}%, Boundaries ${emotionResult.traits.boundaries}%, Sleep ${emotionResult.traits.sleep}%. Suggestions: ${emotionResult.suggestions.join("; ")}`);
+        }
+        if (enneagramResult) {
+          memCtx.push(`[Just assessed] User completed Enneagram assessment: Type ${enneagramResult.type}${enneagramResult.wing ? ` (wing ${enneagramResult.wing})` : ""} — ${enneagramResult.title}. ${enneagramResult.description}. Core fear: ${enneagramResult.coreFear}. Core desire: ${enneagramResult.coreDesire}. Growth path: ${enneagramResult.growthPath}. Under stress: ${enneagramResult.stressArrow}. Advice: ${enneagramResult.advice}`);
+        }
+        if (zodiacResult) {
+          const adv = typeof zodiacResult.advice === "string" ? zodiacResult.advice : JSON.stringify(zodiacResult.advice);
+          memCtx.push(`[Just assessed] User completed Zodiac reading: ${zodiacResult.zodiacSign} (${zodiacResult.element}) — ${zodiacResult.title}. ${zodiacResult.description}. Traits: ${JSON.stringify(zodiacResult.traits)}. Advice: ${adv}`);
+        }
+        if (tarotResult) {
+          memCtx.push(`[Just assessed] User just drew a tarot card: ${tarotResult.cardName} (${tarotResult.isReversed ? "Reversed" : "Upright"}), energy ${tarotResult.energyScore}. Interpretation: ${tarotResult.interpretation}. Action tip: ${tarotResult.actionTip}`);
+        }
+        if (compatibilityResult) {
+          const c = compatibilityResult;
+          memCtx.push(`[Just assessed] User completed Compatibility analysis with ${c.partnerName}${c.partnerMbti ? ` (${c.partnerMbti})` : ""}${c.partnerZodiac ? ` ${c.partnerZodiac}` : ""}. Overall ${c.overallScore}% — ${c.title}. ${c.summary}. Strengths: ${c.strengths.join("; ")}. Conflicts: ${c.conflicts.join("; ")}. Love language — mine: ${c.loveLanguage.mine}, partner: ${c.loveLanguage.partner}. Tip: ${c.loveLanguage.tip}.${c.deepAnalysis ? ` Deep analysis: ${c.deepAnalysis.slice(0, 800)}` : ""}`);
         }
         if (memories && memories.length > 0) {
           memories.forEach((m) => {
@@ -262,6 +284,38 @@ const Chat = () => {
       handleSend(`I just did a Wellness Check and scored "${emotionResult.emotionLevel}" — ${emotionResult.title}. Burnout at ${emotionResult.traits.burnout}%, energy at ${emotionResult.traits.energy}%. Can we talk about how I'm doing? 🌈`);
     }
   }, [historyLoaded, emotionResult, user]);
+
+  useEffect(() => {
+    if (enneagramResult && historyLoaded && !enneagramAutoSentRef.current && user) {
+      enneagramAutoSentRef.current = true;
+      setConversationId(null);
+      handleSend(`I just did the Enneagram quiz — I'm Type ${enneagramResult.type} (${enneagramResult.title}). Core fear: ${enneagramResult.coreFear}; core desire: ${enneagramResult.coreDesire}. Wanna unpack this with me? 💭`);
+    }
+  }, [historyLoaded, enneagramResult, user]);
+
+  useEffect(() => {
+    if (zodiacResult && historyLoaded && !zodiacAutoSentRef.current && user) {
+      zodiacAutoSentRef.current = true;
+      setConversationId(null);
+      handleSend(`Luna, I just got my ${zodiacResult.zodiacSign} reading — "${zodiacResult.title}". Can you read into what this means for me right now? ✨🌙`);
+    }
+  }, [historyLoaded, zodiacResult, user]);
+
+  useEffect(() => {
+    if (tarotResult && historyLoaded && !tarotAutoSentRef.current && user) {
+      tarotAutoSentRef.current = true;
+      setConversationId(null);
+      handleSend(`Luna, I just drew ${tarotResult.cardName} (${tarotResult.isReversed ? "reversed" : "upright"}) today. What does it really mean for me? 🔮`);
+    }
+  }, [historyLoaded, tarotResult, user]);
+
+  useEffect(() => {
+    if (compatibilityResult && historyLoaded && !compatibilityAutoSentRef.current && user) {
+      compatibilityAutoSentRef.current = true;
+      setConversationId(null);
+      handleSend(`I just ran a compatibility report with ${compatibilityResult.partnerName} — we matched ${compatibilityResult.overallScore}% (${compatibilityResult.title}). Tell me real talk, what should I actually do with this? 💕`);
+    }
+  }, [historyLoaded, compatibilityResult, user]);
 
   const startNewConversation = useCallback(() => {
     if (conversationId && messages.length > 4 && user) {
