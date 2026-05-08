@@ -28,8 +28,23 @@ interface BaziResult {
   socialCaption: string;
 }
 
-const getImagePrompt = (result: BaziResult) =>
-  `Create an elegant mystical Chinese ink painting style illustration representing the concept of "${result.title}" and "${result.dayMaster}" in Bazi fortune telling. Use warm golden tones, abstract cosmic elements, and traditional Chinese aesthetics. Square format, no text.`;
+const DAYMASTER_MOTIF: Record<string, string> = {
+  "甲": "an ancient towering pine tree reaching skyward",
+  "乙": "graceful bamboo and climbing vines swaying in mist",
+  "丙": "a radiant rising sun over distant mountains",
+  "丁": "a single candle flame glowing in a quiet temple",
+  "戊": "a vast solid mountain range with weathered stone",
+  "己": "rich farmland and a clay pot on warm earth",
+  "庚": "an ancient sword and polished bronze mirror",
+  "辛": "delicate jade ornaments and silver hairpins",
+  "壬": "a wide flowing river under drifting clouds",
+  "癸": "moonlight reflected on a still cold pond, soft rain",
+};
+const getImagePrompt = (result: BaziResult) => {
+  const key = (result.dayMaster || "").charAt(0);
+  const motif = DAYMASTER_MOTIF[key] || "auspicious cosmic clouds and traditional Chinese symbols";
+  return `Elegant traditional Chinese ink painting (水墨) for Bazi day master "${result.dayMaster}" representing "${result.title}". Centerpiece: ${motif}. Refined brushwork on rice-paper texture with warm gold accents and subtle vermilion seal, mystical yet grounded, balanced composition with breathing space. Square format, no text, no Chinese characters.`;
+};
 
 const HOURS_ZH = ["子时(23-1)", "丑时(1-3)", "寅时(3-5)", "卯时(5-7)", "辰时(7-9)", "巳时(9-11)",
   "午时(11-13)", "未时(13-15)", "申时(15-17)", "酉时(17-19)", "戌时(19-21)", "亥时(21-23)"];
