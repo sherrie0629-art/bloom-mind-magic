@@ -524,6 +524,7 @@ const Chat = () => {
         bondLevel,
         accessToken: session?.access_token,
         locale,
+        unlockedShards: easterEggsFound,
         onDelta: upsertAssistant,
         onDone: async () => {
           console.log("[Chat] raw AI response:", assistantContent.slice(-200));
