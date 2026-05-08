@@ -97,10 +97,15 @@ export function useSubscription(userId: string | undefined, createdAt?: string) 
   }, [load]);
 
   // Realtime: refresh when this user's subscription row changes (e.g. after webhook)
+  const loadRef = useRef(load);
+  useEffect(() => {
+    loadRef.current = load;
+  }, [load]);
+
   useEffect(() => {
     if (!userId) return;
-    const channel = supabase.channel(`user_subscriptions:${userId}`);
-    channel
+    const channel = supabase
+      .channel(`user_subscriptions:${userId}:${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes" as any,
         {
@@ -110,7 +115,7 @@ export function useSubscription(userId: string | undefined, createdAt?: string) 
           filter: `user_id=eq.${userId}`,
         },
         () => {
-          load();
+          loadRef.current();
         }
       )
       .subscribe();
@@ -118,7 +123,7 @@ export function useSubscription(userId: string | undefined, createdAt?: string) 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [userId, load]);
+  }, [userId]);
 
   const incrementChat = useCallback(async () => {
     if (!userId) return false;
