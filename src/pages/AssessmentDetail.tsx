@@ -164,7 +164,7 @@ const AssessmentDetail = () => {
       </div>
 
       <div className="px-6 mt-2">
-        {d.imageUrl && (
+        {d.imageUrl && !String(d.imageUrl).startsWith("blob:") && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
