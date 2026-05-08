@@ -1,47 +1,32 @@
-# 让九型人格题目更有趣（仿星座那一版的思路）
+## 让九型人格结果更生动 + 修复聊天跳转
 
-只改一个文件：`supabase/functions/assessment-bazi/index.ts`（这个文件其实就是 enneagram 的后端，名字是历史遗留）。
+只改两个文件。
 
-## 核心思路
-九型人格的本质是"核心恐惧 / 核心渴望 / 应对模式"。直接问"你害怕什么"很无聊；改成**给一个具体生活场景，让用户选第一反应**，从反应里反推类型。每题仍覆盖一个九型维度（motivation/fear/relationship/stress/growth），但用画面感包装。
+### 1. `supabase/functions/assessment-bazi/index.ts`（结果生成 prompt + schema 描述）
 
-## 1. 缓存版本号（防旧题目残留）
-当前 batch-questions 没看到本地 storage 缓存，但前端 `assessmentVariant.ts` 会按 prompt 版本分流。在 system prompt 里加一行 `PROMPT_VERSION: v2`，并在返回 payload 里带上版本号，方便后续 bump。
+**人设升级**：把 system prompt 从"九型专家"改成"懂九型的损友 / 心理博主"，结果要像小红书 / Co-Star 风格 —— 有梗、有画面、有自嘲，但仍然准。
 
-## 2. 重写 batch-questions 的 system prompt
-人设：**"懂九型的损友陪你做心理小测验"**，不是教科书。
+**字段描述重写**（强制风格）：
+- `description`：~200 字，第二人称，前两句必须戳中"你大概率有过这个瞬间"的具体场景，避免教科书定义
+- `coreFear` / `coreDesire`：10–20 字，用画面化短句，不要"害怕被否定"这种干巴定义，改成例如"被人发现你其实没那么完美的一秒"
+- `growthPath`：60–100 字，给出 1 个可执行小动作 + 1 句温柔提醒，禁止"你应该学会..."句式
+- `stressArrow`：60–100 字，描述压力下会做出的具体行为（拉黑、熬夜刷手机、突然清空购物车之类），带一点自嘲
+- `advice`：50–80 字，像朋友递杯咖啡说的话，可带 1 个 emoji；禁止"建议你..."开头
+- `socialCaption`：≤30 字，小红书标题感，可以带 hashtag 或反转
 
-要求写进 prompt：
-- **场景化提问**：每题给一个具体小情境，让用户选反应。例如：
-  - "项目临近 deadline，队友交来一份明显不达标的稿，你第一反应是…"（→ 1 号完美 vs 2 号体谅 vs 8 号开怼）
-  - "周末闺蜜临时取消约会，你独自在家时心里冒出的第一句话是…"（→ 4 号 vs 7 号 vs 9 号）
-  - "公司年会让每个人上台说一句新年愿望，轮到你前 30 秒，你在想…"（→ 3 号 vs 5 号 vs 6 号）
-  - "刷到前同事升职的朋友圈，你的第一反应是…"
-  - "深夜睡不着，脑子里循环播放的通常是…"
-- **选项有戏**：每条 10–22 字，带具体动作 / 内心独白 / 自嘲，杜绝"我会很冷静"这种纯形容词。例：
-  - A. "默默重写一遍，顺便列张'下次注意事项'清单"
-  - B. "先夸两句再委婉提建议，怕伤他自尊"
-  - C. "直接说'这不行，重做'，时间不等人"
-  - D. "算了我自己扛，免得场面难看"
-- **覆盖 9 个类型的核心动机**：10 题里要让 type 1–9 的典型反应都至少出现一次（在 prompt 里明确列出 type→关键词映射，让模型分配选项时有依据）。
-- **维度分布**：motivation 3 题、fear 2 题、relationship 2 题、stress 2 题、growth 1 题。
-- **语气**：中文像小红书 MBTI 博主 + 一点损友吐槽；英文像 Co-Star。emoji 克制（最多 1 题带 1 个）。
-- **明确禁止**：
-  - 不要"你认为/你觉得/你的…如何"开头超过 2 题
-  - 不要纯形容词选项（开心/难过/冷静）
-  - 不要直接点明"这是测你的恐惧"
-- 在 prompt 里塞 1 个中文 + 1 个英文 few-shot，把风格钉死。
+**Prompt 加规则**：
+- 中文像小红书 MBTI 博主 + 损友吐槽；英文像 Co-Star
+- 全文最多 2 个 emoji，禁止排比说教
+- 禁止"你是一个 XX 的人"这种盖章式开头
+- 加 1 段中文 few-shot 示例（type 4 的 description / advice），把风格钉死
+- `PROMPT_VERSION` bump 到 `v3`
 
-## 3. tool schema 加 description
-给 `question` 加："必须是具体生活场景，不少于 25 字，带画面感"。
-给 `options[].text` 加："具体动作或内心独白，10–22 字，禁止纯形容词"。
-`dimension` 描述里列出枚举值。
+**参数**：`temperature: 0.7 → 0.95`，`max_tokens: 1024 → 1536`（字段变长）
 
-## 4. 调参数
-`temperature: 0.7 → 0.9`（题目要花），`max_tokens: 2048` 保持（10 题场景化会更长）。
+### 2. `src/pages/EnneagramFlow.tsx`（修聊天跳转）
 
-## 5. 不动
-- 题目数量（10）、选项数（4）、维度字段
-- `enneagram_result` 结果生成逻辑、tool schema、参数
-- 配额、前端 `EnneagramFlow.tsx`、i18n
-- 其他 edge function
+第 187 行 `navigate(\`/chat?agent=mentor\`)` → `navigate(\`/chat?agent=barista\`)`。
+按钮文案 key `assessmentFlow.enneagram.discussWith` 当前是"和 Arthur 聊"之类，需要在 `zh.json` / `en.json` 同步改为"找咖啡师聊聊 ☕" / "Chat with the Barista ☕"。
+
+### 不动
+- 题目生成（v2 保留）、tool schema 字段名、`traits` 数值、前端结果渲染结构、配额、其他测评
