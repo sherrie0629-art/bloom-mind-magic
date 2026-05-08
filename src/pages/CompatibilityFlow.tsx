@@ -12,6 +12,7 @@ import { useLocale } from "@/hooks/useLocale";
 import { useTranslation } from "react-i18next";
 import ReactMarkdown from "react-markdown";
 import PosterPreviewDialog from "@/components/PosterPreviewDialog";
+import DeepReportUnlock from "@/components/DeepReportUnlock";
 
 const MBTI_TYPES = ["INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ", "ENFP", "ISTJ", "ISFJ", "ESTJ", "ESFJ", "ISTP", "ISFP", "ESTP", "ESFP"];
 const ZODIAC_SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
