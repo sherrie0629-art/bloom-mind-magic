@@ -142,7 +142,7 @@ const AssessmentDetail = () => {
 
   const getTitle = () => {
     if (type === "mbti") return `${d.mbtiType} — ${d.title}`;
-    if (type === "enneagram") return `Type ${d.enneagramType} · ${d.title}`;
+    if (type === "enneagram") return `Type ${d.type ?? d.enneagramType ?? "?"} · ${d.title}`;
     if (type === "zodiac") return `${d.zodiacSign} · ${d.title}`;
     if (type === "emotion") return `${d.emoji || "🎭"} ${d.title}`;
     return d.title || type;
@@ -164,7 +164,7 @@ const AssessmentDetail = () => {
       </div>
 
       <div className="px-6 mt-2">
-        {d.imageUrl && (
+        {d.imageUrl && !String(d.imageUrl).startsWith("blob:") && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}

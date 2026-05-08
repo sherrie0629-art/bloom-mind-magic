@@ -56,7 +56,7 @@ const EmotionFlow = () => {
   const fetchResultImage = useCallback(async (r: WellnessResult) => {
     setImageLoading(true);
     try {
-      const img = await fetchAIImage(getImagePrompt(r), { cacheKey: getImageCacheKey(r) });
+      const img = await fetchAIImage(getImagePrompt(r), { cacheKey: getImageCacheKey(r), returnUrlOnly: true });
       if (img) {
         setResultImageUrl(img.src);
         if (resultIdRef.current) {
