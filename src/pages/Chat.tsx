@@ -92,7 +92,7 @@ const Chat = () => {
   const { generateQuoteCard } = useQuoteCard();
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { bondLevel, totalTurns, pendingLevelUp, incrementTurn, recordEasterEgg, dismissLevelUp } =
+  const { bondLevel, totalTurns, easterEggsFound, pendingLevelUp, incrementTurn, recordEasterEgg, dismissLevelUp } =
     useBond(user?.id, agentId);
   const { canChat, chatCount, chatLimit, plan, freeTrialExpired, incrementChat } = useSubscription(user?.id, user?.created_at);
   const { newlyUnlocked, checkAchievements, dismissAchievement } = useAchievements(user?.id);
@@ -453,6 +453,7 @@ const Chat = () => {
           bondLevel: 1,
           accessToken: session?.access_token,
           locale,
+          unlockedShards: [],
           onDelta: upsertAssistant,
           onDone: () => {
             const { cleanContent, branchOptions: parsedOptions } = parseGameMarkers(assistantContent);
@@ -523,6 +524,7 @@ const Chat = () => {
         bondLevel,
         accessToken: session?.access_token,
         locale,
+        unlockedShards: easterEggsFound,
         onDelta: upsertAssistant,
         onDone: async () => {
           console.log("[Chat] raw AI response:", assistantContent.slice(-200));
