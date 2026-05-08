@@ -126,7 +126,8 @@ const CompatibilityFlow = () => {
       if (data?.error) throw new Error(data.error);
       setResult(data.result);
       setStep("result");
-      await (supabase as any).from("compatibility_reports").insert({ user_id: user.id, partner_info: { name: partnerName, mbti: partnerMbti, zodiac: partnerZodiac, traits: partnerTraits }, result_data: data.result, is_paid: false });
+      const { data: inserted } = await (supabase as any).from("compatibility_reports").insert({ user_id: user.id, partner_info: { name: partnerName, mbti: partnerMbti, zodiac: partnerZodiac, traits: partnerTraits }, result_data: data.result, is_paid: false }).select("id").single();
+      if (inserted?.id) setSavedReportId(inserted.id);
       streamDeepAnalysis(myProfile, partnerProfile, data.result);
     } catch (e: any) { toast.error(e.message || t("assessmentFlow.compatibility.analyzeFail")); setStep("input"); }
   }, [user, myName, myMbti, myZodiac, myTraits, partnerName, partnerMbti, partnerZodiac, partnerTraits, canAssess, streamDeepAnalysis, locale, t, assessmentLimit, incrementAssessment, navigate]);
