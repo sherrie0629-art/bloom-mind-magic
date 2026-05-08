@@ -72,7 +72,7 @@ const EnneagramFlow = () => {
   const fetchResultImage = useCallback(async (r: EnneagramResult) => {
     setImageLoading(true);
     try {
-      const img = await fetchAIImage(getImagePrompt(r), { cacheKey: `enneagram-${r.type}` });
+      const img = await fetchAIImage(getImagePrompt(r), { cacheKey: `enneagram-${r.type}`, returnUrlOnly: true });
       if (img) {
         setResultImageUrl(img.src);
         if (resultIdRef.current) {
