@@ -1,52 +1,23 @@
 ## 问题
-`心灵状态（Emotion）`测评结果页和 `MBTI / 九型人格 / 星座运势` 测评结果页里都缺少"生成深度报告"入口；用户只能进入"我的报告→详情"才能看到。`缘分配对` 已经有了，作为参考样式。要求在测评完成后的结果页直接展示，与详情页一致。
+
+当用户已达服务端的"每日测评次数上限"（20/天，Plus 用户）时，前端 `supabase.functions.invoke` 收到 429，错误冒泡到 `catch (e)` 后被 `toast.error(e.message)` 直接展示成英文原始报错（"Edge function returned a non-2xx..."），并触发白屏的 RUNTIME_ERROR。
 
 ## 方案
 
-复用 `src/components/DeepReportUnlock.tsx`（已存在并已被 `CompatibilityFlow` / `CompatibilityDetail` / `AssessmentDetail` 使用）。
+不修改任何配额策略（保留服务端 20/天限制）。仅在前台 5 个测评入口页面的错误处理中识别 429/limit 错误，弹出已有的中英双语友好提示，避免抛出原始英文错误。显示文案：您已经到达当前付费版本的每次生成上限。
 
-四个 flow 页面均已经把结果保存到 `assessment_results` 并把 id 存入 `resultIdRef.current`，可直接作为 `reportId` 传入。
+## 修改点
 
-### 改动点
+仅前端、仅文案展示，不动业务逻辑：
 
-1. **`src/pages/EmotionFlow.tsx`**
-   - import `DeepReportUnlock`
-   - 在结果分支（约 214 行，`actionPlan` 卡片之后、按钮组之前）插入：
-     ```tsx
-     {resultIdRef.current && (
-       <DeepReportUnlock
-         source="assessment"
-         reportId={resultIdRef.current}
-         typeLabel={`${result.emoji || "🎭"} ${result.title}`}
-       />
-     )}
-     ```
+1. `**src/pages/AssessmentFlow.tsx**` — `fetchResult` 的 catch：判断 `error?.context?.status === 429` 或 message 含 `429`/`limit`，显示 `t("assessmentFlow.common.limitReached", { n: 20 })` 后 return；其他错误保留原有提示。
+2. `**src/pages/EmotionFlow.tsx**` — 同样模式，作用于 `fetchResult` 与 `handleStart` 的两处 catch。
+3. `**src/pages/EnneagramFlow.tsx**` — 同样模式，作用于 `fetchResult` 与 `handleStart` 的两处 catch。
+4. `**src/pages/ZodiacFlow.tsx**` — 同样模式，作用于 `fetchResult` 与 `handleStart` 的两处 catch。
+5. `**src/pages/CompatibilityFlow.tsx**` — `handleStart` 的 catch 处增加同样判断，使用 `t("assessmentFlow.compatibility.dailyLimitReached", { n: 20 })`。
 
-2. **`src/pages/AssessmentFlow.tsx`**（MBTI）
-   - import `DeepReportUnlock`
-   - 在 MBTI 结果展示卡片底部、底部按钮组之前插入同样组件，`typeLabel` 用 `${data.mbtiType} — ${data.title}`。
+## 技术细节
 
-3. **`src/pages/EnneagramFlow.tsx`**
-   - 同上，`typeLabel` 用 `Type ${result.enneagramType} · ${result.title}`。
-
-4. **`src/pages/ZodiacFlow.tsx`**
-   - 同上，`typeLabel` 用 `${result.zodiacSign} · ${result.title}`。
-
-### 行为说明
-`DeepReportUnlock` 自身已处理：
-- Plus 用户：直接显示"生成深度报告"按钮（无锁定提示）
-- 免费用户：显示模糊预览 + "升级解锁"按钮跳转 `/pricing`
-- 已生成过的报告：直接渲染 `DeepReportRenderer`
-
-与 `AssessmentDetail`（我的报告详情页）行为完全一致。
-
-### 不在范围
-- 不动每日塔罗（`DailyTarot`）
-- 不动 edge function、不动数据库
-- 不重复改 `CompatibilityFlow`（已有）
-
-## 文件
-- `src/pages/EmotionFlow.tsx`
-- `src/pages/AssessmentFlow.tsx`
-- `src/pages/EnneagramFlow.tsx`
-- `src/pages/ZodiacFlow.tsx`
+- `supabase-js` 在非 2xx 时抛 `FunctionsHttpError`，其 `error.context` 是 `Response` 对象，可读 `status`。为兼容起见，同时检查 `message` 字段中的 `429` 或 `limit` 关键字。
+- 上限数字写为常量 `20`（与服务端 `PLUS_DAILY_ASSESS` 对齐）；如未来希望由服务端返回真实数字，可后续从响应 body 解析 `data.dailyLimit` 再展示。本次先用静态值，避免改动后端契约。
+- 不修改 `useSubscription` / `limits.ts` / 任何 edge function。

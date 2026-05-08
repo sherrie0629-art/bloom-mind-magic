@@ -15,6 +15,7 @@ import AssessmentQuestionLayout from "@/components/AssessmentQuestionLayout";
 import ResultAIImage from "@/components/ResultAIImage";
 import PosterPreviewDialog from "@/components/PosterPreviewDialog";
 import DeepReportUnlock from "@/components/DeepReportUnlock";
+import { isDailyLimitError } from "@/lib/assessmentErrors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { pickQuestionSet } from "@/data/mbtiQuestionPool";
 import { getNextVariant } from "@/lib/assessmentVariant";
@@ -93,7 +94,10 @@ const AssessmentFlow = () => {
         setResult(data.data); setCurrentQuestion(null); fetchResultImage(data.data); fetchParallelUniverse(data.data.mbtiType);
         if (user) { const { data: inserted } = await supabase.from("assessment_results").insert({ user_id: user.id, assessment_type: "mbti", result_data: data.data }).select("id").single(); if (inserted) { resultIdRef.current = inserted.id; setSavedReportId(inserted.id); } generateSoulFragment(user.id, "assessment", "mbti", `MBTI result: ${data.data.mbtiType} ${data.data.title}. ${data.data.description}`); }
       }
-    } catch (e: any) { toast.error(e.message || t("assessmentFlow.common.loadFail")); } finally { setLoading(false); }
+    } catch (e: any) {
+      if (isDailyLimitError(e)) toast.error(t("assessmentFlow.common.limitReached", { n: 20 }));
+      else toast.error(e.message || t("assessmentFlow.common.loadFail"));
+    } finally { setLoading(false); }
   };
 
   // Prefetch a fresh AI-generated batch in the background while user reads the intro.
