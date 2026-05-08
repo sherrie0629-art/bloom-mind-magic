@@ -138,7 +138,7 @@ const ZodiacFlow = () => {
     setResultImageUrl(null);
     const p = (async () => {
       try {
-        const img = await fetchAIImage(getImagePromptForSign(signName, element), { cacheKey: getCacheKeyForSign(signName) });
+        const img = await fetchAIImage(getImagePromptForSign(signName, element), { cacheKey: getCacheKeyForSign(signName), returnUrlOnly: true });
         return img?.src || null;
       } catch { return null; }
     })();
