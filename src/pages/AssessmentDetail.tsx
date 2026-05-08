@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Brain, Compass, Stars, Flame, Share2, Crown, Sparkles, Loader2 } from "lucide-react";
+import { ArrowLeft, Brain, Compass, Stars, Flame, Share2 } from "lucide-react";
 import DesktopLayout from "@/components/DesktopLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
