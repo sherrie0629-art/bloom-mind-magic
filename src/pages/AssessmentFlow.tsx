@@ -229,6 +229,11 @@ const AssessmentFlow = () => {
               </div>
             ) : null}
           </motion.div>
+          {savedReportId && (
+            <div className="mb-4">
+              <DeepReportUnlock source="assessment" reportId={savedReportId} typeLabel={`${result.mbtiType} — ${result.title}`} />
+            </div>
+          )}
           <div className="flex gap-3">
             <button onClick={handleSharePoster} className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-card py-3 text-sm font-medium text-foreground shadow-card"><Download className="h-4 w-4" /> {t("assessmentFlow.common.saveAndShare")}</button>
             <button onClick={() => navigate(`/chat?agent=barista`, { state: { mbtiResult: { mbtiType: result.mbtiType, title: result.title, description: result.description, parallelUniverse: parallelData || undefined } } })}
