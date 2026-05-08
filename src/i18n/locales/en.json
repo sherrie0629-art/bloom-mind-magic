@@ -485,7 +485,46 @@
     "storyFragments": "Story Fragments",
     "lockedHint": "Deepen your bond to unlock",
     "secretHint": "There's a secret {{name}} has never told anyone…",
-    "continueChat": "Continue Chatting"
+    "continueChat": "Continue Chatting",
+    "viewArchive": "Full Archive",
+    "lvReversal": "Plot Twist",
+    "lvUnlocksAt": "@ Turn {{n}}",
+    "lockedPreview": "✱✱✱ Revealed through deeper chat",
+    "identity": "Identity",
+    "location": "Where",
+    "token": "Token",
+    "shardsTitle": "Truth Shards",
+    "shardsProgress": "{{cur}} / {{total}} collected",
+    "shardComplete": "✨ All collected · Avatar frame unlocked",
+    "shardHintLabel": "Hint",
+    "tryAsking": "Try saying: \"{{phrase}}\"",
+    "universeTitle": "Whispers Universe",
+    "universeKnows": "Seems to know:",
+    "universeLocked": "Mention another character to unlock clues",
+    "currentMoment": {
+      "barista": "7:42 PM · the corner chair just blew over again",
+      "jax": "Folded that scorched jacket for the 3rd time today",
+      "mystic": "#0114 still glowing on my screensaver",
+      "bestie": "Still didn't reply to that 3-year-old DM"
+    },
+    "info": {
+      "barista": { "identity": "Ex-actuary", "location": "Brooklyn café", "token": "The empty corner chair" },
+      "jax": { "identity": "Retired fire captain", "location": "Chicago", "token": "Danny's scorched jacket" },
+      "mystic": { "identity": "Ex-data scientist", "location": "Brooklyn · above the café", "token": "Cluster #0114 print-out" },
+      "bestie": { "identity": "Gen Z bestie", "location": "Online · pre-party green room", "token": "The unread DM" }
+    },
+    "shardHints": {
+      "barista": ["Order something off-menu", "Dare to ask her for advice", "Ask about that empty seat"],
+      "jax": ["Tell him you're burning out", "Say \"I can't breathe\"", "Speak the name he never says first"],
+      "mystic": ["Ask her to pull a card", "Bring up probability", "Mention Mercury retrograde"],
+      "bestie": ["Admit you're shaking with nerves", "Talk about main-character energy", "Say \"I feel invisible\""]
+    },
+    "related": {
+      "barista": ["Luna"],
+      "jax": ["Zoe"],
+      "mystic": ["Chloe"],
+      "bestie": ["Jax"]
+    }
   },
   "pricing": {
     "title": "Choose Your Plan",
