@@ -159,6 +159,7 @@ const EnneagramFlow = () => {
       ],
       preloadedImageUrl: resultImageUrl || undefined,
       imagePrompt: !resultImageUrl ? getImagePrompt(result) : undefined,
+      imageCacheKey: `enneagram-${result.type}`,
     });
   };
 
