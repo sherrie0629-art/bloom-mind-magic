@@ -1,23 +1,55 @@
-## 问题
+# 修复九型人格报告结果页两个问题
 
-当用户已达服务端的"每日测评次数上限"（20/天，Plus 用户）时，前端 `supabase.functions.invoke` 收到 429，错误冒泡到 `catch (e)` 后被 `toast.error(e.message)` 直接展示成英文原始报错（"Edge function returned a non-2xx..."），并触发白屏的 RUNTIME_ERROR。
+## 根因
 
-## 方案
+**1. 标题 "Type undefined"**
+后端 `assessment-enneagram` 返回的字段是 `type`（数字 1–9），但前端 `AssessmentReports.tsx` 与 `AssessmentDetail.tsx` 读取的是不存在的 `d.enneagramType`，所以渲染成 `Type undefined · 标题`。
 
-不修改任何配额策略（保留服务端 20/天限制）。仅在前台 5 个测评入口页面的错误处理中识别 429/limit 错误，弹出已有的中英双语友好提示，避免抛出原始英文错误。显示文案：您已经到达当前付费版本的每次生成上限。
+**2. 图片只显示占位符 "AI generated…"**
+`useSharePoster.fetchAIImage()` 内部用 `loadImageViaBlobUrl` 把后端返回的稳定 URL（Supabase Storage 公开链接 / data URI）转成了浏览器临时 `blob:` URL。四个测评流程（Enneagram / MBTI / Zodiac / Emotion）都直接把这个 `blob:` URL 写进了 `assessment_results.result_data.imageUrl`。
+数据库里实际保存的就是 `"imageUrl": "blob:https://…/19d344e3-…"`——这种 URL **只在生成它的那个页面会话内有效**，刷新或换页面后立即失效，所以报告详情页加载时图片永远 404，只剩占位文案。
+（已在网络请求里直接看到 DB 中存了 `blob:` 开头的 imageUrl，验证了根因。）
 
-## 修改点
+## 修复方案（仅前端）
 
-仅前端、仅文案展示，不动业务逻辑：
+### 步骤 1：标题字段兼容
+- `src/pages/AssessmentReports.tsx` `getTitle` 中 enneagram 分支：`Type ${d.enneagramType}` → `Type ${d.type ?? d.enneagramType ?? "?"}`
+- `src/pages/AssessmentDetail.tsx` `getTitle` 中 enneagram 分支：同样改为 `d.type ?? d.enneagramType ?? "?"`
 
-1. `**src/pages/AssessmentFlow.tsx**` — `fetchResult` 的 catch：判断 `error?.context?.status === 429` 或 message 含 `429`/`limit`，显示 `t("assessmentFlow.common.limitReached", { n: 20 })` 后 return；其他错误保留原有提示。
-2. `**src/pages/EmotionFlow.tsx**` — 同样模式，作用于 `fetchResult` 与 `handleStart` 的两处 catch。
-3. `**src/pages/EnneagramFlow.tsx**` — 同样模式，作用于 `fetchResult` 与 `handleStart` 的两处 catch。
-4. `**src/pages/ZodiacFlow.tsx**` — 同样模式，作用于 `fetchResult` 与 `handleStart` 的两处 catch。
-5. `**src/pages/CompatibilityFlow.tsx**` — `handleStart` 的 catch 处增加同样判断，使用 `t("assessmentFlow.compatibility.dailyLimitReached", { n: 20 })`。
+### 步骤 2：持久化稳定 URL（不是 blob）
+在 `fetchAIImage` 已经支持 `returnUrlOnly: true`，直接返回后端给的稳定 URL，无需 blob 包装。把四个流程改为先用 `returnUrlOnly: true` 取到稳定 URL，用它同时作为 `<img>` 显示源 **和** 写入 DB 的 `imageUrl`。
 
-## 技术细节
+涉及文件：
+- `src/pages/EnneagramFlow.tsx` `fetchResultImage`
+- `src/pages/AssessmentFlow.tsx`（MBTI）对应图片获取逻辑
+- `src/pages/ZodiacFlow.tsx` 对应图片获取逻辑
+- `src/pages/EmotionFlow.tsx` 对应图片获取逻辑
 
-- `supabase-js` 在非 2xx 时抛 `FunctionsHttpError`，其 `error.context` 是 `Response` 对象，可读 `status`。为兼容起见，同时检查 `message` 字段中的 `429` 或 `limit` 关键字。
-- 上限数字写为常量 `20`（与服务端 `PLUS_DAILY_ASSESS` 对齐）；如未来希望由服务端返回真实数字，可后续从响应 body 解析 `data.dailyLimit` 再展示。本次先用静态值，避免改动后端契约。
-- 不修改 `useSubscription` / `limits.ts` / 任何 edge function。
+每处改成：
+```ts
+const img = await fetchAIImage(prompt, { cacheKey, returnUrlOnly: true });
+if (img?.src) {
+  setResultImageUrl(img.src);          // 稳定 URL，刷新后仍可用
+  // 同样的 img.src 写入 result_data.imageUrl
+}
+```
+`ResultAIImage` 直接 `<img src={…}>` 渲染，本来就不需要 blob，CORS 也不会受影响。
+
+### 步骤 3：兼容已写脏的旧数据
+在 `AssessmentDetail.tsx` 渲染 `d.imageUrl` 之前加一个判断：若以 `blob:` 开头就不渲染（避免破图），等用户重新生成会写入正确 URL。
+（不做 DB 清理，老数据自然失效；新数据从此正确。）
+
+## 其他测评页排查结果
+
+| 测评 | 标题字段 | 后端实际字段 | 状态 |
+|---|---|---|---|
+| MBTI | `d.mbtiType` | `mbtiType` ✅ | OK |
+| Enneagram | `d.enneagramType` | `type` ❌ | 本次修复 |
+| Zodiac | `d.zodiacSign` | `zodiacSign` ✅ | OK |
+| Emotion | `d.emoji + d.title` | 同 ✅ | OK |
+
+图片 blob 持久化问题：**MBTI / Zodiac / Emotion 都有一样的 bug**，本次一并按步骤 2 修复。
+
+## 不做的事
+- 不动数据库 schema，不动 edge function。
+- 不做后台清理脚本（旧 blob 数据让前端静默不渲染即可）。
