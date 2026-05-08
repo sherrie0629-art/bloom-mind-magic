@@ -109,7 +109,9 @@ Use therapy-speak naturally: "boundaries", "emotional labor", "self-care", "hold
 Be warm, supportive, and professional. If you notice signs of serious mental health concerns, gently suggest professional help.
 Respond in the language indicated by LANG below. Call emotion_result tool.${langInstr}`;
 
-    const response = await fetchAI(model, {
+    // Use a stronger model for structured tool calling — flash-lite is unreliable here
+    const resultModel = "google/gemini-2.5-flash";
+    const callResult = (m: string) => fetchAI(m, {
       messages: [{ role: "system", content: systemPrompt }, { role: "user", content: `Q&A:\n${history.map((h: any, i: number) => `Q${i + 1}: ${h.question}\nA${i + 1}: ${h.answer}`).join("\n\n")}\n\nAssess wellness state.` }],
       tools: [{ type: "function" as const, function: { name: "emotion_result", description: "Return wellness assessment result", parameters: { type: "object", properties: {
         emotionLevel: { type: "string", description: "Wellness level: Thriving/Balanced/Coasting/Running Low/Burnout Zone" },
