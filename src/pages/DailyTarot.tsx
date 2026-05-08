@@ -277,14 +277,25 @@ const DailyTarot = () => {
               </p>
             </div>
 
-            {/* Save poster */}
-            <motion.button
-              whileTap={{ scale: 0.97 }}
-              onClick={handleShare}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-gradient-golden py-3 text-sm font-semibold text-primary-foreground shadow-lg"
-            >
-              <Share2 className="h-4 w-4" /> {t("dailyTarot.saveShare")}
-            </motion.button>
+            {/* Actions */}
+            <div className="flex gap-3">
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={handleShare}
+                className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-card py-3 text-sm font-medium text-foreground shadow-card"
+              >
+                <Share2 className="h-4 w-4" /> {t("dailyTarot.saveShare")}
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => navigate(`/chat?agent=mystic`, {
+                  state: { tarotResult: { cardName: result.cardName, isReversed: result.isReversed, energyScore: result.energyScore, interpretation: result.interpretation, actionTip: result.actionTip } },
+                })}
+                className="flex-1 flex items-center justify-center gap-2 rounded-2xl bg-gradient-golden py-3 text-sm font-semibold text-primary-foreground shadow-lg"
+              >
+                <Sparkles className="h-4 w-4" /> {t("dailyTarot.talkToLuna")}
+              </motion.button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
