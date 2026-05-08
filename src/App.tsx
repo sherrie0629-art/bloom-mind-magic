@@ -61,7 +61,7 @@ const App = () => (
               <Route path="/assessment-reports/:id" element={<AssessmentDetail />} />
               <Route path="/assessment/mbti" element={<AssessmentFlow />} />
               <Route path="/assessment/enneagram" element={<EnneagramFlow />} />
-              <Route path="/assessment/bazi" element={<EnneagramFlow />} />
+              
               <Route path="/assessment/zodiac" element={<ZodiacFlow />} />
               <Route path="/assessment/emotion" element={<EmotionFlow />} />
               <Route path="/assessment/compatibility" element={<CompatibilityFlow />} />

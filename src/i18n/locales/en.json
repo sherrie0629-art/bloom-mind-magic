@@ -244,29 +244,6 @@
       "actionPlan": "🌱 Self-Care Action Plan",
       "talkToJax": "Talk to Jax"
     },
-    "bazi": {
-      "title": "Bazi Destiny Analysis",
-      "introTitle": "Unlock Your Birth Chart",
-      "introDesc": "Please enter your birth details",
-      "yearLabel": "Year",
-      "monthLabel": "Month",
-      "dayLabel": "Day",
-      "hourLabel": "Hour",
-      "genderLabel": "Gender",
-      "male": "Male",
-      "female": "Female",
-      "uncertain": "Uncertain",
-      "start": "Start Analysis 🏮",
-      "resultsTitle": "Destiny Results",
-      "interpretation": "Interpretation",
-      "dimensions": "Fortune Dimensions",
-      "career": "Career",
-      "wealth": "Wealth",
-      "love": "Love",
-      "health": "Health",
-      "advice": "💡 Lucky Advice",
-      "talkAboutFate": "Talk About Fate"
-    },
     "compatibility": {
       "title": "💕 Relationship Chemistry",
       "introTitle": "Relationship Chemistry",
@@ -314,8 +291,7 @@
       "mbti": "MBTI Personality",
       "enneagram": "Enneagram Analysis",
       "zodiac": "Zodiac Reading",
-      "emotion": "Emotional Wellness",
-      "bazi": "Bazi Destiny"
+      "emotion": "Emotional Wellness"
     }
   },
   "assessmentDetail": {
