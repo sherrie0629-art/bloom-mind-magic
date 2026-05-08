@@ -100,7 +100,8 @@ serve(async (req) => {
     }
 
     const labels = typeLabelsByLocale[locale] || typeLabelsByLocale.en;
-    const typeLabel = labels[assessment.assessment_type] || assessment.assessment_type;
+    const typeKey = source === "compatibility" ? "compatibility" : (record as any).assessment_type;
+    const typeLabel = labels[typeKey] || typeKey;
     const resultSummary = JSON.stringify(resultData, null, 2);
 
     const sectionTitles = locale === "zh"
