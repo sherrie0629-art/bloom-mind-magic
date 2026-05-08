@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Lock, Unlock, Sparkles } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import BottomNav from "@/components/BottomNav";
 import DesktopLayout from "@/components/DesktopLayout";
@@ -14,10 +14,13 @@ interface BondData { agent_id: string; bond_level: number; total_turns: number; 
 
 const AgentArchive = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
   const { user } = useAuth();
   const [bonds, setBonds] = useState<Record<string, BondData>>({});
-  const [selectedAgent, setSelectedAgent] = useState<string>(RAW_AGENTS[0].id);
+  const stateAgentId = (location.state as { agentId?: string } | null)?.agentId;
+  const initialAgentId = stateAgentId && RAW_AGENTS.some((a) => a.id === stateAgentId) ? stateAgentId : RAW_AGENTS[0].id;
+  const [selectedAgent, setSelectedAgent] = useState<string>(initialAgentId);
   const agents = RAW_AGENTS.map((a) => localizeAgent(a, t));
 
   const bondLabels = [
