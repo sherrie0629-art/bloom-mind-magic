@@ -267,7 +267,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { messages, agentId, memoryContext, bondLevel, locale } = await req.json();
+    const { messages, agentId, memoryContext, bondLevel, locale, unlockedShards } = await req.json();
     const langLine = locale === "zh"
       ? "\n\n【语言要求】请始终使用简体中文回复用户，无论用户使用何种语言。所有叙述、对白、情感描写均用中文。"
       : "\n\n【Language】Always respond in natural English regardless of the user's input language.";
