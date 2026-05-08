@@ -292,6 +292,13 @@ const CompatibilityFlow = () => {
             >
               <Sparkles className="h-4 w-4" /> {t("assessmentFlow.compatibility.talkToBestie")}
             </button>
+            {savedReportId && (
+              <DeepReportUnlock
+                source="compatibility"
+                reportId={savedReportId}
+                typeLabel={t("assessmentFlow.compatibility.deepReportLabel", { defaultValue: "Compatibility" })}
+              />
+            )}
           </motion.div>
         )}
       </AnimatePresence>
