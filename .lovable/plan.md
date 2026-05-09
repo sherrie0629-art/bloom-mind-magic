@@ -1,28 +1,25 @@
 ## 目标
 
-让缘分配对（CompatibilityFlow）的结果页与其他测评保持一致：去掉当前自动流式生成的"深度解析"卡片，仅保留底部 `DeepReportUnlock` 作为深度报告入口（Plus 解锁、按需生成）。CompatibilityDetail 详情页同步去掉 `deepAnalysis` 卡片，避免重复。
+把"缘分配对"的报告也并入"我的报告"列表（`/assessment-reports`），和 MBTI/九型/星座/情绪测评一起按时间排序展示，点击跳转到现有的 `/compatibility-reports/:id` 详情页。
 
 ## 改动点
 
-### 1. `src/pages/CompatibilityFlow.tsx`
-- 删除状态：`deepAnalysis`、`deepAnalysisDone`。
-- 删除函数：`streamDeepAnalysis`，以及 `handleSubmit` 中对它的调用与 reset。
-- 删除结果区中"深度解析"流式卡片（约 491–502 行）。
-- "和闺蜜聊聊" 按钮 state 中移除 `deepAnalysis` 字段（chat 端只需快速结果即可）。
-- "再测一次" 按钮中移除 `setDeepAnalysis("")`。
-- 保留底部已有的 `DeepReportUnlock`，行为与 MBTI/九型等测评一致。
+### `src/pages/AssessmentReports.tsx`
+1. 数据源：在原 `assessment_results` 查询的基础上，并行查询 `compatibility_reports`，合并为统一列表。
+   - 统一结构示例：`{ id, kind: "assessment" | "compatibility", type, result_data, partner_info?, created_at }`
+   - 按 `created_at` 倒序合并。
+2. 列表项渲染：
+   - 新增 `compatibility` 类型图标（`Heart`，`bg-gradient-to-br from-rose-warm to-secondary`）。
+   - `getTitle`：缘分配对显示 `💕 {cpName 或 我 & 对方姓名} · {overallScore}%`。
+   - `getDesc`：取 `result_data.summary` 截断。
+3. 点击跳转：
+   - `kind === "compatibility"` → `navigate('/compatibility-reports/{id}')`
+   - 其他保持 `/assessment-reports/{id}`
+4. 空态文案不变。
 
-### 2. `src/pages/CompatibilityDetail.tsx`
-- 删除"📖 Deep Analysis"卡片（读取 `d.deepAnalysis` 的部分）。
-- 保留下方已有的 `DeepReportUnlock`，统一入口。
+### i18n
+- 复用现有 `assessmentReports.*` key，无需新增（标题中所需文案已在 compatibility 命名空间里）。
 
-### 3. Edge Function / 数据库
-- 不改动 `assessment-compatibility`（仍生成快速结果）。
-- 不改动 `generate-deep-report`（已支持 `source: "compatibility"`，由 DeepReportUnlock 调用）。
-- 历史 `result_data.deepAnalysis` 数据不动，新报告不再写入该字段。
-
-### 4. i18n
-- 不再使用的 key 可留可删；本次保守起见保留 `assessmentFlow.compatibility.deepAnalysis`、`deepAnalysisLoading`，避免影响其他引用。
-
-## 不在范围内
-- 不改其他测评、不改深度报告 prompt、不改 UI 视觉风格。
+## 不在范围
+- 不改 `/compatibility-reports` 列表页（保留作为独立入口，Profile 菜单不变）。
+- 不改任何后端、表结构或详情页。
