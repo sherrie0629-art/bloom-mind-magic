@@ -465,11 +465,11 @@ const CompatibilityFlow = () => {
 
             <div className="flex gap-3">
               <button onClick={handleSharePoster} className="flex-1 rounded-xl bg-gradient-golden py-3 text-sm font-semibold text-white flex items-center justify-center gap-2"><Share2 className="h-4 w-4" /> {t("assessmentFlow.compatibility.savePoster")}</button>
-              <button onClick={() => { setStep("input"); setResult(null); setDeepAnalysis(""); }} className="flex-1 rounded-xl bg-card py-3 text-sm font-semibold text-foreground shadow-card flex items-center justify-center gap-2 border border-border"><Users className="h-4 w-4" /> {t("assessmentFlow.compatibility.tryAgain")}</button>
+              <button onClick={() => { setStep("input"); setResult(null); }} className="flex-1 rounded-xl bg-card py-3 text-sm font-semibold text-foreground shadow-card flex items-center justify-center gap-2 border border-border"><Users className="h-4 w-4" /> {t("assessmentFlow.compatibility.tryAgain")}</button>
             </div>
             <button
               onClick={() => navigate(`/chat?agent=bestie`, {
-                state: { compatibilityResult: { partnerName, partnerMbti, partnerZodiac, overallScore: result.overallScore, title: result.title, summary: result.summary, dimensions: result.dimensions, strengths: result.strengths, conflicts: result.conflicts, loveLanguage: result.loveLanguage, deepAnalysis: deepAnalysisDone ? deepAnalysis : undefined } },
+                state: { compatibilityResult: { partnerName, partnerMbti, partnerZodiac, overallScore: result.overallScore, title: result.title, summary: result.summary, dimensions: result.dimensions, strengths: result.strengths, conflicts: result.conflicts, loveLanguage: result.loveLanguage } },
               })}
               className="w-full rounded-xl bg-card py-3 text-sm font-semibold text-foreground shadow-card border border-border flex items-center justify-center gap-2"
             >
