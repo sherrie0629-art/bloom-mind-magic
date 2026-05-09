@@ -230,20 +230,8 @@ const CompatibilityDetail = () => {
           </motion.div>
         )}
 
-        {/* Deep Analysis */}
-        {d?.deepAnalysis && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="rounded-2xl bg-card p-5 shadow-card"
-          >
-            <h4 className="font-display text-sm font-semibold text-foreground mb-3">📖 Deep Analysis</h4>
-            <div className="prose prose-sm max-w-none text-foreground prose-p:text-sm prose-p:leading-relaxed">
-              <ReactMarkdown>{d.deepAnalysis}</ReactMarkdown>
-            </div>
-          </motion.div>
-        )}
+
+
 
         {report?.id && (
           <DeepReportUnlock
