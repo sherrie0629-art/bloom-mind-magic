@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Brain, Compass, Stars, Flame, ChevronRight } from "lucide-react";
+import { ArrowLeft, Brain, Compass, Stars, Flame, Heart, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,10 +12,17 @@ const typeIcons: Record<string, { icon: typeof Brain; gradient: string }> = {
   enneagram: { icon: Compass, gradient: "bg-gradient-to-br from-secondary to-gold" },
   zodiac: { icon: Stars, gradient: "bg-gradient-to-br from-lavender to-rose-warm" },
   emotion: { icon: Flame, gradient: "bg-gradient-to-br from-rose-warm to-gold" },
-  
+  compatibility: { icon: Heart, gradient: "bg-gradient-to-br from-rose-warm to-secondary" },
 };
 
-interface Report { id: string; assessment_type: string; type?: string; result_data: any; created_at: string; }
+interface Report {
+  id: string;
+  kind: "assessment" | "compatibility";
+  assessment_type: string;
+  result_data: any;
+  partner_info?: any;
+  created_at: string;
+}
 
 const AssessmentReports = () => {
   const navigate = useNavigate();
@@ -26,20 +33,52 @@ const AssessmentReports = () => {
 
   useEffect(() => {
     if (!user) return;
-    supabase.from("assessment_results").select("*").eq("user_id", user.id).order("created_at", { ascending: false })
-      .then(({ data }) => { setReports((data || []).map((d: any) => ({ ...d, type: d.assessment_type }))); setLoading(false); });
+    (async () => {
+      const [{ data: a }, { data: c }] = await Promise.all([
+        supabase.from("assessment_results").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+        supabase.from("compatibility_reports").select("*").eq("user_id", user.id).order("created_at", { ascending: false }),
+      ]);
+      const merged: Report[] = [
+        ...((a || []) as any[]).map((d) => ({
+          id: d.id,
+          kind: "assessment" as const,
+          assessment_type: d.assessment_type,
+          result_data: d.result_data,
+          created_at: d.created_at,
+        })),
+        ...((c || []) as any[]).map((d) => ({
+          id: d.id,
+          kind: "compatibility" as const,
+          assessment_type: "compatibility",
+          result_data: d.result_data,
+          partner_info: d.partner_info,
+          created_at: d.created_at,
+        })),
+      ].sort((x, y) => +new Date(y.created_at) - +new Date(x.created_at));
+      setReports(merged);
+      setLoading(false);
+    })();
   }, [user]);
 
   const getTitle = (r: Report) => {
     const d = r.result_data as any;
-    const tp = r.assessment_type || r.type;
+    if (r.kind === "compatibility") {
+      const cp = d?.cpName || `${t("assessmentReports.you", { defaultValue: "我" })} & ${r.partner_info?.name || "TA"}`;
+      const score = typeof d?.overallScore === "number" ? ` · ${d.overallScore}%` : "";
+      return `💕 ${cp}${score}`;
+    }
+    const tp = r.assessment_type;
     if (tp === "mbti") return `${d.mbtiType} — ${d.title}`;
     if (tp === "enneagram") return `Type ${d.type ?? d.enneagramType ?? "?"} · ${d.title}`;
     if (tp === "zodiac") return `${d.zodiacSign} · ${d.title}`;
     if (tp === "emotion") return `${d.emoji || "🎭"} ${d.title}`;
     return d.title || tp;
   };
-  const getDesc = (r: Report) => { const d = r.result_data as any; return (d.description?.slice(0, 60) || "") + ((d.description?.length || 0) > 60 ? "…" : ""); };
+  const getDesc = (r: Report) => {
+    const d = r.result_data as any;
+    const text = r.kind === "compatibility" ? (d?.summary || "") : (d?.description || "");
+    return text.slice(0, 60) + (text.length > 60 ? "…" : "");
+  };
   const formatDate = (s: string) => {
     const d = new Date(s);
     return d.toLocaleDateString() + " " + d.getHours().toString().padStart(2, "0") + ":" + d.getMinutes().toString().padStart(2, "0");
@@ -64,10 +103,11 @@ const AssessmentReports = () => {
           </div>
         ) : (
           reports.map((r, i) => {
-            const cfg = typeIcons[r.assessment_type || r.type || "mbti"] || typeIcons.mbti;
+            const cfg = typeIcons[r.assessment_type] || typeIcons.mbti;
             const Icon = cfg.icon;
+            const onClick = () => navigate(r.kind === "compatibility" ? `/compatibility-reports/${r.id}` : `/assessment-reports/${r.id}`);
             return (
-              <motion.div key={r.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} onClick={() => navigate(`/assessment-reports/${r.id}`)} className="rounded-2xl bg-card p-4 shadow-card cursor-pointer active:scale-[0.98] transition-transform">
+              <motion.div key={`${r.kind}-${r.id}`} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} onClick={onClick} className="rounded-2xl bg-card p-4 shadow-card cursor-pointer active:scale-[0.98] transition-transform">
                 <div className="flex items-start gap-3">
                   <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${cfg.gradient}`}><Icon className="h-5 w-5 text-primary-foreground" /></div>
                   <div className="flex-1 min-w-0">
