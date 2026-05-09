@@ -664,6 +664,98 @@
     "lastUpdated": "Last updated: {{d}}",
     "noteZhAuto": ""
   },
+  "branchFallback": {
+    "barista": {
+      "stress": {
+        "0": "I don't want to pretend I'm fine anymore",
+        "1": "Having someone just listen already helps",
+        "2": "Where is all this exhaustion even coming from?"
+      },
+      "breakup": {
+        "0": "Maybe letting go isn't forgetting — it's letting myself move on",
+        "1": "I'm not ready yet. Let me sit with this a little longer",
+        "2": "I need to figure out if I miss them or the idea of them"
+      },
+      "family": {
+        "0": "Sometimes just being there is more than enough",
+        "1": "I know what it's like to wish you'd listened more",
+        "2": "Tell me about that empty chair in the corner"
+      }
+    },
+    "jax": {
+      "anxiety": {
+        "0": "I want to understand what's underneath this anxiety",
+        "1": "Can we try that breathing exercise right now?",
+        "2": "I'm ready to face this instead of running from it"
+      },
+      "boundary": {
+        "0": "Setting boundaries feels selfish, but I know it's not",
+        "1": "Why is it so hard to put myself first?",
+        "2": "I need a game plan for the next time this happens"
+      },
+      "work": {
+        "0": "I think I've been confusing productivity with self-worth",
+        "1": "Where's the emergency exit in this situation?",
+        "2": "I'm scared that slowing down means falling behind"
+      },
+      "fire": {
+        "0": "Help me find the oxygen in this situation",
+        "1": "I feel like I'm standing in the middle of my own fire",
+        "2": "What would you do if you were me, Jax?"
+      }
+    },
+    "mystic": {
+      "universe": {
+        "0": "I want to trust the universe but I'm scared it's not listening",
+        "1": "Pull a card for me — I need to see what's coming",
+        "2": "Maybe this is divine timing and I just can't see the pattern yet"
+      },
+      "stuck": {
+        "0": "I feel like my energy is blocked and I don't know how to clear it",
+        "1": "What if I'm the one standing in my own way?",
+        "2": "I need to sit with this darkness before I can find the light"
+      },
+      "logic": {
+        "0": "Some things can't be calculated, can they?",
+        "1": "Tell me about when your numbers stopped making sense",
+        "2": "I need something beyond logic right now"
+      }
+    },
+    "bestie": {
+      "selfWorth": {
+        "0": "Say it louder — I need someone to drown out the inner critic",
+        "1": "Logically I know I'm enough but my brain won't cooperate",
+        "2": "Let's channel this into main character energy instead"
+      },
+      "nervous": {
+        "0": "Keep going, I need a full hype speech right now",
+        "1": "I want to walk in there like I own the place",
+        "2": "What if I mess up though?"
+      },
+      "invisible": {
+        "0": "I feel like I could disappear and nobody would notice",
+        "1": "How did you go from invisible to THIS?",
+        "2": "I'm tired of being the background character"
+      }
+    },
+    "generic": {
+      "0": {
+        "0": "I think there's something I haven't said yet",
+        "1": "Maybe I need to look at this from a different angle",
+        "2": "I want to go deeper"
+      },
+      "1": {
+        "0": "That really resonated with me",
+        "1": "Okay, so what's my next step?",
+        "2": "Let me sit with that for a moment…"
+      },
+      "2": {
+        "0": "I think I'm starting to understand myself better",
+        "1": "Thank you — I don't need to pretend here",
+        "2": "I'm ready. Let's keep going"
+      }
+    }
+  },
   "agents": {
     "barista": {
       "title": "The Barista Who Stays",

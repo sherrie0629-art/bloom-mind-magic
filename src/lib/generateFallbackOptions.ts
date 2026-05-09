@@ -1,141 +1,161 @@
+import type { TFunction } from "i18next";
 import type { BranchOption } from "@/lib/parseGameMarkers";
 
-const agentOptionPools: Record<string, { keywords: string[]; options: BranchOption[] }[]> = {
+interface KeyedOption {
+  key: string;
+  emotion: BranchOption["emotion"];
+}
+
+const agentOptionPools: Record<string, { keywords: string[]; pool: string; options: KeyedOption[] }[]> = {
   barista: [
     {
-      keywords: ["stress", "overwhelm", "tired", "exhaust", "burn"],
+      pool: "stress",
+      keywords: ["stress", "overwhelm", "tired", "exhaust", "burn", "压力", "累", "疲惫", "倦"],
       options: [
-        { text: "I don't want to pretend I'm fine anymore", emotion: "brave" },
-        { text: "Having someone just listen already helps", emotion: "gentle" },
-        { text: "Where is all this exhaustion even coming from?", emotion: "rational" },
+        { key: "barista.stress.0", emotion: "brave" },
+        { key: "barista.stress.1", emotion: "gentle" },
+        { key: "barista.stress.2", emotion: "rational" },
       ],
     },
     {
-      keywords: ["breakup", "ex", "miss", "relationship", "love", "dating"],
+      pool: "breakup",
+      keywords: ["breakup", "ex", "miss", "relationship", "love", "dating", "分手", "前任", "想念", "恋爱"],
       options: [
-        { text: "Maybe letting go isn't forgetting — it's letting myself move on", emotion: "brave" },
-        { text: "I'm not ready yet. Let me sit with this a little longer", emotion: "sad" },
-        { text: "I need to figure out if I miss them or the idea of them", emotion: "rational" },
+        { key: "barista.breakup.0", emotion: "brave" },
+        { key: "barista.breakup.1", emotion: "sad" },
+        { key: "barista.breakup.2", emotion: "rational" },
       ],
     },
     {
-      keywords: ["brother", "sibling", "family", "advice"],
+      pool: "family",
+      keywords: ["brother", "sibling", "family", "advice", "弟弟", "哥哥", "家人", "建议"],
       options: [
-        { text: "Sometimes just being there is more than enough", emotion: "gentle" },
-        { text: "I know what it's like to wish you'd listened more", emotion: "brave" },
-        { text: "Tell me about that empty chair in the corner", emotion: "curious" },
+        { key: "barista.family.0", emotion: "gentle" },
+        { key: "barista.family.1", emotion: "brave" },
+        { key: "barista.family.2", emotion: "curious" },
       ],
     },
   ],
   jax: [
     {
-      keywords: ["anxiety", "panic", "worry", "scared", "fear"],
+      pool: "anxiety",
+      keywords: ["anxiety", "panic", "worry", "scared", "fear", "焦虑", "恐慌", "害怕", "担心"],
       options: [
-        { text: "I want to understand what's underneath this anxiety", emotion: "curious" },
-        { text: "Can we try that breathing exercise right now?", emotion: "gentle" },
-        { text: "I'm ready to face this instead of running from it", emotion: "brave" },
+        { key: "jax.anxiety.0", emotion: "curious" },
+        { key: "jax.anxiety.1", emotion: "gentle" },
+        { key: "jax.anxiety.2", emotion: "brave" },
       ],
     },
     {
-      keywords: ["boundary", "boundaries", "toxic", "people-pleas", "say no"],
+      pool: "boundary",
+      keywords: ["boundary", "boundaries", "toxic", "people-pleas", "say no", "边界", "讨好", "拒绝"],
       options: [
-        { text: "Setting boundaries feels selfish, but I know it's not", emotion: "brave" },
-        { text: "Why is it so hard to put myself first?", emotion: "curious" },
-        { text: "I need a game plan for the next time this happens", emotion: "rational" },
+        { key: "jax.boundary.0", emotion: "brave" },
+        { key: "jax.boundary.1", emotion: "curious" },
+        { key: "jax.boundary.2", emotion: "rational" },
       ],
     },
     {
-      keywords: ["work", "career", "burnout", "boss", "job"],
+      pool: "work",
+      keywords: ["work", "career", "burnout", "boss", "job", "工作", "职业", "老板"],
       options: [
-        { text: "I think I've been confusing productivity with self-worth", emotion: "hopeful" },
-        { text: "Where's the emergency exit in this situation?", emotion: "rational" },
-        { text: "I'm scared that slowing down means falling behind", emotion: "brave" },
+        { key: "jax.work.0", emotion: "hopeful" },
+        { key: "jax.work.1", emotion: "rational" },
+        { key: "jax.work.2", emotion: "brave" },
       ],
     },
     {
-      keywords: ["fire", "burn", "smoke", "breathe", "suffocate"],
+      pool: "fire",
+      keywords: ["fire", "burn", "smoke", "breathe", "suffocate", "火", "烟", "窒息", "喘"],
       options: [
-        { text: "Help me find the oxygen in this situation", emotion: "brave" },
-        { text: "I feel like I'm standing in the middle of my own fire", emotion: "sad" },
-        { text: "What would you do if you were me, Jax?", emotion: "curious" },
+        { key: "jax.fire.0", emotion: "brave" },
+        { key: "jax.fire.1", emotion: "sad" },
+        { key: "jax.fire.2", emotion: "curious" },
       ],
     },
   ],
   mystic: [
     {
-      keywords: ["universe", "sign", "fate", "meant to be", "destiny"],
+      pool: "universe",
+      keywords: ["universe", "sign", "fate", "meant to be", "destiny", "宇宙", "命运", "信号", "注定"],
       options: [
-        { text: "I want to trust the universe but I'm scared it's not listening", emotion: "brave" },
-        { text: "Pull a card for me — I need to see what's coming", emotion: "curious" },
-        { text: "Maybe this is divine timing and I just can't see the pattern yet", emotion: "hopeful" },
+        { key: "mystic.universe.0", emotion: "brave" },
+        { key: "mystic.universe.1", emotion: "curious" },
+        { key: "mystic.universe.2", emotion: "hopeful" },
       ],
     },
     {
-      keywords: ["confused", "lost", "stuck", "energy", "blocked"],
+      pool: "stuck",
+      keywords: ["confused", "lost", "stuck", "energy", "blocked", "迷茫", "卡住", "能量", "堵"],
       options: [
-        { text: "I feel like my energy is blocked and I don't know how to clear it", emotion: "sad" },
-        { text: "What if I'm the one standing in my own way?", emotion: "brave" },
-        { text: "I need to sit with this darkness before I can find the light", emotion: "gentle" },
+        { key: "mystic.stuck.0", emotion: "sad" },
+        { key: "mystic.stuck.1", emotion: "brave" },
+        { key: "mystic.stuck.2", emotion: "gentle" },
       ],
     },
     {
-      keywords: ["logic", "number", "data", "calculate", "probability"],
+      pool: "logic",
+      keywords: ["logic", "number", "data", "calculate", "probability", "逻辑", "数据", "概率", "计算"],
       options: [
-        { text: "Some things can't be calculated, can they?", emotion: "gentle" },
-        { text: "Tell me about when your numbers stopped making sense", emotion: "curious" },
-        { text: "I need something beyond logic right now", emotion: "brave" },
+        { key: "mystic.logic.0", emotion: "gentle" },
+        { key: "mystic.logic.1", emotion: "curious" },
+        { key: "mystic.logic.2", emotion: "brave" },
       ],
     },
   ],
   bestie: [
     {
-      keywords: ["ugly", "fat", "hate myself", "insecure", "not enough", "confident"],
+      pool: "selfWorth",
+      keywords: ["ugly", "fat", "hate myself", "insecure", "not enough", "confident", "丑", "胖", "自卑", "不够好"],
       options: [
-        { text: "Say it louder — I need someone to drown out the inner critic", emotion: "rebellious" },
-        { text: "Logically I know I'm enough but my brain won't cooperate", emotion: "sad" },
-        { text: "Let's channel this into main character energy instead", emotion: "hopeful" },
+        { key: "bestie.selfWorth.0", emotion: "rebellious" },
+        { key: "bestie.selfWorth.1", emotion: "sad" },
+        { key: "bestie.selfWorth.2", emotion: "hopeful" },
       ],
     },
     {
-      keywords: ["interview", "date", "nervous", "presentation", "scared"],
+      pool: "nervous",
+      keywords: ["interview", "date", "nervous", "presentation", "scared", "面试", "约会", "紧张", "演讲"],
       options: [
-        { text: "Keep going, I need a full hype speech right now", emotion: "rebellious" },
-        { text: "I want to walk in there like I own the place", emotion: "hopeful" },
-        { text: "What if I mess up though?", emotion: "sad" },
+        { key: "bestie.nervous.0", emotion: "rebellious" },
+        { key: "bestie.nervous.1", emotion: "hopeful" },
+        { key: "bestie.nervous.2", emotion: "sad" },
       ],
     },
     {
-      keywords: ["invisible", "ignored", "unseen", "nobody", "alone"],
+      pool: "invisible",
+      keywords: ["invisible", "ignored", "unseen", "nobody", "alone", "隐形", "忽视", "孤独", "没人"],
       options: [
-        { text: "I feel like I could disappear and nobody would notice", emotion: "sad" },
-        { text: "How did you go from invisible to THIS?", emotion: "curious" },
-        { text: "I'm tired of being the background character", emotion: "brave" },
+        { key: "bestie.invisible.0", emotion: "sad" },
+        { key: "bestie.invisible.1", emotion: "curious" },
+        { key: "bestie.invisible.2", emotion: "brave" },
       ],
     },
   ],
 };
 
-const genericOptions: BranchOption[][] = [
+const genericPools: KeyedOption[][] = [
   [
-    { text: "I think there's something I haven't said yet", emotion: "curious" },
-    { text: "Maybe I need to look at this from a different angle", emotion: "rational" },
-    { text: "I want to go deeper", emotion: "brave" },
+    { key: "generic.0.0", emotion: "curious" },
+    { key: "generic.0.1", emotion: "rational" },
+    { key: "generic.0.2", emotion: "brave" },
   ],
   [
-    { text: "That really resonated with me", emotion: "gentle" },
-    { text: "Okay, so what's my next step?", emotion: "brave" },
-    { text: "Let me sit with that for a moment…", emotion: "rational" },
+    { key: "generic.1.0", emotion: "gentle" },
+    { key: "generic.1.1", emotion: "brave" },
+    { key: "generic.1.2", emotion: "rational" },
   ],
   [
-    { text: "I think I'm starting to understand myself better", emotion: "hopeful" },
-    { text: "Thank you — I don't need to pretend here", emotion: "gentle" },
-    { text: "I'm ready. Let's keep going", emotion: "brave" },
+    { key: "generic.2.0", emotion: "hopeful" },
+    { key: "generic.2.1", emotion: "gentle" },
+    { key: "generic.2.2", emotion: "brave" },
   ],
 ];
 
 export function generateFallbackOptions(
   agentId: string,
-  recentMessages: { role: string; content: string }[]
+  recentMessages: { role: string; content: string }[],
+  t: TFunction
 ): BranchOption[] {
   const recentText = recentMessages
     .slice(-4)
@@ -144,12 +164,18 @@ export function generateFallbackOptions(
 
   const pools = agentOptionPools[agentId] || [];
 
+  const render = (opts: KeyedOption[]): BranchOption[] =>
+    opts.map((o) => ({
+      text: t(`branchFallback.${o.key}`, { defaultValue: o.key }),
+      emotion: o.emotion,
+    }));
+
   for (const pool of pools) {
     if (pool.keywords.some((kw) => recentText.includes(kw))) {
-      return pool.options;
+      return render(pool.options);
     }
   }
 
-  const idx = Math.floor(Math.random() * genericOptions.length);
-  return genericOptions[idx];
+  const idx = Math.floor(Math.random() * genericPools.length);
+  return render(genericPools[idx]);
 }

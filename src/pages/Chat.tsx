@@ -544,7 +544,7 @@ const Chat = () => {
               .slice(lastOptionsIdx + 1)
               .filter(m => m.role === "assistant").length;
             if (assistantsSinceLast + 1 >= 3) {
-              finalBranchOptions = generateFallbackOptions(agentId, [...apiMessages, { role: "assistant", content: cleanContent }]);
+              finalBranchOptions = generateFallbackOptions(agentId, [...apiMessages, { role: "assistant", content: cleanContent }], t);
             }
           }
           

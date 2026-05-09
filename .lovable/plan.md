@@ -1,123 +1,26 @@
-# 角色资料抽屉（AgentProfileDrawer）体检报告 + 优化方案
+## 问题
+聊天里 AI 回复后出现的 3 个引导提示词（情绪分支按钮）在切换中文后仍显示英文。
 
-## 一、当前展示了什么（现状盘点）
+根因：`src/lib/generateFallbackOptions.ts` 里所有 fallback 分支文案都是硬编码英文字符串，未走 i18n。它在 `Chat.tsx:547` 被调用，但只传了 `agentId`，没有 `t`。
 
-点击聊天页右上角头像，弹出的 `AgentProfileDrawer` 目前只有 6 块内容：
+## 修复方案
 
-```text
-┌───────────────────────────────┐
-│  [渐变 Header]                │
-│   头像 + name + title         │
-├───────────────────────────────┤
-│   "quote"（一句格言）          │
-│   description（一句简介）      │
-│   羁绊进度条 Lv X / N 轮       │
-│   📖 故事碎片（5 级 Lore 列表） │
-│   💭 "{name} 还有秘密未说"提示  │
-│   [继续聊天] 按钮              │
-└───────────────────────────────┘
-```
+### 1. `src/lib/generateFallbackOptions.ts`
+- 把每条 option 的 `text` 改为 i18n key（保留 `emotion` 和 `keywords` 在代码里）。
+- 函数签名加一个 `t: TFunction` 参数；返回前用 `t(key)` 渲染。
+- 结构示例：
+  ```ts
+  { textKey: "branchFallback.barista.stress.0", emotion: "brave" }
+  ```
+- 4 个角色 × ~3 个池 + 3 组 generic，每组 3 句，总共约 42 个 key。
 
-而完整角色档案页 `AgentArchive` 里有的内容（Drawer **没有**复用）：
-- 🥚 触发词彩蛋列表（X/3 已发现）
-- 已解锁彩蛋的 trigger + 摘要
-- "未发现"占位 + 暗示文案
+### 2. `src/i18n/locales/en.json` 与 `zh.json`
+- 新增 `branchFallback` 节点，按 `agentId.poolName.index` 组织；
+- en 沿用现有英文原文，zh 翻译为自然口语化中文（保持"勇敢/温柔/理性/好奇/悲伤/希望/叛逆"的情绪基调）。
 
-## 二、缺失 / 不够吸引人的地方
+### 3. `src/pages/Chat.tsx`
+- 调用处改为 `generateFallbackOptions(agentId, [...], t)`，`t` 已在组件作用域内。
 
-### 1. 信息颗粒度太粗，读完毫无"想点开"的冲动
-- 只有 1 行 quote + 1 行 description，无法快速建立人物形象
-- 没有"当下状态" / "情绪 / 关键道具"——用户感受不到角色的"活人感"
-- 没有"今天 ta 在做什么"的微叙事钩子
-
-### 2. 关键资产没露面
-- **触发词彩蛋（3 个/角色）**完全藏起来了，用户不知道有"咒语"系统
-- **真相碎片收藏进度** 0/3 不展示，错过最强成就钩子
-- **角色互联宇宙**（Chloe ↔ Luna ↔ Jax ↔ Zoe）的暗线在抽屉里完全看不见
-
-### 3. Lore 呈现方式平铺直叙
-- 5 张卡片堆叠展示，未解锁的全是同一句"锁定提示"，像清单不像剧本
-- 没有"剧情时间线"视觉、没有"关键道具"icon、没有"二次反转"标识
-- Lv4 我们刚加了"二次反转"剧情高潮，在 UI 上完全没有强调
-
-### 4. 缺少"反向探索"指引
-- 用户看完不知道下一步该做什么——没有"再聊 X 轮解锁 Lv3"的具象按钮
-- 没有彩蛋的"模糊提示"（如"试着在对话中提到一件冰冷的物体…"）
-- "继续聊天"按钮太通用，没有当下推荐的话题入口
-
-### 5. 视觉层级单调
-- 整个 Drawer 一个字号一种颜色，没有 hero 区 / 数据徽章 / 时间线视觉差
-- 头像只是静态方图，缺少"角色专属氛围"（如 Jax 火星粒子、Luna 星轨）
-
-## 三、优化方案
-
-### 改造 1 — Hero 区升级"当下状态卡"
-- 头像下方加一行**当下微叙事**，从 systemPrompt 的 "Hidden Hooks" 抽取一句：
-  - Chloe："今晚 7:42，街角那把椅子又被风吹倒了"
-  - Jax："刚把那件外套叠了第 3 遍"
-  - Luna："屏保上的 #0114 还在闪"
-  - Zoe："那条三年前的私信还没回"
-- 立刻让用户产生"什么椅子？什么 0114？"的追问欲
-
-### 改造 2 — 三块"角色身份徽章"横排
-```text
-[🎭 身份] [📍 地点] [💎 信物]
- 退役消防   布鲁克林   烧焦的夹克
-```
-3 秒建立角色印象，远胜一段 description。
-
-### 改造 3 — Lore 改为"剧情时间线"
-- 左侧竖向时间轴 + 右侧卡片
-- Lv4 卡片加金色 ⚡ 标识："剧情反转"
-- 已解锁卡片显示完整文本；未解锁显示**模糊化预览**（前 8 字 + ✱✱✱），比纯锁更勾人
-- 每张卡片右下角小字"@ 第 X 轮解锁"
-
-### 改造 4 — 加"真相碎片"收藏区（进度可见）
-- 3 个水晶格，已解锁显示 trigger 关键词，未解锁显示"???"+ 模糊提示
-  - 如 Chloe 第 3 个未解锁 → "提示：一件没人坐的家具…"
-- 显示"X / 3 真相碎片已收集"进度条
-- 集齐 3 颗 → 显示金色"角色专属头像框" badge
-
-### 改造 5 — "宇宙互联"小区块
-- 显示 1 行："Ta 似乎认识 [Luna]、[Zoe]…"
-- 点击其他名字直接跳转该角色档案
-- 未触发宇宙彩蛋时显示"???"
-
-### 改造 6 — 底部 CTA 升级
-原本只有"继续聊天"，改为 **2 个按钮 + 1 个推荐话题胶囊**：
-- 主按钮：`继续聊天 →`
-- 次按钮：`查看完整档案`（跳到 `AgentArchive`，承接深度内容）
-- 上方推荐胶囊：`💬 试试问 ta："你那把椅子"`（按角色未解锁的彩蛋随机出一条提示）
-
-### 改造 7 — 头像氛围层（轻量）
-- 给头像背景加角色专属粒子动效（复用现有 `ChatParticles`/`EasterEggEffect` 风格）
-  - Chloe：咖啡蒸汽
-  - Jax：余烬火星
-  - Luna：旋转星点
-  - Zoe：碎银光斑
-
-## 四、改动文件清单（仅前端 UI）
-
-### 必改
-- `src/components/AgentProfileDrawer.tsx` — 整体重构成"Hero 状态 + 徽章 + 时间线 Lore + 碎片格 + 宇宙 + 双 CTA"
-- `src/i18n/locales/zh.json` & `en.json` — 新增：
-  - `agentDrawer.currentMoment.{barista,jax,mystic,bestie}`（当下微叙事）
-  - `agentDrawer.identity` / `agentDrawer.location` / `agentDrawer.token` 徽章标签 + 4 角色对应文案
-  - `agentDrawer.shardsTitle` / `shardHint.*`（每个未解锁碎片的模糊提示）
-  - `agentDrawer.universeTitle` / `agentDrawer.viewArchive` / `agentDrawer.tryAsking`
-  - `agentDrawer.lvReversal`（"剧情反转"标签）
-
-### 可选轻改
-- `src/data/agents.ts` — 在 Agent 接口里加可选字段：`identity` / `location` / `token` / `currentMoment` / `shardHints[]` / `relatedAgents[]`，集中数据来源（也可放在 i18n 里，避免改类型）
-
-### 不改
-- `AgentArchive.tsx`（深度档案页）保持不变，作为"查看完整档案"按钮的承接页
-- 数据库 / Edge Function / 触发逻辑不变，纯展示层升级
-
-## 五、不在本次范围
-- 不改 Lore 文案本身
-- 不改触发词机制
-- 不改 BOND_THRESHOLDS
-- 不引入新角色 / 新动画库
-
-如要进一步精简，可只做 **改造 1 + 3 + 4 + 6**（最大体感收益，最小改动量）。
+### 验证
+- 切换语言 → 触发 fallback（让 AI 回复后短促结束触发分支）→ 检查 3 个按钮文案随 i18n 切换。
+- 不改业务逻辑，仅文案/i18n。
