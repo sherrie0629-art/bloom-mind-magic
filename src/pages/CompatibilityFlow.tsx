@@ -449,18 +449,7 @@ const CompatibilityFlow = () => {
               </div>
             )}
 
-            {/* Deep analysis (kept) */}
-            <div className="rounded-2xl bg-card p-5 shadow-card">
-              <h4 className="font-display text-sm font-semibold text-foreground mb-3">{t("assessmentFlow.compatibility.deepAnalysis")}</h4>
-              {deepAnalysis ? (
-                <div className="prose prose-sm max-w-none text-foreground prose-p:text-sm prose-p:leading-relaxed">
-                  <ReactMarkdown>{deepAnalysis}</ReactMarkdown>
-                  {!deepAnalysisDone && <span className="inline-block w-1.5 h-4 bg-secondary animate-pulse ml-0.5 align-middle rounded-sm" />}
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /><span className="text-xs">{t("assessmentFlow.compatibility.deepAnalysisLoading")}</span></div>
-              )}
-            </div>
+
 
             {/* Invite CTA */}
             <button
