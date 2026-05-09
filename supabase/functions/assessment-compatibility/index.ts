@@ -76,8 +76,20 @@ Use therapy-speak naturally. Write in markdown. Warm but professional tone.${lan
     if (quotaError) return quotaError;
 
     const { myProfile, partnerProfile } = body;
-    const systemPrompt = `You are a relationship chemistry expert trained in attachment theory, love languages, and personality psychology. Analyze the compatibility between two people. Use the compatibility_result tool to return results. Respond in the language indicated by LANG below.${langInstr}`;
-    const userContent = `Me: ${JSON.stringify(myProfile)}\nPartner: ${JSON.stringify(partnerProfile)}\nGenerate relationship chemistry analysis.`;
+    const systemPrompt = `You are a Gen-Z relationship oracle — half psychologist (attachment theory, love languages), half tarot/anime mystic. Your goal is to make the result FUN to screenshot and share on TikTok / 小红书 / IG. Avoid lecturing. Be vivid, specific, slightly cheeky, never generic. Use the compatibility_result tool to return the result. Respond in the language indicated by LANG below.${langInstr}
+
+STYLE RULES:
+- cpName: a poetic 2-6 word "ship name" for them (e.g. "Wind & Moon" / "猫与窗台" / "Sunshine on Static"). Never just their two real names.
+- rarity: ONE of "SSR" | "SR" | "R" | "N" — derive from overallScore (>=88 SSR, >=72 SR, >=55 R, else N).
+- tags: 3 short punchy chips, each 2-6 words, in the language. e.g. "互补型" / "慢热但上头" / "注定要吵两次" or "opposites attract" / "slow burn" / "destined to argue twice".
+- trafficLight: real, specific observations — green=what's working, yellow=watch out, red=danger zone. 1-2 short lines each, no platitudes.
+- dramaScene: an 80-120 char mini-scene like a K-drama / 小红书 段子. Concrete time, place, action, one line of inner thought. NO names, use "你" / "TA" or "you" / "them".
+- loveLanguage.actionForThem: one concrete physical thing the user can do this week (under 30 chars).
+- loveLanguage.phraseTheyWant: ONE exact sentence in quotes the partner secretly wants to hear.
+- keywords: 3 future-tense words/phrases (e.g. "旅行 / 误会 / 二次确认").
+- prophecy: ONE single-sentence playful prediction with a time hint (e.g. "立秋之前，你们会有一次重要的对话。").
+- socialCaption: one screenshot-worthy line, 15-30 chars, ending with an emoji.`;
+    const userContent = `Me: ${JSON.stringify(myProfile)}\nPartner: ${JSON.stringify(partnerProfile)}\nGenerate the CP card.`;
 
     const tools = [{
       type: "function",
@@ -89,15 +101,41 @@ Use therapy-speak naturally. Write in markdown. Warm but professional tone.${lan
           properties: {
             overallScore: { type: "number", description: "Overall compatibility percentage (0-100)" },
             title: { type: "string", description: "Relationship title, e.g. 'Soul Resonators'" },
+            cpName: { type: "string", description: "Poetic ship name, 2-6 words" },
+            rarity: { type: "string", enum: ["SSR", "SR", "R", "N"] },
+            tags: { type: "array", items: { type: "string" }, description: "Exactly 3 punchy chip tags" },
             emoji: { type: "string" },
-            summary: { type: "string", description: "80 words or less relationship overview" },
+            summary: { type: "string", description: "60 words or less relationship overview" },
             dimensions: { type: "object", properties: { emotional: { type: "number" }, communication: { type: "number" }, values: { type: "number" }, growth: { type: "number" }, chemistry: { type: "number" } }, required: ["emotional", "communication", "values", "growth", "chemistry"] },
+            radarOneLiner: { type: "string", description: "One sentence summing up the radar shape, under 40 chars" },
             strengths: { type: "array", items: { type: "string" }, description: "3-4 relationship strengths, 20 words each max" },
             conflicts: { type: "array", items: { type: "object", properties: { issue: { type: "string" }, solution: { type: "string" } }, required: ["issue", "solution"] }, description: "2 potential conflicts with solutions" },
-            loveLanguage: { type: "object", properties: { mine: { type: "string" }, partner: { type: "string" }, tip: { type: "string", description: "Love language advice under 50 words" } }, required: ["mine", "partner", "tip"] },
+            trafficLight: {
+              type: "object",
+              properties: {
+                green: { type: "array", items: { type: "string" }, description: "1-2 things working" },
+                yellow: { type: "array", items: { type: "string" }, description: "1-2 things to watch" },
+                red: { type: "array", items: { type: "string" }, description: "1-2 danger zones" },
+              },
+              required: ["green", "yellow", "red"],
+            },
+            dramaScene: { type: "string", description: "80-120 char mini K-drama scene" },
+            loveLanguage: {
+              type: "object",
+              properties: {
+                mine: { type: "string" },
+                partner: { type: "string" },
+                tip: { type: "string", description: "Love language advice under 50 words" },
+                actionForThem: { type: "string", description: "One concrete physical action this week, under 30 chars" },
+                phraseTheyWant: { type: "string", description: "ONE quoted sentence the partner secretly wants to hear" },
+              },
+              required: ["mine", "partner", "tip", "actionForThem", "phraseTheyWant"],
+            },
+            keywords: { type: "array", items: { type: "string" }, description: "Exactly 3 future-tense keywords" },
+            prophecy: { type: "string", description: "ONE single-sentence playful prediction with a time hint" },
             socialCaption: { type: "string" },
           },
-          required: ["overallScore", "title", "emoji", "summary", "dimensions", "strengths", "conflicts", "loveLanguage", "socialCaption"],
+          required: ["overallScore", "title", "cpName", "rarity", "tags", "emoji", "summary", "dimensions", "radarOneLiner", "strengths", "conflicts", "trafficLight", "dramaScene", "loveLanguage", "keywords", "prophecy", "socialCaption"],
         },
       },
     }];
