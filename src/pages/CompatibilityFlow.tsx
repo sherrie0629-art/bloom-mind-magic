@@ -117,8 +117,6 @@ const CompatibilityFlow = () => {
     if (!partnerMbti && !partnerZodiac && !partnerTraits.trim()) { toast.error(t("assessmentFlow.compatibility.needTheirInfo")); return; }
     await incrementAssessment();
     setStep("loading");
-    setDeepAnalysis("");
-    setDeepAnalysisDone(false);
     const stageLabel = stage ? t(`assessmentFlow.compatibility.stages.${stage}`) : undefined;
     const vibeLabel = vibe ? t(`assessmentFlow.compatibility.vibes.${vibe}`) : undefined;
     const myProfile = { name: myName, mbti: myMbti || undefined, zodiac: myZodiac || undefined, traits: myTraits || undefined, stage: stageLabel, recentVibe: vibeLabel };
@@ -133,13 +131,12 @@ const CompatibilityFlow = () => {
       setStep("result");
       const { data: inserted } = await (supabase as any).from("compatibility_reports").insert({ user_id: user.id, partner_info: { name: partnerName, mbti: partnerMbti, zodiac: partnerZodiac, traits: partnerTraits, stage: stageLabel, recentVibe: vibeLabel }, result_data: r, is_paid: false }).select("id").single();
       if (inserted?.id) setSavedReportId(inserted.id);
-      streamDeepAnalysis(myProfile, partnerProfile, r);
     } catch (e: any) {
       if (isDailyLimitError(e)) toast.error(t("assessmentFlow.compatibility.dailyLimitReached", { n: 20 }));
       else toast.error(e.message || t("assessmentFlow.compatibility.analyzeFail"));
       setStep("input");
     }
-  }, [user, myName, myMbti, myZodiac, myTraits, partnerName, partnerMbti, partnerZodiac, partnerTraits, stage, vibe, canAssess, streamDeepAnalysis, locale, t, assessmentLimit, incrementAssessment, navigate]);
+  }, [user, myName, myMbti, myZodiac, myTraits, partnerName, partnerMbti, partnerZodiac, partnerTraits, stage, vibe, canAssess, locale, t, assessmentLimit, incrementAssessment, navigate]);
 
   const rarity: Rarity = (result?.rarity as Rarity) || (result ? deriveRarity(result.overallScore) : "N");
   const theme = RARITY_THEME[rarity];
