@@ -80,8 +80,6 @@ const CompatibilityFlow = () => {
 
   const [step, setStep] = useState<"input" | "loading" | "result">("input");
   const [result, setResult] = useState<CompatibilityResult | null>(null);
-  const [deepAnalysis, setDeepAnalysis] = useState("");
-  const [deepAnalysisDone, setDeepAnalysisDone] = useState(false);
   const [savedReportId, setSavedReportId] = useState<string | null>(null);
   const [loadingLineIdx, setLoadingLineIdx] = useState(0);
 
