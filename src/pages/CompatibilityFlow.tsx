@@ -107,41 +107,7 @@ const CompatibilityFlow = () => {
     return () => clearInterval(id);
   }, [step, loadingLines.length]);
 
-  const streamDeepAnalysis = useCallback(async (myProfile: any, partnerProfile: any, quickResult: any) => {
-    setDeepAnalysis("");
-    setDeepAnalysisDone(false);
-    try {
-      const resp = await fetch(CHAT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
-        body: JSON.stringify({ action: "deep-analysis", myProfile, partnerProfile, quickResult, locale }),
-      });
-      if (!resp.ok || !resp.body) { setDeepAnalysisDone(true); return; }
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let fullText = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        let newlineIdx: number;
-        while ((newlineIdx = buffer.indexOf("\n")) !== -1) {
-          let line = buffer.slice(0, newlineIdx);
-          buffer = buffer.slice(newlineIdx + 1);
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (!line.startsWith("data: ")) continue;
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") break;
-          try { const p = JSON.parse(jsonStr); const c = p.choices?.[0]?.delta?.content; if (c) { fullText += c; setDeepAnalysis(fullText); } } catch {}
-        }
-      }
-      setDeepAnalysisDone(true);
-      if (user && fullText) {
-        await supabase.from("compatibility_reports").update({ result_data: { ...quickResult, deepAnalysis: fullText } as any }).eq("user_id", user.id).order("created_at", { ascending: false }).limit(1);
-      }
-    } catch { setDeepAnalysisDone(true); }
-  }, [user, locale]);
+
 
   const handleSubmit = useCallback(async () => {
     if (!user) { toast.error(t("assessmentFlow.compatibility.pleaseSignIn")); navigate("/auth"); return; }
