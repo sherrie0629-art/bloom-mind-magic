@@ -80,8 +80,6 @@ const CompatibilityFlow = () => {
 
   const [step, setStep] = useState<"input" | "loading" | "result">("input");
   const [result, setResult] = useState<CompatibilityResult | null>(null);
-  const [deepAnalysis, setDeepAnalysis] = useState("");
-  const [deepAnalysisDone, setDeepAnalysisDone] = useState(false);
   const [savedReportId, setSavedReportId] = useState<string | null>(null);
   const [loadingLineIdx, setLoadingLineIdx] = useState(0);
 
@@ -109,41 +107,7 @@ const CompatibilityFlow = () => {
     return () => clearInterval(id);
   }, [step, loadingLines.length]);
 
-  const streamDeepAnalysis = useCallback(async (myProfile: any, partnerProfile: any, quickResult: any) => {
-    setDeepAnalysis("");
-    setDeepAnalysisDone(false);
-    try {
-      const resp = await fetch(CHAT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
-        body: JSON.stringify({ action: "deep-analysis", myProfile, partnerProfile, quickResult, locale }),
-      });
-      if (!resp.ok || !resp.body) { setDeepAnalysisDone(true); return; }
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let fullText = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        let newlineIdx: number;
-        while ((newlineIdx = buffer.indexOf("\n")) !== -1) {
-          let line = buffer.slice(0, newlineIdx);
-          buffer = buffer.slice(newlineIdx + 1);
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (!line.startsWith("data: ")) continue;
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") break;
-          try { const p = JSON.parse(jsonStr); const c = p.choices?.[0]?.delta?.content; if (c) { fullText += c; setDeepAnalysis(fullText); } } catch {}
-        }
-      }
-      setDeepAnalysisDone(true);
-      if (user && fullText) {
-        await supabase.from("compatibility_reports").update({ result_data: { ...quickResult, deepAnalysis: fullText } as any }).eq("user_id", user.id).order("created_at", { ascending: false }).limit(1);
-      }
-    } catch { setDeepAnalysisDone(true); }
-  }, [user, locale]);
+
 
   const handleSubmit = useCallback(async () => {
     if (!user) { toast.error(t("assessmentFlow.compatibility.pleaseSignIn")); navigate("/auth"); return; }
@@ -153,8 +117,6 @@ const CompatibilityFlow = () => {
     if (!partnerMbti && !partnerZodiac && !partnerTraits.trim()) { toast.error(t("assessmentFlow.compatibility.needTheirInfo")); return; }
     await incrementAssessment();
     setStep("loading");
-    setDeepAnalysis("");
-    setDeepAnalysisDone(false);
     const stageLabel = stage ? t(`assessmentFlow.compatibility.stages.${stage}`) : undefined;
     const vibeLabel = vibe ? t(`assessmentFlow.compatibility.vibes.${vibe}`) : undefined;
     const myProfile = { name: myName, mbti: myMbti || undefined, zodiac: myZodiac || undefined, traits: myTraits || undefined, stage: stageLabel, recentVibe: vibeLabel };
@@ -169,13 +131,12 @@ const CompatibilityFlow = () => {
       setStep("result");
       const { data: inserted } = await (supabase as any).from("compatibility_reports").insert({ user_id: user.id, partner_info: { name: partnerName, mbti: partnerMbti, zodiac: partnerZodiac, traits: partnerTraits, stage: stageLabel, recentVibe: vibeLabel }, result_data: r, is_paid: false }).select("id").single();
       if (inserted?.id) setSavedReportId(inserted.id);
-      streamDeepAnalysis(myProfile, partnerProfile, r);
     } catch (e: any) {
       if (isDailyLimitError(e)) toast.error(t("assessmentFlow.compatibility.dailyLimitReached", { n: 20 }));
       else toast.error(e.message || t("assessmentFlow.compatibility.analyzeFail"));
       setStep("input");
     }
-  }, [user, myName, myMbti, myZodiac, myTraits, partnerName, partnerMbti, partnerZodiac, partnerTraits, stage, vibe, canAssess, streamDeepAnalysis, locale, t, assessmentLimit, incrementAssessment, navigate]);
+  }, [user, myName, myMbti, myZodiac, myTraits, partnerName, partnerMbti, partnerZodiac, partnerTraits, stage, vibe, canAssess, locale, t, assessmentLimit, incrementAssessment, navigate]);
 
   const rarity: Rarity = (result?.rarity as Rarity) || (result ? deriveRarity(result.overallScore) : "N");
   const theme = RARITY_THEME[rarity];
@@ -488,18 +449,7 @@ const CompatibilityFlow = () => {
               </div>
             )}
 
-            {/* Deep analysis (kept) */}
-            <div className="rounded-2xl bg-card p-5 shadow-card">
-              <h4 className="font-display text-sm font-semibold text-foreground mb-3">{t("assessmentFlow.compatibility.deepAnalysis")}</h4>
-              {deepAnalysis ? (
-                <div className="prose prose-sm max-w-none text-foreground prose-p:text-sm prose-p:leading-relaxed">
-                  <ReactMarkdown>{deepAnalysis}</ReactMarkdown>
-                  {!deepAnalysisDone && <span className="inline-block w-1.5 h-4 bg-secondary animate-pulse ml-0.5 align-middle rounded-sm" />}
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 text-muted-foreground"><Loader2 className="h-4 w-4 animate-spin" /><span className="text-xs">{t("assessmentFlow.compatibility.deepAnalysisLoading")}</span></div>
-              )}
-            </div>
+
 
             {/* Invite CTA */}
             <button
@@ -515,11 +465,11 @@ const CompatibilityFlow = () => {
 
             <div className="flex gap-3">
               <button onClick={handleSharePoster} className="flex-1 rounded-xl bg-gradient-golden py-3 text-sm font-semibold text-white flex items-center justify-center gap-2"><Share2 className="h-4 w-4" /> {t("assessmentFlow.compatibility.savePoster")}</button>
-              <button onClick={() => { setStep("input"); setResult(null); setDeepAnalysis(""); }} className="flex-1 rounded-xl bg-card py-3 text-sm font-semibold text-foreground shadow-card flex items-center justify-center gap-2 border border-border"><Users className="h-4 w-4" /> {t("assessmentFlow.compatibility.tryAgain")}</button>
+              <button onClick={() => { setStep("input"); setResult(null); }} className="flex-1 rounded-xl bg-card py-3 text-sm font-semibold text-foreground shadow-card flex items-center justify-center gap-2 border border-border"><Users className="h-4 w-4" /> {t("assessmentFlow.compatibility.tryAgain")}</button>
             </div>
             <button
               onClick={() => navigate(`/chat?agent=bestie`, {
-                state: { compatibilityResult: { partnerName, partnerMbti, partnerZodiac, overallScore: result.overallScore, title: result.title, summary: result.summary, dimensions: result.dimensions, strengths: result.strengths, conflicts: result.conflicts, loveLanguage: result.loveLanguage, deepAnalysis: deepAnalysisDone ? deepAnalysis : undefined } },
+                state: { compatibilityResult: { partnerName, partnerMbti, partnerZodiac, overallScore: result.overallScore, title: result.title, summary: result.summary, dimensions: result.dimensions, strengths: result.strengths, conflicts: result.conflicts, loveLanguage: result.loveLanguage } },
               })}
               className="w-full rounded-xl bg-card py-3 text-sm font-semibold text-foreground shadow-card border border-border flex items-center justify-center gap-2"
             >
