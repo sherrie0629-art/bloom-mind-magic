@@ -247,8 +247,8 @@ const CompatibilityDetail = () => {
         open={shareOpen}
         onClose={() => { setShareOpen(false); setShareDataUrl(null); }}
         imageDataUrl={shareDataUrl}
-        title={d?.title || "Compatibility"}
-        text={`${d?.overallScore || 0}% Match ✨`}
+        title={d?.title || t("compatibilityDetail.compatibilityFallback")}
+        text={t("compatibilityDetail.scoreMatch", { n: d?.overallScore || 0 })}
       />
     </div>
     </DesktopLayout>
