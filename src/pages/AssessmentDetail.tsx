@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import DeepReportUnlock from "@/components/DeepReportUnlock";
 import { useTranslation } from "react-i18next";
 import i18n from "@/i18n";
+import { normalizeTraitScores } from "@/lib/scoreNormalize";
 
 const typeIcons: Record<string, typeof Brain> = {
   mbti: Brain, enneagram: Compass, zodiac: Stars, emotion: Flame,
