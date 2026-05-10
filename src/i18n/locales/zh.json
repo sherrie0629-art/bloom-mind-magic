@@ -400,9 +400,19 @@
       "career": "事业",
       "fortune": "财运",
       "stress": "压力",
-      "energy": "能量",
+      "energy": "活力",
       "social": "社交",
-      "sleep": "睡眠"
+      "sleep": "睡眠",
+      "selfAwareness": "自我觉察",
+      "empathy": "共情力",
+      "resilience": "心理韧性",
+      "burnout": "倦怠值",
+      "boundaries": "边界感",
+      "regulation": "情绪调节",
+      "emotional": "情感共鸣",
+      "communication": "沟通默契",
+      "values": "价值观契合",
+      "chemistry": "化学反应"
     }
   },
   "compatibilityReports": {
