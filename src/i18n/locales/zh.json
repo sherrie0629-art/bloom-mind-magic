@@ -433,7 +433,14 @@
     "deepAnalysis": "📖 深度解析",
     "you": "你",
     "scoreMatch": "{{n}}% 匹配 ✨",
-    "posterFail": "海报生成失败"
+    "posterFail": "海报生成失败",
+    "notFound": "未找到报告",
+    "goBack": "返回",
+    "withPartner": "与 {{name}}",
+    "partnerDefault": "TA",
+    "generatingPoster": "正在生成海报…",
+    "compatibilityFallback": "缘分分析",
+    "matchSuffix": "{{n}}% 匹配"
   },
   "vault": {
     "title": "藏宝匣",
