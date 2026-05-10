@@ -84,34 +84,34 @@ const CompatibilityDetail = () => {
           <button onClick={() => navigate("/compatibility-reports")} className="text-muted-foreground">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h2 className="font-display text-sm font-semibold text-foreground">💕 Compatibility Details</h2>
+          <h2 className="font-display text-sm font-semibold text-foreground">{t("compatibilityDetail.title")}</h2>
         </div>
         <button
           onClick={async () => {
             try {
-              toast.info("Generating poster…", { duration: 3000 });
-              const bars = d?.dimensions
-                ? Object.entries(d.dimensions).map(([k, v]) => ({
-                    label1: DIM_LABELS[k] || k,
+              toast.info(t("compatibilityDetail.generatingPoster"), { duration: 3000 });
+              const bars = dimensionsNormalized
+                ? Object.entries(dimensionsNormalized).map(([k, v]) => ({
+                    label1: t(`assessmentDetail.dim.${k}`, { defaultValue: k }),
                     label2: "",
                     value: v as number,
                   }))
                 : [];
               const canvas = await generatePoster({
-                title: d?.title || "Compatibility",
-                subtitle: `${d?.overallScore || 0}% Match`,
+                title: d?.title || t("compatibilityDetail.compatibilityFallback"),
+                subtitle: t("compatibilityDetail.matchSuffix", { n: d?.overallScore || 0 }),
                 description: d?.summary || "",
                 bars,
                 accentColor: "#f472b6",
                 accentColorLight: "#fb7185",
                 icon: d?.emoji || "💕",
-                caption: `with ${partner?.name || "Partner"}`,
+                caption: t("compatibilityDetail.withPartner", { name: partnerName }),
                 appName: "Soul Sanctuary · Compatibility",
               });
               setShareDataUrl(canvas.toDataURL("image/png"));
               setShareOpen(true);
             } catch {
-              toast.error("Failed to generate poster");
+              toast.error(t("compatibilityDetail.posterFail"));
             }
           }}
           className="text-muted-foreground hover:text-foreground transition-colors"
@@ -131,26 +131,26 @@ const CompatibilityDetail = () => {
           <p className={`font-display text-4xl font-bold ${getScoreColor(d?.overallScore || 0)}`}>
             {d?.overallScore || 0}%
           </p>
-          <h3 className="font-display text-lg font-bold text-foreground mt-1">{d?.title || "Compatibility Analysis"}</h3>
+          <h3 className="font-display text-lg font-bold text-foreground mt-1">{d?.title || t("compatibilityDetail.compatibilityFallback")}</h3>
           <p className="text-[11px] text-muted-foreground/60 mt-1">
-            with {partner?.name || "Partner"} · {formatDate(report.created_at)}
+            {t("compatibilityDetail.withPartner", { name: partnerName })} · {formatDate(report.created_at)}
           </p>
           <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{d?.summary}</p>
         </motion.div>
 
         {/* Five Dimensions */}
-        {d?.dimensions && (
+        {dimensionsNormalized && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="rounded-2xl bg-card p-5 shadow-card space-y-3"
           >
-            <h4 className="font-display text-sm font-semibold text-foreground mb-2">Five Dimensions</h4>
-            {Object.entries(d.dimensions).map(([key, value]) => (
+            <h4 className="font-display text-sm font-semibold text-foreground mb-2">{t("compatibilityDetail.fiveDimensions")}</h4>
+            {Object.entries(dimensionsNormalized).map(([key, value]) => (
               <div key={key} className="space-y-1">
                 <div className="flex justify-between text-[11px] text-muted-foreground">
-                  <span>{DIM_LABELS[key] || key}</span>
+                  <span>{t(`assessmentDetail.dim.${key}`, { defaultValue: key })}</span>
                   <span>{value as number}%</span>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
