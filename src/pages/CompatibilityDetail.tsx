@@ -11,14 +11,8 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import DeepReportUnlock from "@/components/DeepReportUnlock";
 import { useTranslation } from "react-i18next";
-
-const DIM_LABELS: Record<string, string> = {
-  emotional: "Emotional Resonance",
-  communication: "Communication",
-  values: "Shared Values",
-  growth: "Growth Synergy",
-  chemistry: "Chemistry",
-};
+import i18n from "@/i18n";
+import { normalizeTraitScores } from "@/lib/scoreNormalize";
 
 const CompatibilityDetail = () => {
   const { t } = useTranslation();
@@ -56,18 +50,23 @@ const CompatibilityDetail = () => {
   if (!report) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-calm gap-3">
-        <p className="text-muted-foreground">Report not found</p>
-        <button onClick={() => navigate(-1)} className="text-sm text-secondary underline">Go back</button>
+        <p className="text-muted-foreground">{t("compatibilityDetail.notFound")}</p>
+        <button onClick={() => navigate(-1)} className="text-sm text-secondary underline">{t("compatibilityDetail.goBack")}</button>
       </div>
     );
   }
 
   const d = report.result_data as any;
   const partner = report.partner_info as any;
+  const partnerName = partner?.name || t("compatibilityDetail.partnerDefault");
+  const dimensionsNormalized = d?.dimensions
+    ? normalizeTraitScores(d.dimensions as Record<string, number>)
+    : null;
 
   const formatDate = (s: string) => {
     const dt = new Date(s);
-    return dt.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) + " " +
+    const lang = (i18n.resolvedLanguage || i18n.language || "en").startsWith("zh") ? "zh-CN" : "en-US";
+    return dt.toLocaleDateString(lang, { year: "numeric", month: "short", day: "numeric" }) + " " +
       dt.getHours().toString().padStart(2, "0") + ":" + dt.getMinutes().toString().padStart(2, "0");
   };
 
@@ -85,34 +84,34 @@ const CompatibilityDetail = () => {
           <button onClick={() => navigate("/compatibility-reports")} className="text-muted-foreground">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <h2 className="font-display text-sm font-semibold text-foreground">💕 Compatibility Details</h2>
+          <h2 className="font-display text-sm font-semibold text-foreground">{t("compatibilityDetail.title")}</h2>
         </div>
         <button
           onClick={async () => {
             try {
-              toast.info("Generating poster…", { duration: 3000 });
-              const bars = d?.dimensions
-                ? Object.entries(d.dimensions).map(([k, v]) => ({
-                    label1: DIM_LABELS[k] || k,
+              toast.info(t("compatibilityDetail.generatingPoster"), { duration: 3000 });
+              const bars = dimensionsNormalized
+                ? Object.entries(dimensionsNormalized).map(([k, v]) => ({
+                    label1: t(`assessmentDetail.dim.${k}`, { defaultValue: k }),
                     label2: "",
                     value: v as number,
                   }))
                 : [];
               const canvas = await generatePoster({
-                title: d?.title || "Compatibility",
-                subtitle: `${d?.overallScore || 0}% Match`,
+                title: d?.title || t("compatibilityDetail.compatibilityFallback"),
+                subtitle: t("compatibilityDetail.matchSuffix", { n: d?.overallScore || 0 }),
                 description: d?.summary || "",
                 bars,
                 accentColor: "#f472b6",
                 accentColorLight: "#fb7185",
                 icon: d?.emoji || "💕",
-                caption: `with ${partner?.name || "Partner"}`,
+                caption: t("compatibilityDetail.withPartner", { name: partnerName }),
                 appName: "Soul Sanctuary · Compatibility",
               });
               setShareDataUrl(canvas.toDataURL("image/png"));
               setShareOpen(true);
             } catch {
-              toast.error("Failed to generate poster");
+              toast.error(t("compatibilityDetail.posterFail"));
             }
           }}
           className="text-muted-foreground hover:text-foreground transition-colors"
@@ -132,26 +131,26 @@ const CompatibilityDetail = () => {
           <p className={`font-display text-4xl font-bold ${getScoreColor(d?.overallScore || 0)}`}>
             {d?.overallScore || 0}%
           </p>
-          <h3 className="font-display text-lg font-bold text-foreground mt-1">{d?.title || "Compatibility Analysis"}</h3>
+          <h3 className="font-display text-lg font-bold text-foreground mt-1">{d?.title || t("compatibilityDetail.compatibilityFallback")}</h3>
           <p className="text-[11px] text-muted-foreground/60 mt-1">
-            with {partner?.name || "Partner"} · {formatDate(report.created_at)}
+            {t("compatibilityDetail.withPartner", { name: partnerName })} · {formatDate(report.created_at)}
           </p>
           <p className="text-xs text-muted-foreground mt-3 leading-relaxed">{d?.summary}</p>
         </motion.div>
 
         {/* Five Dimensions */}
-        {d?.dimensions && (
+        {dimensionsNormalized && (
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="rounded-2xl bg-card p-5 shadow-card space-y-3"
           >
-            <h4 className="font-display text-sm font-semibold text-foreground mb-2">Five Dimensions</h4>
-            {Object.entries(d.dimensions).map(([key, value]) => (
+            <h4 className="font-display text-sm font-semibold text-foreground mb-2">{t("compatibilityDetail.fiveDimensions")}</h4>
+            {Object.entries(dimensionsNormalized).map(([key, value]) => (
               <div key={key} className="space-y-1">
                 <div className="flex justify-between text-[11px] text-muted-foreground">
-                  <span>{DIM_LABELS[key] || key}</span>
+                  <span>{t(`assessmentDetail.dim.${key}`, { defaultValue: key })}</span>
                   <span>{value as number}%</span>
                 </div>
                 <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -175,7 +174,7 @@ const CompatibilityDetail = () => {
             transition={{ delay: 0.15 }}
             className="rounded-2xl bg-card p-5 shadow-card"
           >
-            <h4 className="font-display text-sm font-semibold text-foreground mb-3">✨ Strengths</h4>
+            <h4 className="font-display text-sm font-semibold text-foreground mb-3">{t("compatibilityDetail.strengths")}</h4>
             <ul className="space-y-2">
               {d.strengths.map((s: string, i: number) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-foreground">
@@ -195,7 +194,7 @@ const CompatibilityDetail = () => {
             transition={{ delay: 0.2 }}
             className="rounded-2xl bg-card p-5 shadow-card"
           >
-            <h4 className="font-display text-sm font-semibold text-foreground mb-3">⚡ Potential Conflicts & Solutions</h4>
+            <h4 className="font-display text-sm font-semibold text-foreground mb-3">{t("compatibilityDetail.conflicts")}</h4>
             <div className="space-y-3">
               {d.conflicts.map((c: any, i: number) => (
                 <div key={i} className="rounded-xl bg-muted/30 p-3">
@@ -215,14 +214,14 @@ const CompatibilityDetail = () => {
             transition={{ delay: 0.25 }}
             className="rounded-2xl bg-card p-5 shadow-card"
           >
-            <h4 className="font-display text-sm font-semibold text-foreground mb-3">💗 Love Languages</h4>
+            <h4 className="font-display text-sm font-semibold text-foreground mb-3">{t("compatibilityDetail.loveLanguages")}</h4>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div className="rounded-xl bg-muted/30 p-3 text-center">
-                <p className="text-[10px] text-muted-foreground">You</p>
+                <p className="text-[10px] text-muted-foreground">{t("compatibilityDetail.you")}</p>
                 <p className="text-sm font-semibold text-foreground mt-1">{d.loveLanguage.mine}</p>
               </div>
               <div className="rounded-xl bg-muted/30 p-3 text-center">
-                <p className="text-[10px] text-muted-foreground">{partner?.name || "Partner"}</p>
+                <p className="text-[10px] text-muted-foreground">{partnerName}</p>
                 <p className="text-sm font-semibold text-foreground mt-1">{d.loveLanguage.partner}</p>
               </div>
             </div>
@@ -248,8 +247,8 @@ const CompatibilityDetail = () => {
         open={shareOpen}
         onClose={() => { setShareOpen(false); setShareDataUrl(null); }}
         imageDataUrl={shareDataUrl}
-        title={d?.title || "Compatibility"}
-        text={`${d?.overallScore || 0}% Match ✨`}
+        title={d?.title || t("compatibilityDetail.compatibilityFallback")}
+        text={t("compatibilityDetail.scoreMatch", { n: d?.overallScore || 0 })}
       />
     </div>
     </DesktopLayout>

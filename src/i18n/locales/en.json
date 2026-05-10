@@ -402,7 +402,17 @@
       "stress": "Stress",
       "energy": "Energy",
       "social": "Social",
-      "sleep": "Sleep"
+      "sleep": "Sleep",
+      "selfAwareness": "Self-Awareness",
+      "empathy": "Empathy",
+      "resilience": "Resilience",
+      "burnout": "Burnout",
+      "boundaries": "Boundaries",
+      "regulation": "Regulation",
+      "emotional": "Emotional Resonance",
+      "communication": "Communication",
+      "values": "Shared Values",
+      "chemistry": "Chemistry"
     }
   },
   "compatibilityReports": {
@@ -423,7 +433,14 @@
     "deepAnalysis": "📖 Deep Analysis",
     "you": "You",
     "scoreMatch": "{{n}}% Match ✨",
-    "posterFail": "Failed to generate poster"
+    "posterFail": "Failed to generate poster",
+    "notFound": "Report not found",
+    "goBack": "Go back",
+    "withPartner": "with {{name}}",
+    "partnerDefault": "Partner",
+    "generatingPoster": "Generating poster…",
+    "compatibilityFallback": "Compatibility Analysis",
+    "matchSuffix": "{{n}}% Match"
   },
   "vault": {
     "title": "Collection",

@@ -164,7 +164,7 @@ ${langInstr}
         coreFear: { type: "string", description: "10-20 字 / 8-15 words. 画面化短句，禁止抽象定义。例：'被人发现你其实在硬撑的那一秒'" },
         coreDesire: { type: "string", description: "10-20 字 / 8-15 words. 画面化短句，禁止抽象定义" },
         description: { type: "string", description: "~200 字 / ~180 words. 第二人称，前两句必须是具体生活画面（你大概率有过这种瞬间...），中段解释动机，结尾一句温柔锐评。禁止'你是一个 XX 的人'开头" },
-        traits: { type: "object", properties: { selfAwareness: { type: "number" }, empathy: { type: "number" }, resilience: { type: "number" }, growth: { type: "number" } }, required: ["selfAwareness", "empathy", "resilience", "growth"] },
+        traits: { type: "object", description: "Trait scores. Each is an INTEGER 0-100. 真实分布要有说服力：最高维通常 75-92，中间维 55-75，最低维 35-55。严禁所有维度都集中在 0-20 区间。", properties: { selfAwareness: { type: "number", description: "Integer 0-100, typically 35-92" }, empathy: { type: "number", description: "Integer 0-100, typically 35-92" }, resilience: { type: "number", description: "Integer 0-100, typically 35-92" }, growth: { type: "number", description: "Integer 0-100, typically 35-92" } }, required: ["selfAwareness", "empathy", "resilience", "growth"] },
         growthPath: { type: "string", description: "60-100 字 / 50-90 words. 给 1 个本周可执行小动作 + 1 句温柔提醒。禁止'你应该学会...'句式" },
         stressArrow: { type: "string", description: "60-100 字 / 50-90 words. 描述压力下的具体行为（拉黑、熬夜刷手机、突然清空购物车…），带一点自嘲" },
         advice: { type: "string", description: "50-80 字 / 40-70 words. 闺蜜在 24h 便利店递关东煮的语气：必须含 1 个具体小动作或场景；可带 1 个 emoji；允许俏皮、自嘲、轻吐槽。禁止以'建议你''你应该''你需要''记住'开头；禁用'保持初心''坚持自我''学会爱自己''相信自己''做最好的自己'等鸡汤短语" },

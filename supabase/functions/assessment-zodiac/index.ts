@@ -138,7 +138,7 @@ Respond in the language indicated by LANG below. You must call the zodiac_result
         zodiacSign: { type: "string" }, element: { type: "string", description: "Element: Fire/Earth/Air/Water" },
         title: { type: "string", description: "Reading theme, e.g. 'Season of Renewal'" },
         description: { type: "string", description: "~200 word personalized horoscope reading" },
-        traits: { type: "object", properties: { overall: { type: "number" }, love: { type: "number" }, career: { type: "number" }, fortune: { type: "number" } }, required: ["overall", "love", "career", "fortune"] },
+        traits: { type: "object", description: "Each is an INTEGER 0-100. 让运势分布有起伏：最旺维 75-95，最弱维 35-55。严禁全部低于 20。", properties: { overall: { type: "number", description: "Integer 0-100, typically 50-92" }, love: { type: "number", description: "Integer 0-100, typically 35-92" }, career: { type: "number", description: "Integer 0-100, typically 35-92" }, fortune: { type: "number", description: "Integer 0-100, typically 35-92" } }, required: ["overall", "love", "career", "fortune"] },
         luckyItems: { type: "object", properties: { color: { type: "string" }, number: { type: "string" }, direction: { type: "string" } }, required: ["color", "number", "direction"] },
         advice: {
           type: "object",

@@ -118,7 +118,7 @@ Respond in the language indicated by LANG below. Call emotion_result tool.${lang
         emoji: { type: "string" },
         title: { type: "string", description: "Title like 'Your Inner Fire is Strong' or 'Time to Recharge'" },
         description: { type: "string", description: "~200 word personalized wellness analysis, warm and encouraging" },
-        traits: { type: "object", properties: { burnout: { type: "number", description: "Burnout level 0-100 (lower is better)" }, energy: { type: "number" }, boundaries: { type: "number" }, sleep: { type: "number" } }, required: ["burnout", "energy", "boundaries", "sleep"] },
+        traits: { type: "object", description: "Each is an INTEGER 0-100. 强弱差异要明显：典型最高维 70-92，最低维 30-55。严禁全部维度都低于 20。", properties: { burnout: { type: "number", description: "Burnout level, integer 0-100 (lower is better)" }, energy: { type: "number", description: "Integer 0-100, typically 30-92" }, boundaries: { type: "number", description: "Integer 0-100, typically 30-92" }, sleep: { type: "number", description: "Integer 0-100, typically 30-92" } }, required: ["burnout", "energy", "boundaries", "sleep"] },
         suggestions: { type: "array", items: { type: "string" }, description: "3 actionable self-care suggestions" },
         socialCaption: { type: "string", description: "Warm shareable caption under 30 words" },
       }, required: ["emotionLevel", "emoji", "title", "description", "traits", "suggestions", "socialCaption"] } } }],
