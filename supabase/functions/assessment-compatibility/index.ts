@@ -106,7 +106,7 @@ STYLE RULES:
             tags: { type: "array", items: { type: "string" }, description: "Exactly 3 punchy chip tags" },
             emoji: { type: "string" },
             summary: { type: "string", description: "60 words or less relationship overview" },
-            dimensions: { type: "object", properties: { emotional: { type: "number" }, communication: { type: "number" }, values: { type: "number" }, growth: { type: "number" }, chemistry: { type: "number" } }, required: ["emotional", "communication", "values", "growth", "chemistry"] },
+            dimensions: { type: "object", description: "Each is an INTEGER 0-100. 五维要有差异：最高 75-95，最低 40-60。严禁全部低于 20。", properties: { emotional: { type: "number", description: "Integer 0-100" }, communication: { type: "number", description: "Integer 0-100" }, values: { type: "number", description: "Integer 0-100" }, growth: { type: "number", description: "Integer 0-100" }, chemistry: { type: "number", description: "Integer 0-100" } }, required: ["emotional", "communication", "values", "growth", "chemistry"] },
             radarOneLiner: { type: "string", description: "One sentence summing up the radar shape, under 40 chars" },
             strengths: { type: "array", items: { type: "string" }, description: "3-4 relationship strengths, 20 words each max" },
             conflicts: { type: "array", items: { type: "object", properties: { issue: { type: "string" }, solution: { type: "string" } }, required: ["issue", "solution"] }, description: "2 potential conflicts with solutions" },
