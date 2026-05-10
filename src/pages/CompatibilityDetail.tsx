@@ -50,18 +50,23 @@ const CompatibilityDetail = () => {
   if (!report) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-calm gap-3">
-        <p className="text-muted-foreground">Report not found</p>
-        <button onClick={() => navigate(-1)} className="text-sm text-secondary underline">Go back</button>
+        <p className="text-muted-foreground">{t("compatibilityDetail.notFound")}</p>
+        <button onClick={() => navigate(-1)} className="text-sm text-secondary underline">{t("compatibilityDetail.goBack")}</button>
       </div>
     );
   }
 
   const d = report.result_data as any;
   const partner = report.partner_info as any;
+  const partnerName = partner?.name || t("compatibilityDetail.partnerDefault");
+  const dimensionsNormalized = d?.dimensions
+    ? normalizeTraitScores(d.dimensions as Record<string, number>)
+    : null;
 
   const formatDate = (s: string) => {
     const dt = new Date(s);
-    return dt.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) + " " +
+    const lang = (i18n.resolvedLanguage || i18n.language || "en").startsWith("zh") ? "zh-CN" : "en-US";
+    return dt.toLocaleDateString(lang, { year: "numeric", month: "short", day: "numeric" }) + " " +
       dt.getHours().toString().padStart(2, "0") + ":" + dt.getMinutes().toString().padStart(2, "0");
   };
 
