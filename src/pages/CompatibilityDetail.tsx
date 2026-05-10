@@ -174,7 +174,7 @@ const CompatibilityDetail = () => {
             transition={{ delay: 0.15 }}
             className="rounded-2xl bg-card p-5 shadow-card"
           >
-            <h4 className="font-display text-sm font-semibold text-foreground mb-3">✨ Strengths</h4>
+            <h4 className="font-display text-sm font-semibold text-foreground mb-3">{t("compatibilityDetail.strengths")}</h4>
             <ul className="space-y-2">
               {d.strengths.map((s: string, i: number) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-foreground">
