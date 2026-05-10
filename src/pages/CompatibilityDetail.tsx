@@ -11,14 +11,8 @@ import { toast } from "sonner";
 import ReactMarkdown from "react-markdown";
 import DeepReportUnlock from "@/components/DeepReportUnlock";
 import { useTranslation } from "react-i18next";
-
-const DIM_LABELS: Record<string, string> = {
-  emotional: "Emotional Resonance",
-  communication: "Communication",
-  values: "Shared Values",
-  growth: "Growth Synergy",
-  chemistry: "Chemistry",
-};
+import i18n from "@/i18n";
+import { normalizeTraitScores } from "@/lib/scoreNormalize";
 
 const CompatibilityDetail = () => {
   const { t } = useTranslation();
