@@ -433,7 +433,14 @@
     "deepAnalysis": "📖 Deep Analysis",
     "you": "You",
     "scoreMatch": "{{n}}% Match ✨",
-    "posterFail": "Failed to generate poster"
+    "posterFail": "Failed to generate poster",
+    "notFound": "Report not found",
+    "goBack": "Go back",
+    "withPartner": "with {{name}}",
+    "partnerDefault": "Partner",
+    "generatingPoster": "Generating poster…",
+    "compatibilityFallback": "Compatibility Analysis",
+    "matchSuffix": "{{n}}% Match"
   },
   "vault": {
     "title": "Collection",
