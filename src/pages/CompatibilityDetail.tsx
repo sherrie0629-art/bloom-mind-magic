@@ -214,14 +214,14 @@ const CompatibilityDetail = () => {
             transition={{ delay: 0.25 }}
             className="rounded-2xl bg-card p-5 shadow-card"
           >
-            <h4 className="font-display text-sm font-semibold text-foreground mb-3">💗 Love Languages</h4>
+            <h4 className="font-display text-sm font-semibold text-foreground mb-3">{t("compatibilityDetail.loveLanguages")}</h4>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div className="rounded-xl bg-muted/30 p-3 text-center">
-                <p className="text-[10px] text-muted-foreground">You</p>
+                <p className="text-[10px] text-muted-foreground">{t("compatibilityDetail.you")}</p>
                 <p className="text-sm font-semibold text-foreground mt-1">{d.loveLanguage.mine}</p>
               </div>
               <div className="rounded-xl bg-muted/30 p-3 text-center">
-                <p className="text-[10px] text-muted-foreground">{partner?.name || "Partner"}</p>
+                <p className="text-[10px] text-muted-foreground">{partnerName}</p>
                 <p className="text-sm font-semibold text-foreground mt-1">{d.loveLanguage.partner}</p>
               </div>
             </div>
