@@ -51,7 +51,7 @@ const AgentArchive = () => {
   const progressInLevel = nextThreshold ? ((totalTurns - prevThreshold) / (nextThreshold - prevThreshold)) * 100 : 100;
 
   if (!user) {
-    return (<DesktopLayout><div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 pb-20">
+    return (<DesktopLayout><SEO title="Agent Archive — Island AI" description="Browse your agent bond levels, unlock story fragments, and discover hidden Easter eggs from your AI companion conversations." /><div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 pb-20">
       <p className="text-muted-foreground text-sm">{t("archive.needSignIn")}</p>
       <button onClick={() => navigate("/auth")} className="mt-3 text-sm text-secondary underline">{t("archive.signInBtn")}</button>
       <BottomNav />
