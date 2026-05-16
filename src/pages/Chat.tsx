@@ -692,7 +692,7 @@ const Chat = () => {
     </aside>
 
     <div className={`flex h-screen flex-col flex-1 chat-theme-${agentId} relative`} style={{ background: dynamicBg || 'var(--chat-bg, hsl(40 30% 97%))' }}>
-      <SEO title={`${t("nav.home")} — ${t("home.appName")}`} description={t("home.tagline")} />
+      <SEO title={`${agent.name} — ${t("home.appName")}`} description={`Chat with ${agent.name}, an AI companion who listens without judgement. Explore conversations, memories, and hidden story fragments.`} />
       <ChatParticles atmosphere={atmosphere} onBgChange={setDynamicBg} />
       <div className="border-b border-border backdrop-blur-xl px-4 py-3" style={{ backgroundColor: 'var(--chat-header-bg, hsl(0 0% 0% / 0.03))' }}>
         <div className="flex items-center gap-3">

@@ -11,7 +11,7 @@ const Terms = () => {
   const { t } = useTranslation();
   return (
     <DesktopLayout maxWidth="2xl">
-      <SEO title={`Terms of Service — ${t("home.appName")}`} description="Island AI terms of service." />
+      <SEO title={`Terms of Service — ${t("home.appName")}`} description="Read the Island AI terms of service covering subscriptions, billing, refunds, privacy, and acceptable use policies." />
       <div className="min-h-screen bg-gradient-calm px-6 py-10 md:px-8 md:py-14">
         <Link to="/" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-secondary mb-6">
           <ArrowLeft className="h-3.5 w-3.5" /> {t("legal.backHome")}

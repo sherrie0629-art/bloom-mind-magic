@@ -65,7 +65,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-gradient-calm flex flex-col items-center justify-center px-6">
-      <SEO title={`${t("auth.signInUp")} — ${t("home.appName")}`} description={t("home.tagline")} />
+      <SEO title={`${t("auth.signInUp")} — ${t("home.appName")}`} description="Sign in or create an Island AI account to access AI companions, personality assessments, and your soul map." />
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm">
         <div className="text-center mb-8">
           <h1 className="font-display text-3xl font-bold text-gradient-mystic">{t("home.appName")}</h1>

@@ -107,7 +107,7 @@ const Profile = () => {
   return (
     <DesktopLayout>
       <div className="min-h-screen bg-gradient-calm pb-24 md:pb-8">
-        <SEO title={`${t("profile.menu.settings")} — ${t("home.appName")}`} description={t("home.tagline")} />
+        <SEO title="Profile — Island AI" description="View your Island AI profile, subscription plan, chat stats, achievements, and collected soul fragments." />
         <div className="px-6 pt-14 md:pt-10 text-center">
           <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="mx-auto h-20 w-20 rounded-full bg-gradient-mystic p-0.5">
             <div className="flex h-full w-full items-center justify-center rounded-full bg-card">
