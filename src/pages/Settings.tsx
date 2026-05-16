@@ -27,7 +27,7 @@ const Settings = () => {
   return (
     <DesktopLayout>
       <div className="min-h-screen bg-gradient-calm pb-24 md:pb-8">
-        <SEO title={`${t("settings.title")} — Soul Sanctuary`} description="App settings" />
+        <SEO title={`${t("settings.title")} — Soul Sanctuary`} description="Manage your Island AI preferences including language settings and app configuration options." />
         <div className="px-6 pt-10">
           <button
             onClick={() => navigate(-1)}
