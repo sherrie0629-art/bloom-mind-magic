@@ -61,6 +61,7 @@ const AgentArchive = () => {
   return (
     <DesktopLayout>
     <div className="min-h-screen bg-background pb-20 md:pb-8">
+      <SEO title="Agent Archive — Island AI" description="Browse your agent bond levels, unlock story fragments, and discover hidden Easter eggs from your AI companion conversations." />
       <div className="flex items-center gap-3 border-b border-border bg-card/80 backdrop-blur-xl px-4 py-3">
         <button onClick={() => navigate(-1)} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></button>
         <h1 className="font-display text-base font-semibold text-foreground">{t("archive.title")}</h1>
