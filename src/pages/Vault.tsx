@@ -147,6 +147,7 @@ const Vault = () => {
   return (
     <DesktopLayout>
     <div className="min-h-screen bg-gradient-calm pb-20 md:pb-8">
+      <SEO title="Story Vault — Island AI" description="Access your collected story lore, truth shards, and memorable quotes from your journey with AI companions." />
       <div className="flex items-center gap-3 px-4 pt-12 pb-4"><button onClick={() => navigate(-1)} className="text-muted-foreground"><ArrowLeft className="h-5 w-5" /></button><h1 className="font-display text-lg font-bold text-foreground">{t("vault.title")}</h1></div>
       <div className="flex gap-2 px-4 mb-4">{TABS.map((tt) => (<button key={tt.key} onClick={() => setTab(tt.key)} className={`flex items-center gap-1.5 rounded-2xl px-3.5 py-2 text-xs font-medium transition-all active:scale-95 ${tab === tt.key ? "bg-secondary text-primary-foreground shadow-sm" : "bg-card text-muted-foreground border border-border"}`}><tt.icon className="h-3.5 w-3.5" />{tt.label}</button>))}</div>
       <div className="px-4 space-y-3">
