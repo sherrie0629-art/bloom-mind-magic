@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { agents } from "@/data/agents";
 import BottomNav from "@/components/BottomNav";
 import DesktopLayout from "@/components/DesktopLayout";
+import SEO from "@/components/SEO";
 
 interface VaultItem { id: string; agent_id: string; type: string; title: string; content: string; icon: string; unlocked_at: string; }
 interface BondRow { agent_id: string; easter_eggs_found: string[] | null; }

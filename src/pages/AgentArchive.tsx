@@ -8,6 +8,7 @@ import DesktopLayout from "@/components/DesktopLayout";
 import { agents as RAW_AGENTS, BOND_THRESHOLDS } from "@/data/agents";
 import { localizeAgent } from "@/lib/localizeAgent";
 import { useAuth } from "@/contexts/AuthContext";
+import SEO from "@/components/SEO";
 import { supabase } from "@/integrations/supabase/client";
 
 interface BondData { agent_id: string; bond_level: number; total_turns: number; easter_eggs_found: string[]; }
