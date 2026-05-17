@@ -32,13 +32,28 @@ import { parseGameMarkers, type BranchOption, type Atmosphere } from "@/lib/pars
 import { generateFallbackOptions } from "@/lib/generateFallbackOptions";
 import { toast } from "sonner";
 import { generateSoulFragment } from "@/hooks/useSoulFragment";
+import TarotCardInline, { type InlineTarotCard } from "@/components/TarotCardInline";
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
   branchOptions?: BranchOption[] | null;
+  kind?: "text" | "tarot-card";
+  tarotCard?: InlineTarotCard | null; // null = loading skeleton
 }
+
+// Intent detection: does the user want to draw a tarot card?
+const isTarotDrawIntent = (text: string): boolean => {
+  const t = text.toLowerCase().trim();
+  // Chinese: 抽一张牌 / 帮我抽张牌 / 抽张塔罗 / 来一张塔罗 / 给我抽 / 抽牌
+  if (/(抽|来|给我).{0,8}(张|一张|牌|塔罗)/.test(text) && /(牌|塔罗)/.test(text)) return true;
+  if (/抽牌|抽塔罗|塔罗牌/.test(text)) return true;
+  // English: draw/pull a card, give me a tarot
+  if (/\b(draw|pull|give me|pick).{0,15}(card|tarot)\b/.test(t)) return true;
+  if (/\btarot\s+(reading|card)\b/.test(t)) return true;
+  return false;
+};
 
 const EASTER_EGG_MARKER = "【🔮 Hidden Memory Unlocked】";
 
