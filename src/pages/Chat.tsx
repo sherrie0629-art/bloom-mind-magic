@@ -32,13 +32,28 @@ import { parseGameMarkers, type BranchOption, type Atmosphere } from "@/lib/pars
 import { generateFallbackOptions } from "@/lib/generateFallbackOptions";
 import { toast } from "sonner";
 import { generateSoulFragment } from "@/hooks/useSoulFragment";
+import TarotCardInline, { type InlineTarotCard } from "@/components/TarotCardInline";
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
   branchOptions?: BranchOption[] | null;
+  kind?: "text" | "tarot-card";
+  tarotCard?: InlineTarotCard | null; // null = loading skeleton
 }
+
+// Intent detection: does the user want to draw a tarot card?
+const isTarotDrawIntent = (text: string): boolean => {
+  const t = text.toLowerCase().trim();
+  // Chinese: 抽一张牌 / 帮我抽张牌 / 抽张塔罗 / 来一张塔罗 / 给我抽 / 抽牌
+  if (/(抽|来|给我).{0,8}(张|一张|牌|塔罗)/.test(text) && /(牌|塔罗)/.test(text)) return true;
+  if (/抽牌|抽塔罗|塔罗牌/.test(text)) return true;
+  // English: draw/pull a card, give me a tarot
+  if (/\b(draw|pull|give me|pick).{0,15}(card|tarot)\b/.test(t)) return true;
+  if (/\btarot\s+(reading|card)\b/.test(t)) return true;
+  return false;
+};
 
 const EASTER_EGG_MARKER = "【🔮 Hidden Memory Unlocked】";
 
@@ -498,10 +513,40 @@ const Chat = () => {
     const convId = await ensureConversation();
     if (convId) saveMessage(convId, "user", userMsg.content);
 
+    // Mystic tarot draw: detect intent and insert a card before AI reply
+    let drawnCardContext = "";
+    if (agentId === "mystic" && isTarotDrawIntent(text)) {
+      const cardMsgId = `card-${Date.now()}`;
+      setMessages((prev) => [...prev, { id: cardMsgId, role: "assistant", content: "", kind: "tarot-card", tarotCard: null }]);
+      try {
+        const { data: drawn, error: drawErr } = await supabase.functions.invoke("chat-tarot-draw", { body: {} });
+        if (drawErr || !drawn) throw drawErr || new Error("draw failed");
+        const card: InlineTarotCard = {
+          cardName: drawn.cardName,
+          cardNameCn: drawn.cardNameCn,
+          emoji: drawn.emoji,
+          isReversed: drawn.isReversed,
+          keywords: drawn.keywords || [],
+          imageUrl: drawn.imageUrl,
+          imageStatus: drawn.imageStatus,
+        };
+        setMessages((prev) => prev.map((m) => (m.id === cardMsgId ? { ...m, tarotCard: card } : m)));
+        const positionZh = card.isReversed ? "逆位" : "正位";
+        const positionEn = card.isReversed ? "Reversed" : "Upright";
+        drawnCardContext = locale === "zh"
+          ? `\n\n[牌阵指引：用户刚在你的指引下抽到 ${card.cardNameCn}（${positionZh}），关键词：${card.keywords.join("、")}。请用你直觉、温暖的塔罗师口吻围绕这张牌给出 80-150 字解读，结合用户的提问语境，最后以一个开放性问题收尾。不要复述"你抽到了…"这种描述，直接进入解读。]`
+          : `\n\n[Spread context: User just drew ${card.cardName} (${positionEn}) under your guidance. Keywords: ${card.keywords.join(", ")}. Respond in your intuitive, warm tarot voice with an 80-150 word reading around this card, tying it to their question. End with one open question. Don't recite "you drew…" — go straight into the reading.]`;
+      } catch (err) {
+        console.error("[Chat] tarot draw error", err);
+        setMessages((prev) => prev.filter((m) => m.id !== cardMsgId));
+        toast.error(locale === "zh" ? "牌堆暂时无法响应，Luna 会直接为你解读。" : "Card deck unavailable; Luna will read intuitively.");
+      }
+    }
+
     const apiMessages: Msg[] = messages
-      .filter((m) => m.id !== "welcome")
+      .filter((m) => m.id !== "welcome" && m.kind !== "tarot-card")
       .map((m) => ({ role: m.role, content: m.content }));
-    apiMessages.push({ role: "user", content: userMsg.content });
+    apiMessages.push({ role: "user", content: userMsg.content + drawnCardContext });
 
     let assistantContent = "";
 
@@ -738,6 +783,9 @@ const Chat = () => {
               animate={{ opacity: 1, y: 0 }}
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
+              {msg.kind === "tarot-card" ? (
+                <TarotCardInline card={msg.tarotCard ?? null} />
+              ) : (
               <div className="flex flex-col max-w-[75%] md:max-w-[60%]">
                 <div
                   className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed select-none ${
@@ -769,6 +817,7 @@ const Chat = () => {
                   <BranchSelector options={msg.branchOptions} onSelect={handleSend} />
                 )}
               </div>
+              )}
             </motion.div>
           ))}
           {messages.length === 1 && messages[0].id === "welcome" && !isStreaming && (
