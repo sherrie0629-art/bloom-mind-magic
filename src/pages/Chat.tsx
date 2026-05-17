@@ -783,6 +783,9 @@ const Chat = () => {
               animate={{ opacity: 1, y: 0 }}
               className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
+              {msg.kind === "tarot-card" ? (
+                <TarotCardInline card={msg.tarotCard ?? null} />
+              ) : (
               <div className="flex flex-col max-w-[75%] md:max-w-[60%]">
                 <div
                   className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed select-none ${
