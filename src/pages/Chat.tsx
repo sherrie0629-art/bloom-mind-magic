@@ -817,6 +817,7 @@ const Chat = () => {
                   <BranchSelector options={msg.branchOptions} onSelect={handleSend} />
                 )}
               </div>
+              )}
             </motion.div>
           ))}
           {messages.length === 1 && messages[0].id === "welcome" && !isStreaming && (
