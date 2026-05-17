@@ -513,10 +513,40 @@ const Chat = () => {
     const convId = await ensureConversation();
     if (convId) saveMessage(convId, "user", userMsg.content);
 
+    // Mystic tarot draw: detect intent and insert a card before AI reply
+    let drawnCardContext = "";
+    if (agentId === "mystic" && isTarotDrawIntent(text)) {
+      const cardMsgId = `card-${Date.now()}`;
+      setMessages((prev) => [...prev, { id: cardMsgId, role: "assistant", content: "", kind: "tarot-card", tarotCard: null }]);
+      try {
+        const { data: drawn, error: drawErr } = await supabase.functions.invoke("chat-tarot-draw", { body: {} });
+        if (drawErr || !drawn) throw drawErr || new Error("draw failed");
+        const card: InlineTarotCard = {
+          cardName: drawn.cardName,
+          cardNameCn: drawn.cardNameCn,
+          emoji: drawn.emoji,
+          isReversed: drawn.isReversed,
+          keywords: drawn.keywords || [],
+          imageUrl: drawn.imageUrl,
+          imageStatus: drawn.imageStatus,
+        };
+        setMessages((prev) => prev.map((m) => (m.id === cardMsgId ? { ...m, tarotCard: card } : m)));
+        const positionZh = card.isReversed ? "逆位" : "正位";
+        const positionEn = card.isReversed ? "Reversed" : "Upright";
+        drawnCardContext = locale === "zh"
+          ? `\n\n[牌阵指引：用户刚在你的指引下抽到 ${card.cardNameCn}（${positionZh}），关键词：${card.keywords.join("、")}。请用你直觉、温暖的塔罗师口吻围绕这张牌给出 80-150 字解读，结合用户的提问语境，最后以一个开放性问题收尾。不要复述"你抽到了…"这种描述，直接进入解读。]`
+          : `\n\n[Spread context: User just drew ${card.cardName} (${positionEn}) under your guidance. Keywords: ${card.keywords.join(", ")}. Respond in your intuitive, warm tarot voice with an 80-150 word reading around this card, tying it to their question. End with one open question. Don't recite "you drew…" — go straight into the reading.]`;
+      } catch (err) {
+        console.error("[Chat] tarot draw error", err);
+        setMessages((prev) => prev.filter((m) => m.id !== cardMsgId));
+        toast.error(locale === "zh" ? "牌堆暂时无法响应，Luna 会直接为你解读。" : "Card deck unavailable; Luna will read intuitively.");
+      }
+    }
+
     const apiMessages: Msg[] = messages
-      .filter((m) => m.id !== "welcome")
+      .filter((m) => m.id !== "welcome" && m.kind !== "tarot-card")
       .map((m) => ({ role: m.role, content: m.content }));
-    apiMessages.push({ role: "user", content: userMsg.content });
+    apiMessages.push({ role: "user", content: userMsg.content + drawnCardContext });
 
     let assistantContent = "";
 
