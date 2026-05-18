@@ -11,32 +11,55 @@ import SiteFooter from "./components/SiteFooter.tsx";
 import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner.tsx";
 import LocaleSync from "./components/LocaleSync.tsx";
 
-const Chat = lazy(() => import("./pages/Chat.tsx"));
-const Assessment = lazy(() => import("./pages/Assessment.tsx"));
-const AssessmentFlow = lazy(() => import("./pages/AssessmentFlow.tsx"));
-const AssessmentDetail = lazy(() => import("./pages/AssessmentDetail.tsx"));
-const AssessmentReports = lazy(() => import("./pages/AssessmentReports.tsx"));
-const EnneagramFlow = lazy(() => import("./pages/EnneagramFlow.tsx"));
-const ZodiacFlow = lazy(() => import("./pages/ZodiacFlow.tsx"));
-const EmotionFlow = lazy(() => import("./pages/EmotionFlow.tsx"));
-const CompatibilityFlow = lazy(() => import("./pages/CompatibilityFlow.tsx"));
-const CompatibilityReports = lazy(() => import("./pages/CompatibilityReports.tsx"));
-const CompatibilityDetail = lazy(() => import("./pages/CompatibilityDetail.tsx"));
-const Profile = lazy(() => import("./pages/Profile.tsx"));
-const Auth = lazy(() => import("./pages/Auth.tsx"));
-const ConversationHistory = lazy(() => import("./pages/ConversationHistory.tsx"));
-const DailyTarot = lazy(() => import("./pages/DailyTarot.tsx"));
-const AgentArchive = lazy(() => import("./pages/AgentArchive.tsx"));
-const Vault = lazy(() => import("./pages/Vault.tsx"));
-const SoulMap = lazy(() => import("./pages/SoulMap.tsx"));
-const Admin = lazy(() => import("./pages/Admin.tsx"));
-const Settings = lazy(() => import("./pages/Settings.tsx"));
-const Welcome = lazy(() => import("./pages/Welcome.tsx"));
-const Contact = lazy(() => import("./pages/Contact.tsx"));
-const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy.tsx"));
-const TermsOfService = lazy(() => import("./pages/TermsOfService.tsx"));
-const Pricing = lazy(() => import("./pages/Pricing.tsx"));
-const NotFound = lazy(() => import("./pages/NotFound.tsx"));
+// Retry dynamic import once, then force a hard reload if a stale chunk cannot be fetched
+// (typically after a new deploy invalidated the previous hashed chunk file names).
+function lazyWithReload<T extends { default: React.ComponentType<any> }>(factory: () => Promise<T>) {
+  return lazy(async () => {
+    try {
+      return await factory();
+    } catch (err) {
+      try {
+        return await factory();
+      } catch (err2) {
+        const reloaded = sessionStorage.getItem("__chunk_reloaded__");
+        if (!reloaded) {
+          sessionStorage.setItem("__chunk_reloaded__", "1");
+          window.location.reload();
+          // Return a placeholder while reload happens
+          return { default: () => null } as unknown as T;
+        }
+        throw err2;
+      }
+    }
+  });
+}
+
+const Chat = lazyWithReload(() => import("./pages/Chat.tsx"));
+const Assessment = lazyWithReload(() => import("./pages/Assessment.tsx"));
+const AssessmentFlow = lazyWithReload(() => import("./pages/AssessmentFlow.tsx"));
+const AssessmentDetail = lazyWithReload(() => import("./pages/AssessmentDetail.tsx"));
+const AssessmentReports = lazyWithReload(() => import("./pages/AssessmentReports.tsx"));
+const EnneagramFlow = lazyWithReload(() => import("./pages/EnneagramFlow.tsx"));
+const ZodiacFlow = lazyWithReload(() => import("./pages/ZodiacFlow.tsx"));
+const EmotionFlow = lazyWithReload(() => import("./pages/EmotionFlow.tsx"));
+const CompatibilityFlow = lazyWithReload(() => import("./pages/CompatibilityFlow.tsx"));
+const CompatibilityReports = lazyWithReload(() => import("./pages/CompatibilityReports.tsx"));
+const CompatibilityDetail = lazyWithReload(() => import("./pages/CompatibilityDetail.tsx"));
+const Profile = lazyWithReload(() => import("./pages/Profile.tsx"));
+const Auth = lazyWithReload(() => import("./pages/Auth.tsx"));
+const ConversationHistory = lazyWithReload(() => import("./pages/ConversationHistory.tsx"));
+const DailyTarot = lazyWithReload(() => import("./pages/DailyTarot.tsx"));
+const AgentArchive = lazyWithReload(() => import("./pages/AgentArchive.tsx"));
+const Vault = lazyWithReload(() => import("./pages/Vault.tsx"));
+const SoulMap = lazyWithReload(() => import("./pages/SoulMap.tsx"));
+const Admin = lazyWithReload(() => import("./pages/Admin.tsx"));
+const Settings = lazyWithReload(() => import("./pages/Settings.tsx"));
+const Welcome = lazyWithReload(() => import("./pages/Welcome.tsx"));
+const Contact = lazyWithReload(() => import("./pages/Contact.tsx"));
+const PrivacyPolicy = lazyWithReload(() => import("./pages/PrivacyPolicy.tsx"));
+const TermsOfService = lazyWithReload(() => import("./pages/TermsOfService.tsx"));
+const Pricing = lazyWithReload(() => import("./pages/Pricing.tsx"));
+const NotFound = lazyWithReload(() => import("./pages/NotFound.tsx"));
 
 const queryClient = new QueryClient();
 
