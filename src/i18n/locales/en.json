@@ -821,6 +821,13 @@
         "1": "Thank you — I don't need to pretend here",
         "2": "I'm ready. Let's keep going"
       }
+    },
+    "hooks": {
+      "0": "Tell me more about that '{{phrase}}' moment",
+      "1": "What's hiding behind '{{phrase}}'?",
+      "2": "If '{{phrase}}' could speak, what would it say?",
+      "3": "Let me sit with '{{phrase}}' for a moment",
+      "4": "I want to see '{{phrase}}' from another angle"
     }
   },
   "agents": {

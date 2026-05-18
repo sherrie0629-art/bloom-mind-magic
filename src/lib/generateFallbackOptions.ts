@@ -152,30 +152,160 @@ const genericPools: KeyedOption[][] = [
   ],
 ];
 
+// --- Phrase extraction for dynamic hook ---
+
+// Single CJK chars that are too generic to anchor a phrase
+const ZH_STOPWORDS = new Set([
+  "我", "你", "他", "她", "它", "的", "了", "是", "在", "和", "与", "也", "都", "就", "还", "但", "因",
+  "为", "所", "以", "如", "果", "什", "么", "怎", "样", "这", "那", "个", "些", "一", "二", "没", "有",
+  "不", "会", "可", "应", "该", "好", "像", "感", "觉", "得", "知", "道", "想", "要", "把", "被", "让",
+  "给", "对", "于", "之", "啊", "呢", "吧", "吗", "呀", "哦", "嗯", "唉", "其", "实", "真", "很", "太",
+  "最", "更", "再", "又", "已", "经", "现", "今", "昨", "明", "天", "近", "特", "别", "地", "里", "上",
+  "下", "去", "来", "做", "说", "看", "听", "种", "次", "件", "样", "件", "点", "时", "候", "或",
+]);
+
+const EN_STOPWORDS = new Set([
+  "the", "a", "an", "and", "or", "but", "if", "in", "on", "at", "to", "for", "of", "with", "by", "from",
+  "is", "am", "are", "was", "were", "be", "been", "being", "have", "has", "had", "do", "does", "did",
+  "will", "would", "could", "should", "can", "may", "might", "must", "i", "you", "he", "she", "it", "we",
+  "they", "me", "him", "her", "us", "them", "my", "your", "his", "its", "our", "their", "this", "that",
+  "these", "those", "what", "which", "who", "when", "where", "why", "how", "all", "some", "any", "no",
+  "not", "just", "really", "very", "so", "too", "also", "only", "feel", "think", "know", "want", "like",
+  "get", "go", "going", "make", "made", "kind", "thing", "things", "way", "now", "today",
+]);
+
+/**
+ * Extract a 2-6 char Chinese phrase (or 1-2 English word phrase) from user text.
+ * Heuristic: split by punctuation/whitespace, drop stopwords, prefer the longest remaining run.
+ */
+function extractKeyPhrase(text: string): string | null {
+  const cleaned = text
+    .replace(/[【】\[\]（）()「」『』"'`~!@#$%^&*+=<>{}|\\\/?,.，。、；;：:！？\n\r\t]+/g, " ")
+    .trim();
+  if (!cleaned) return null;
+
+  // Chinese path: split each CJK segment by stopword chars, keep 2-6 char runs
+  const cjkSegs = cleaned.match(/[\u4e00-\u9fff]+/g) || [];
+  const candidates: string[] = [];
+  for (const seg of cjkSegs) {
+    let buf = "";
+    const flush = () => {
+      if (buf.length >= 2 && buf.length <= 6 && !ZH_STOPWORDS.has(buf)) {
+        candidates.push(buf);
+      }
+      buf = "";
+    };
+    for (const ch of seg) {
+      if (ZH_STOPWORDS.has(ch)) {
+        flush();
+      } else {
+        buf += ch;
+        if (buf.length === 6) flush();
+      }
+    }
+    flush();
+  }
+  if (candidates.length > 0) {
+    // Prefer longest; ties broken by recency (later in text = more salient)
+    candidates.sort((a, b) => (b.length - a.length) || (candidates.lastIndexOf(b) - candidates.lastIndexOf(a)));
+    return candidates[0];
+  }
+
+  // English path
+  const words = cleaned.toLowerCase().split(/\s+/).filter((w) => w.length >= 3 && !EN_STOPWORDS.has(w));
+  if (words.length === 0) return null;
+  if (words.length >= 2) return words.slice(-2).join(" ");
+  return words[0];
+}
+
+const HOOK_EMOTIONS: BranchOption["emotion"][] = ["curious", "gentle", "rational"];
+
+function pickRandom<T>(arr: T[], n: number): T[] {
+  const copy = [...arr];
+  const out: T[] = [];
+  while (copy.length > 0 && out.length < n) {
+    const idx = Math.floor(Math.random() * copy.length);
+    out.push(copy.splice(idx, 1)[0]);
+  }
+  return out;
+}
+
 export function generateFallbackOptions(
   agentId: string,
   recentMessages: { role: string; content: string }[],
-  t: TFunction
+  t: TFunction,
+  recentlyShown: string[] = []
 ): BranchOption[] {
   const recentText = recentMessages
     .slice(-4)
     .map((m) => m.content.toLowerCase())
     .join(" ");
 
+  const lastUserMsg = [...recentMessages].reverse().find((m) => m.role === "user")?.content || "";
+
+  const shownSet = new Set(recentlyShown.map((s) => s.trim()));
+
   const pools = agentOptionPools[agentId] || [];
 
   const render = (opts: KeyedOption[]): BranchOption[] =>
-    opts.map((o) => ({
-      text: t(`branchFallback.${o.key}`, { defaultValue: o.key }),
-      emotion: o.emotion,
-    }));
+    opts
+      .map((o) => ({
+        text: t(`branchFallback.${o.key}`, { defaultValue: o.key }),
+        emotion: o.emotion,
+      }))
+      .filter((o) => !shownSet.has(o.text.trim()));
 
+  // Find matching pool
+  let matched: KeyedOption[] | null = null;
   for (const pool of pools) {
     if (pool.keywords.some((kw) => recentText.includes(kw))) {
-      return render(pool.options);
+      matched = pool.options;
+      break;
+    }
+  }
+  if (!matched) {
+    matched = genericPools[Math.floor(Math.random() * genericPools.length)];
+  }
+
+  // Pick up to 2 unseen static options (shuffled)
+  let statics = pickRandom(render(matched), 2);
+
+  // If all matched options are already shown, fall back to other pools' lines
+  if (statics.length < 2) {
+    const allOther: KeyedOption[] = [
+      ...pools.flatMap((p) => p.options),
+      ...genericPools.flat(),
+    ].filter((o) => !matched!.includes(o));
+    statics = [...statics, ...pickRandom(render(allOther), 2 - statics.length)];
+  }
+
+  // Build dynamic hook from user's last phrase
+  const phrase = extractKeyPhrase(lastUserMsg);
+  let hook: BranchOption | null = null;
+  if (phrase) {
+    const hookIdx = Math.floor(Math.random() * 5);
+    const hookText = t(`branchFallback.hooks.${hookIdx}`, {
+      phrase,
+      defaultValue: `'${phrase}'`,
+    });
+    if (!shownSet.has(hookText.trim())) {
+      hook = {
+        text: hookText,
+        emotion: HOOK_EMOTIONS[Math.floor(Math.random() * HOOK_EMOTIONS.length)],
+      };
     }
   }
 
-  const idx = Math.floor(Math.random() * genericPools.length);
-  return render(genericPools[idx]);
+  const out: BranchOption[] = hook ? [hook, ...statics] : statics;
+
+  // Final safety: if we have <2 options, just return original 3 unfiltered to avoid empty UI
+  if (out.length < 2) {
+    return matched.map((o) => ({
+      text: t(`branchFallback.${o.key}`, { defaultValue: o.key }),
+      emotion: o.emotion,
+    }));
+  }
+
+  // Shuffle final order so hook isn't always first
+  return pickRandom(out, out.length).slice(0, 3);
 }
