@@ -736,7 +736,7 @@ const Chat = () => {
       <div className="px-5 py-4 border-t border-border"><p className="text-[10px] text-muted-foreground">islandai.life</p></div>
     </aside>
 
-    <div className={`flex h-screen flex-col flex-1 chat-theme-${agentId} relative`} style={{ background: dynamicBg || 'var(--chat-bg, hsl(40 30% 97%))' }}>
+    <div className={`flex h-screen flex-col flex-1 min-w-0 overflow-x-hidden chat-theme-${agentId} relative`} style={{ background: dynamicBg || 'var(--chat-bg, hsl(40 30% 97%))' }}>
       <SEO title={`${agent.name} — ${t("home.appName")}`} description={`Chat with ${agent.name}, an AI companion who listens without judgement. Explore conversations, memories, and hidden story fragments.`} />
       <ChatParticles atmosphere={atmosphere} onBgChange={setDynamicBg} />
       <div className="border-b border-border backdrop-blur-xl px-4 py-3" style={{ backgroundColor: 'var(--chat-header-bg, hsl(0 0% 0% / 0.03))' }}>
@@ -764,9 +764,11 @@ const Chat = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-[11px] text-muted-foreground whitespace-nowrap">{agent.title} · {t("chat.online")}</p>
-              <BondIndicator level={bondLevel} totalTurns={totalTurns} energyBits={energyBits} />
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-0.5 min-w-0">
+              <p className="text-[11px] text-muted-foreground truncate min-w-0">{agent.title} · {t("chat.online")}</p>
+              <div className="shrink-0">
+                <BondIndicator level={bondLevel} totalTurns={totalTurns} energyBits={energyBits} />
+              </div>
             </div>
           </div>
         </div>
