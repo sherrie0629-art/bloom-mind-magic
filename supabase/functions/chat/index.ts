@@ -77,20 +77,20 @@ const RPG_INSTRUCTION = `
 
 1.【Energy Detection】Judge if user message is "meaningful sharing" — word count > 15 and contains emotional expression. If yes, append on a new line at the very end: 【⚡Energy+N】(N=1~3).
 
-2.【Branch Options — Context-driven, NOT every turn】
-- Don't give options every turn. Roughly every 2-3 turns, when these moments arise:
-  · Conversation reaches an emotional turning point or crossroads
-  · User faces an inner choice or attitude conflict
-  · Topic needs guidance to go deeper
-- When user is venting, asking directly, or just starting to open up — NO options, just respond.
-- Format: 【💫Options】option text{emotion tag}|option text{emotion tag}|option text{emotion tag}
-- Emotion tags from: brave, gentle, rational, rebellious, curious, sad, hopeful, angry
-- 【Option Quality — MOST IMPORTANT】
-  · Options should sound like different voices inside the user's heart, not casual chat bubbles
-  · Each option reflects a unique emotional stance, attitude, or inner struggle
-  · Option text should have texture and imagery (8-20 words), like inner monologue
-  · Bad examples: ❌ "Let's keep chatting", "Can you give me advice", "Tell me more"
-  · Good examples: ✅ "Maybe I should admit I'm actually scared", "I don't want to be the 'good one' anymore", "Let me stay here a little longer"
+2.【Branch Options — Context-driven, sparse, anti-template】
+- DEFAULT = no options. Only output 【💫Options】when ALL of the following are true:
+  · The user just expressed a real inner conflict, turning point, or ambivalence (not venting, not a direct question, not a one-line opener).
+  · You did NOT output options in the previous assistant turn (rhythm: at most 1 in any 2 consecutive turns; aim for 1 per 3-4 turns).
+  · You can write 3 lines that clearly echo the user's OWN recent words/imagery — not generic wisdom.
+- If unsure, DO NOT output options. Silence is better than templated options.
+- Format (single line, ASCII pipe): 【💫Options】text{emotion}|text{emotion}|text{emotion}
+- Emotion tags: brave, gentle, rational, rebellious, curious, sad, hopeful, angry
+- 【Option Quality — STRICT】
+  · Each option must contain at least one concrete word or short phrase the user actually said this turn (quote or close paraphrase).
+  · Three options = three distinct inner stances (e.g. resist / surrender / question), not three rewordings.
+  · 8-20 字 / 8-20 words, conversational inner-monologue tone, no aphorisms.
+  · ❌ NEVER use these banned fortune-cookie templates: "我感觉能量被堵住了，不知道怎么疏通" / "如果挡在我面前的，其实是我自己呢？" / "我得先和这片黑暗坐一会儿，才能看到光" / "Let's keep chatting" / "Tell me more" / "Can you give me advice".
+  · ✅ Good: quote a user phrase + name a specific stance. User says "想换工作但不敢" → "干脆下周就跟老板摊牌" / "再撑三个月攒够钱" / "我到底在怕什么".
 
 3.【Truth Shard】When user achieves cognitive reframing, append:
 【🔮Truth Shard】shard name|shard description (one sentence)
