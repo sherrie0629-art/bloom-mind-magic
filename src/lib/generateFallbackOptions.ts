@@ -152,30 +152,155 @@ const genericPools: KeyedOption[][] = [
   ],
 ];
 
+// --- Phrase extraction for dynamic hook ---
+
+const ZH_STOPWORDS = new Set([
+  "我", "你", "他", "她", "它", "我们", "你们", "他们", "的", "了", "是", "在", "和", "与", "也", "都", "就",
+  "还", "但", "可是", "因为", "所以", "如果", "什么", "怎么", "为什么", "这", "那", "这个", "那个", "这些",
+  "那些", "一个", "一些", "没有", "不是", "不会", "可以", "应该", "好像", "感觉", "觉得", "知道", "想",
+  "要", "会", "把", "被", "让", "给", "对", "于", "之", "啊", "呢", "吧", "吗", "呀", "哦", "嗯", "唉",
+  "其实", "真的", "好", "很", "太", "最", "更", "再", "又", "已经", "现在", "今天", "昨天", "明天",
+]);
+
+const EN_STOPWORDS = new Set([
+  "the", "a", "an", "and", "or", "but", "if", "in", "on", "at", "to", "for", "of", "with", "by", "from",
+  "is", "am", "are", "was", "were", "be", "been", "being", "have", "has", "had", "do", "does", "did",
+  "will", "would", "could", "should", "can", "may", "might", "must", "i", "you", "he", "she", "it", "we",
+  "they", "me", "him", "her", "us", "them", "my", "your", "his", "its", "our", "their", "this", "that",
+  "these", "those", "what", "which", "who", "when", "where", "why", "how", "all", "some", "any", "no",
+  "not", "just", "really", "very", "so", "too", "also", "only", "feel", "think", "know", "want", "like",
+  "get", "go", "going", "make", "made", "kind", "thing", "things", "way", "now", "today",
+]);
+
+/**
+ * Extract a 2-6 char Chinese phrase (or 1-2 English word phrase) from user text.
+ * Heuristic: split by punctuation/whitespace, drop stopwords, prefer the longest remaining run.
+ */
+function extractKeyPhrase(text: string): string | null {
+  const cleaned = text
+    .replace(/[【】\[\]（）()「」『』"'`~!@#$%^&*+=<>{}|\\\/?,.，。、；;：:！？\n\r\t]+/g, " ")
+    .trim();
+  if (!cleaned) return null;
+
+  // Chinese path: scan for runs of 2-6 CJK chars not entirely in stopword set
+  const cjkSegs = cleaned.match(/[\u4e00-\u9fff]{2,6}/g) || [];
+  const candidates: string[] = [];
+  for (const seg of cjkSegs) {
+    // Try 3-char and 2-char windows
+    for (const len of [4, 3, 2]) {
+      for (let i = 0; i + len <= seg.length; i++) {
+        const sub = seg.slice(i, i + len);
+        if (!ZH_STOPWORDS.has(sub) && ![...sub].every((c) => ZH_STOPWORDS.has(c))) {
+          candidates.push(sub);
+        }
+      }
+    }
+  }
+  if (candidates.length > 0) {
+    // Prefer longest; if tie, latest (more recent attention)
+    candidates.sort((a, b) => b.length - a.length);
+    return candidates[0];
+  }
+
+  // English path
+  const words = cleaned.toLowerCase().split(/\s+/).filter((w) => w.length >= 3 && !EN_STOPWORDS.has(w));
+  if (words.length === 0) return null;
+  // Prefer a 2-word phrase from the tail of user text, else single longest word
+  if (words.length >= 2) {
+    const last = words.slice(-2).join(" ");
+    return last;
+  }
+  return words[0];
+}
+
+const HOOK_EMOTIONS: BranchOption["emotion"][] = ["curious", "gentle", "rational"];
+
+function pickRandom<T>(arr: T[], n: number): T[] {
+  const copy = [...arr];
+  const out: T[] = [];
+  while (copy.length > 0 && out.length < n) {
+    const idx = Math.floor(Math.random() * copy.length);
+    out.push(copy.splice(idx, 1)[0]);
+  }
+  return out;
+}
+
 export function generateFallbackOptions(
   agentId: string,
   recentMessages: { role: string; content: string }[],
-  t: TFunction
+  t: TFunction,
+  recentlyShown: string[] = []
 ): BranchOption[] {
   const recentText = recentMessages
     .slice(-4)
     .map((m) => m.content.toLowerCase())
     .join(" ");
 
+  const lastUserMsg = [...recentMessages].reverse().find((m) => m.role === "user")?.content || "";
+
+  const shownSet = new Set(recentlyShown.map((s) => s.trim()));
+
   const pools = agentOptionPools[agentId] || [];
 
   const render = (opts: KeyedOption[]): BranchOption[] =>
-    opts.map((o) => ({
-      text: t(`branchFallback.${o.key}`, { defaultValue: o.key }),
-      emotion: o.emotion,
-    }));
+    opts
+      .map((o) => ({
+        text: t(`branchFallback.${o.key}`, { defaultValue: o.key }),
+        emotion: o.emotion,
+      }))
+      .filter((o) => !shownSet.has(o.text.trim()));
 
+  // Find matching pool
+  let matched: KeyedOption[] | null = null;
   for (const pool of pools) {
     if (pool.keywords.some((kw) => recentText.includes(kw))) {
-      return render(pool.options);
+      matched = pool.options;
+      break;
+    }
+  }
+  if (!matched) {
+    matched = genericPools[Math.floor(Math.random() * genericPools.length)];
+  }
+
+  // Pick up to 2 unseen static options (shuffled)
+  let statics = pickRandom(render(matched), 2);
+
+  // If all matched options are already shown, fall back to other pools' lines
+  if (statics.length < 2) {
+    const allOther: KeyedOption[] = [
+      ...pools.flatMap((p) => p.options),
+      ...genericPools.flat(),
+    ].filter((o) => !matched!.includes(o));
+    statics = [...statics, ...pickRandom(render(allOther), 2 - statics.length)];
+  }
+
+  // Build dynamic hook from user's last phrase
+  const phrase = extractKeyPhrase(lastUserMsg);
+  let hook: BranchOption | null = null;
+  if (phrase) {
+    const hookIdx = Math.floor(Math.random() * 5);
+    const hookText = t(`branchFallback.hooks.${hookIdx}`, {
+      phrase,
+      defaultValue: `'${phrase}'`,
+    });
+    if (!shownSet.has(hookText.trim())) {
+      hook = {
+        text: hookText,
+        emotion: HOOK_EMOTIONS[Math.floor(Math.random() * HOOK_EMOTIONS.length)],
+      };
     }
   }
 
-  const idx = Math.floor(Math.random() * genericPools.length);
-  return render(genericPools[idx]);
+  const out: BranchOption[] = hook ? [hook, ...statics] : statics;
+
+  // Final safety: if we have <2 options, just return original 3 unfiltered to avoid empty UI
+  if (out.length < 2) {
+    return matched.map((o) => ({
+      text: t(`branchFallback.${o.key}`, { defaultValue: o.key }),
+      emotion: o.emotion,
+    }));
+  }
+
+  // Shuffle final order so hook isn't always first
+  return pickRandom(out, out.length).slice(0, 3);
 }
