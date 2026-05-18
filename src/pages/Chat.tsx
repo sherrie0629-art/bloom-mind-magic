@@ -588,8 +588,25 @@ const Chat = () => {
             const assistantsSinceLast = messages
               .slice(lastOptionsIdx + 1)
               .filter(m => m.role === "assistant").length;
-            if (assistantsSinceLast + 1 >= 3) {
-              finalBranchOptions = generateFallbackOptions(agentId, [...apiMessages, { role: "assistant", content: cleanContent }], t);
+
+            // Last user message — for length / question heuristics
+            const lastUserMsg = [...apiMessages].reverse().find(m => m.role === "user")?.content || "";
+            const isTooShort = lastUserMsg.trim().length < 12;
+            const isPureQuestion = /[?？]\s*$/.test(lastUserMsg.trim());
+
+            // Stricter cooldown: only after 4+ assistant turns without options,
+            // and skip if user message is too short or a pure question
+            const cooldownPassed = assistantsSinceLast + 1 >= 4;
+            if (cooldownPassed && !isTooShort && !isPureQuestion) {
+              const recentlyShown = assistantMsgsWithOptions
+                .slice(-3)
+                .flatMap(m => (m.branchOptions || []).map(o => o.text));
+              finalBranchOptions = generateFallbackOptions(
+                agentId,
+                [...apiMessages, { role: "assistant", content: cleanContent }],
+                t,
+                recentlyShown
+              );
             }
           }
           
