@@ -182,34 +182,37 @@ function extractKeyPhrase(text: string): string | null {
     .trim();
   if (!cleaned) return null;
 
-  // Chinese path: scan for runs of 2-6 CJK chars not entirely in stopword set
-  const cjkSegs = cleaned.match(/[\u4e00-\u9fff]{2,6}/g) || [];
+  // Chinese path: split each CJK segment by stopword chars, keep 2-6 char runs
+  const cjkSegs = cleaned.match(/[\u4e00-\u9fff]+/g) || [];
   const candidates: string[] = [];
   for (const seg of cjkSegs) {
-    // Try 3-char and 2-char windows
-    for (const len of [4, 3, 2]) {
-      for (let i = 0; i + len <= seg.length; i++) {
-        const sub = seg.slice(i, i + len);
-        if (!ZH_STOPWORDS.has(sub) && ![...sub].every((c) => ZH_STOPWORDS.has(c))) {
-          candidates.push(sub);
-        }
+    let buf = "";
+    const flush = () => {
+      if (buf.length >= 2 && buf.length <= 6 && !ZH_STOPWORDS.has(buf)) {
+        candidates.push(buf);
+      }
+      buf = "";
+    };
+    for (const ch of seg) {
+      if (ZH_STOPWORDS.has(ch)) {
+        flush();
+      } else {
+        buf += ch;
+        if (buf.length === 6) flush();
       }
     }
+    flush();
   }
   if (candidates.length > 0) {
-    // Prefer longest; if tie, latest (more recent attention)
-    candidates.sort((a, b) => b.length - a.length);
+    // Prefer longest; ties broken by recency (later in text = more salient)
+    candidates.sort((a, b) => (b.length - a.length) || (candidates.lastIndexOf(b) - candidates.lastIndexOf(a)));
     return candidates[0];
   }
 
   // English path
   const words = cleaned.toLowerCase().split(/\s+/).filter((w) => w.length >= 3 && !EN_STOPWORDS.has(w));
   if (words.length === 0) return null;
-  // Prefer a 2-word phrase from the tail of user text, else single longest word
-  if (words.length >= 2) {
-    const last = words.slice(-2).join(" ");
-    return last;
-  }
+  if (words.length >= 2) return words.slice(-2).join(" ");
   return words[0];
 }
 
