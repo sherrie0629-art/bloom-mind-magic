@@ -764,9 +764,11 @@ const Chat = () => {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 mt-0.5">
-              <p className="text-[11px] text-muted-foreground whitespace-nowrap">{agent.title} · {t("chat.online")}</p>
-              <BondIndicator level={bondLevel} totalTurns={totalTurns} energyBits={energyBits} />
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-0.5 min-w-0">
+              <p className="text-[11px] text-muted-foreground truncate min-w-0">{agent.title} · {t("chat.online")}</p>
+              <div className="shrink-0">
+                <BondIndicator level={bondLevel} totalTurns={totalTurns} energyBits={energyBits} />
+              </div>
             </div>
           </div>
         </div>
