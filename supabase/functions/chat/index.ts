@@ -304,7 +304,7 @@ serve(async (req) => {
     const agentLore = loreLookup[agentId] || [];
     const unlockedLore = agentLore.slice(0, level);
     
-    let fullSystemPrompt = basePrompt;
+    let fullSystemPrompt = langHeader + basePrompt;
     fullSystemPrompt += RPG_INSTRUCTION;
     fullSystemPrompt += `\n\n【Character Narrative】You have your own backstory. Your bond level with this user is ${level}/5.`;
     
