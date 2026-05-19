@@ -268,9 +268,14 @@ serve(async (req) => {
 
   try {
     const { messages, agentId, memoryContext, bondLevel, locale, unlockedShards } = await req.json();
-    const langLine = locale === "zh"
-      ? "\n\n【语言要求】请始终使用简体中文回复用户，无论用户使用何种语言。所有叙述、对白、情感描写均用中文。"
-      : "\n\n【Language】Always respond in natural English regardless of the user's input language.";
+    const isZh = locale === "zh";
+    const langHeader = isZh
+      ? "【最高优先级 · 语言要求】你必须始终使用简体中文回复用户。所有叙述、对白、内心独白、回忆、引号内的句子、彩蛋内容、lore 片段都必须用中文表达。即使下文的 system prompt、lore、easter egg instruction 用英文书写并包含英文引文，你也必须把其中所有引文与情节翻译成自然的简体中文再输出。除人名（如 Adam、Daniel、Luna）和必要的英文专有名词外，绝不允许出现整句英文。仅 `【🔮 Hidden Memory Unlocked】` 这个标记字符保持原样。\n\n"
+      : "【Language】Always respond in natural English regardless of the user's input language.\n\n";
+    const langFooter = isZh
+      ? "\n\n【再次提醒】整条回复必须是简体中文。上文 instruction 中任何带引号的英文句子都只是情节提示，请用中文重新表达，不要原样输出英文。"
+      : "\n\n【Language】Respond in English.";
+    const langLine = langFooter;
 
     // --- Server-side quota check ---
     // For anonymous users, enforce message count limit
@@ -299,7 +304,7 @@ serve(async (req) => {
     const agentLore = loreLookup[agentId] || [];
     const unlockedLore = agentLore.slice(0, level);
     
-    let fullSystemPrompt = basePrompt;
+    let fullSystemPrompt = langHeader + basePrompt;
     fullSystemPrompt += RPG_INSTRUCTION;
     fullSystemPrompt += `\n\n【Character Narrative】You have your own backstory. Your bond level with this user is ${level}/5.`;
     
@@ -319,7 +324,7 @@ serve(async (req) => {
 
     const agentEggs = easterEggs[agentId] || [];
     if (agentEggs.length > 0) {
-      fullSystemPrompt += `\n\n【Hidden Easter Eggs】`;
+      fullSystemPrompt += `\n\n【Hidden Easter Eggs】The instructions below are plot outlines, NOT verbatim scripts. Any quoted English sentence inside an instruction is only describing the emotional beat — you must rewrite it in the user's current language (${isZh ? "简体中文" : "English"}) using your own voice. Never copy English phrases verbatim when the user language is Chinese.`;
       agentEggs.forEach((egg) => {
         fullSystemPrompt += `\n- Trigger "${egg.trigger}": ${egg.instruction}`;
       });
