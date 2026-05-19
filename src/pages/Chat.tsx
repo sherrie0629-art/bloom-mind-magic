@@ -261,17 +261,69 @@ const Chat = () => {
       if (convData) {
         const { data: msgData } = await supabase
           .from("chat_messages")
-          .select("id, role, content, created_at")
+          .select("id, role, content, created_at, metadata")
           .eq("conversation_id", convData.id)
           .order("created_at", { ascending: true });
 
         if (msgData && msgData.length > 0) {
           setConversationId(convData.id);
-          setMessages(msgData.map((m) => ({
-            id: m.id,
-            role: m.role as "user" | "assistant",
-            content: m.content,
-          })));
+          const restored: Message[] = msgData.map((m: any) => {
+            const meta = m.metadata;
+            if (meta?.kind === "tarot-card") {
+              return {
+                id: m.id,
+                role: m.role as "user" | "assistant",
+                content: "",
+                kind: "tarot-card",
+                tarotCard: {
+                  cardName: meta.cardName,
+                  cardNameCn: meta.cardNameCn,
+                  emoji: meta.emoji,
+                  isReversed: !!meta.isReversed,
+                  keywords: meta.keywords || [],
+                  imageUrl: null,
+                  imageStatus: meta.imagePath ? "pending" : "failed",
+                } as InlineTarotCard,
+              };
+            }
+            return {
+              id: m.id,
+              role: m.role as "user" | "assistant",
+              content: m.content,
+            };
+          });
+          setMessages(restored);
+
+          // Re-sign image URLs for restored tarot cards (signed URLs expire after 1h).
+          const paths = Array.from(new Set(
+            msgData
+              .map((m: any) => m.metadata?.kind === "tarot-card" ? m.metadata.imagePath : null)
+              .filter((p: string | null): p is string => !!p)
+          ));
+          if (paths.length > 0) {
+            supabase.functions
+              .invoke("chat-tarot-draw", { body: { mode: "sign", paths } })
+              .then(({ data }) => {
+                const signedMap = (data as any)?.signed as Record<string, string | null> | undefined;
+                if (!signedMap) return;
+                setMessages((prev) =>
+                  prev.map((m) => {
+                    if (m.kind !== "tarot-card" || !m.tarotCard) return m;
+                    const meta = (msgData.find((x: any) => x.id === m.id) as any)?.metadata;
+                    const url = meta?.imagePath ? signedMap[meta.imagePath] : null;
+                    return {
+                      ...m,
+                      tarotCard: {
+                        ...m.tarotCard,
+                        imageUrl: url || null,
+                        imageStatus: url ? "ready" : "failed",
+                      },
+                    };
+                  })
+                );
+              })
+              .catch((e) => console.error("[Chat] re-sign tarot images error", e));
+          }
         } else {
           setMessages([{ id: "welcome", role: "assistant", content: getWelcomeMessage(agent) }]);
         }
