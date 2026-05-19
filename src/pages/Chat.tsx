@@ -533,6 +533,18 @@ const Chat = () => {
           imageStatus: drawn.imageStatus,
         };
         setMessages((prev) => prev.map((m) => (m.id === cardMsgId ? { ...m, tarotCard: card } : m)));
+        if (convId) {
+          saveMessage(convId, "assistant", "", {
+            kind: "tarot-card",
+            cardId: drawn.cardId,
+            cardName: card.cardName,
+            cardNameCn: card.cardNameCn,
+            emoji: card.emoji,
+            isReversed: card.isReversed,
+            keywords: card.keywords,
+            imagePath: drawn.imagePath || null,
+          });
+        }
         const positionZh = card.isReversed ? "逆位" : "正位";
         const positionEn = card.isReversed ? "Reversed" : "Upright";
         drawnCardContext = locale === "zh"
