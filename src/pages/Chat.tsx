@@ -394,8 +394,10 @@ const Chat = () => {
     return data.id;
   }, [conversationId, user, agentId, agent.name]);
 
-  const saveMessage = async (convId: string, role: string, content: string) => {
-    await supabase.from("chat_messages").insert({ conversation_id: convId, role, content });
+  const saveMessage = async (convId: string, role: string, content: string, metadata?: Record<string, any> | null) => {
+    const payload: any = { conversation_id: convId, role, content };
+    if (metadata) payload.metadata = metadata;
+    await supabase.from("chat_messages").insert(payload);
     await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convId);
   };
 
