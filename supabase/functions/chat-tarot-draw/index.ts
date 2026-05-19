@@ -74,6 +74,20 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Optional sign-only mode: re-sign image URLs for previously drawn cards
+    let body: any = {};
+    try { body = await req.json(); } catch { /* ignore */ }
+    if (body?.mode === "sign" && Array.isArray(body.paths)) {
+      const out: Record<string, string | null> = {};
+      await Promise.all(
+        (body.paths as string[]).filter(Boolean).slice(0, 50).map(async (p) => {
+          const { data: signed } = await supabase.storage.from(BUCKET).createSignedUrl(p, 3600);
+          out[p] = signed?.signedUrl || null;
+        })
+      );
+      return new Response(JSON.stringify({ signed: out }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // Pick a random card + orientation
     const card = CARDS[Math.floor(Math.random() * CARDS.length)];
     const isReversed = Math.random() < 0.3; // 30% reversed
@@ -124,6 +138,7 @@ serve(async (req) => {
       emoji: card.emoji,
       isReversed,
       keywords,
+      imagePath: imagePath || null,
       imageUrl,
       imageStatus: imageUrl ? "ready" : "failed",
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
