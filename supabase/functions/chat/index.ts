@@ -324,7 +324,7 @@ serve(async (req) => {
 
     const agentEggs = easterEggs[agentId] || [];
     if (agentEggs.length > 0) {
-      fullSystemPrompt += `\n\n【Hidden Easter Eggs】`;
+      fullSystemPrompt += `\n\n【Hidden Easter Eggs】The instructions below are plot outlines, NOT verbatim scripts. Any quoted English sentence inside an instruction is only describing the emotional beat — you must rewrite it in the user's current language (${isZh ? "简体中文" : "English"}) using your own voice. Never copy English phrases verbatim when the user language is Chinese.`;
       agentEggs.forEach((egg) => {
         fullSystemPrompt += `\n- Trigger "${egg.trigger}": ${egg.instruction}`;
       });
