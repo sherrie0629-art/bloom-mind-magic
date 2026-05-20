@@ -52,7 +52,7 @@ const AchievementUnlock = ({ achievement, onClose }: Props) => {
             transition={{ delay: 0.35 }}
             className="mt-1 font-display text-xl font-bold text-foreground"
           >
-            {achievement.name}
+            {t(`achievements.items.${achievement.id}.name`, { defaultValue: achievement.name })}
           </motion.h2>
 
           <motion.p
