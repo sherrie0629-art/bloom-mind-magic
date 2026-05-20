@@ -158,19 +158,55 @@ const Chat = () => {
       return;
     }
 
+    const formatRecall = (
+      memories: any[] | null | undefined,
+      facts: any[] | null | undefined,
+      summaries: any[] | null | undefined,
+    ): string[] => {
+      const out: string[] = [];
+      const isZh = locale === "zh";
+      if (facts && facts.length > 0) {
+        const header = isZh ? "[关于用户 · 跨角色记得]" : "[About user · cross-agent]";
+        facts.forEach((f) => {
+          const src = f.source_agent_id && f.source_agent_id !== agentId ? ` (from ${f.source_agent_id})` : "";
+          out.push(`${header} ${f.category}/${f.key}: ${f.value}${src}`);
+        });
+      }
+      if (memories && memories.length > 0) {
+        memories.forEach((m) => {
+          const daysAgo = Math.floor((Date.now() - new Date(m.created_at || "").getTime()) / 86400000);
+          const timeLabel = daysAgo === 0 ? "Today" : daysAgo === 1 ? "Yesterday" : `${daysAgo}d ago`;
+          const crossTag = m.agent_id && m.agent_id !== agentId ? ` {from ${m.agent_id}}` : "";
+          out.push(`[${timeLabel}] ${m.content}${m.emotion_tag ? ` (mood: ${m.emotion_tag})` : ""}${crossTag}`);
+        });
+      }
+      if (summaries && summaries.length > 0) {
+        summaries.forEach((s) => {
+          out.push(`[Summary] ${s.summary} (topics: ${(s.key_topics as string[] || []).join(", ")})`);
+        });
+      }
+      return out;
+    };
+
+    const recallFromEdge = async (query: string): Promise<{ memories: any[]; facts: any[] }> => {
+      try {
+        const { data, error } = await supabase.functions.invoke("recall-memory", {
+          body: { query: query || "recent conversation context", agentId, k: 8 },
+        });
+        if (error) throw error;
+        return { memories: (data as any)?.memories || [], facts: (data as any)?.facts || [] };
+      } catch (e) {
+        console.error("[Chat] recall-memory failed, falling back:", e);
+        return { memories: [], facts: [] };
+      }
+    };
+
     const loadConversationAndMemories = async () => {
       if (hasAssessmentContext) {
         setMessages([{ id: "welcome", role: "assistant", content: getWelcomeMessage(agent) }]);
 
-        const [{ data: memories }, { data: summaries }] = await Promise.all([
-          supabase
-            .from("user_memories")
-            .select("content, emotion_tag, category, created_at")
-            .eq("user_id", user.id)
-            .eq("agent_id", agentId)
-            .order("importance", { ascending: false })
-            .order("created_at", { ascending: false })
-            .limit(20),
+        const [{ memories, facts }, { data: summaries }] = await Promise.all([
+          recallFromEdge(""),
           supabase
             .from("conversation_summaries")
             .select("summary, key_topics")
@@ -179,6 +215,8 @@ const Chat = () => {
             .order("created_at", { ascending: false })
             .limit(5),
         ]);
+
+
 
         const memCtx: string[] = [];
         const isZh = locale === "zh";
