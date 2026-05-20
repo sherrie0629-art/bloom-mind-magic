@@ -158,19 +158,55 @@ const Chat = () => {
       return;
     }
 
+    const formatRecall = (
+      memories: any[] | null | undefined,
+      facts: any[] | null | undefined,
+      summaries: any[] | null | undefined,
+    ): string[] => {
+      const out: string[] = [];
+      const isZh = locale === "zh";
+      if (facts && facts.length > 0) {
+        const header = isZh ? "[关于用户 · 跨角色记得]" : "[About user · cross-agent]";
+        facts.forEach((f) => {
+          const src = f.source_agent_id && f.source_agent_id !== agentId ? ` (from ${f.source_agent_id})` : "";
+          out.push(`${header} ${f.category}/${f.key}: ${f.value}${src}`);
+        });
+      }
+      if (memories && memories.length > 0) {
+        memories.forEach((m) => {
+          const daysAgo = Math.floor((Date.now() - new Date(m.created_at || "").getTime()) / 86400000);
+          const timeLabel = daysAgo === 0 ? "Today" : daysAgo === 1 ? "Yesterday" : `${daysAgo}d ago`;
+          const crossTag = m.agent_id && m.agent_id !== agentId ? ` {from ${m.agent_id}}` : "";
+          out.push(`[${timeLabel}] ${m.content}${m.emotion_tag ? ` (mood: ${m.emotion_tag})` : ""}${crossTag}`);
+        });
+      }
+      if (summaries && summaries.length > 0) {
+        summaries.forEach((s) => {
+          out.push(`[Summary] ${s.summary} (topics: ${(s.key_topics as string[] || []).join(", ")})`);
+        });
+      }
+      return out;
+    };
+
+    const recallFromEdge = async (query: string): Promise<{ memories: any[]; facts: any[] }> => {
+      try {
+        const { data, error } = await supabase.functions.invoke("recall-memory", {
+          body: { query: query || "recent conversation context", agentId, k: 8 },
+        });
+        if (error) throw error;
+        return { memories: (data as any)?.memories || [], facts: (data as any)?.facts || [] };
+      } catch (e) {
+        console.error("[Chat] recall-memory failed, falling back:", e);
+        return { memories: [], facts: [] };
+      }
+    };
+
     const loadConversationAndMemories = async () => {
       if (hasAssessmentContext) {
         setMessages([{ id: "welcome", role: "assistant", content: getWelcomeMessage(agent) }]);
 
-        const [{ data: memories }, { data: summaries }] = await Promise.all([
-          supabase
-            .from("user_memories")
-            .select("content, emotion_tag, category, created_at")
-            .eq("user_id", user.id)
-            .eq("agent_id", agentId)
-            .order("importance", { ascending: false })
-            .order("created_at", { ascending: false })
-            .limit(20),
+        const [{ memories, facts }, { data: summaries }] = await Promise.all([
+          recallFromEdge(""),
           supabase
             .from("conversation_summaries")
             .select("summary, key_topics")
@@ -179,6 +215,8 @@ const Chat = () => {
             .order("created_at", { ascending: false })
             .limit(5),
         ]);
+
+
 
         const memCtx: string[] = [];
         const isZh = locale === "zh";
@@ -224,24 +262,15 @@ const Chat = () => {
             ? `[刚刚完成测评] 用户完成了与 ${c.partnerName}${c.partnerMbti ? `（${c.partnerMbti}）` : ""}${c.partnerZodiac ? ` ${c.partnerZodiac}` : ""} 的缘分配对。整体匹配度 ${c.overallScore}%—${c.title}。${c.summary}。优势：${c.strengths.join("；")}。冲突点：${c.conflicts.join("；")}。爱的语言——我的：${c.loveLanguage.mine}，对方：${c.loveLanguage.partner}。建议：${c.loveLanguage.tip}。${c.deepAnalysis ? ` 深度分析：${c.deepAnalysis.slice(0, 800)}` : ""}`
             : `[Just assessed] User completed Compatibility analysis with ${c.partnerName}${c.partnerMbti ? ` (${c.partnerMbti})` : ""}${c.partnerZodiac ? ` ${c.partnerZodiac}` : ""}. Overall ${c.overallScore}% — ${c.title}. ${c.summary}. Strengths: ${c.strengths.join("; ")}. Conflicts: ${c.conflicts.join("; ")}. Love language — mine: ${c.loveLanguage.mine}, partner: ${c.loveLanguage.partner}. Tip: ${c.loveLanguage.tip}.${c.deepAnalysis ? ` Deep analysis: ${c.deepAnalysis.slice(0, 800)}` : ""}`);
         }
-        if (memories && memories.length > 0) {
-          memories.forEach((m) => {
-            const daysAgo = Math.floor((Date.now() - new Date(m.created_at || "").getTime()) / 86400000);
-            const timeLabel = daysAgo === 0 ? "Today" : daysAgo === 1 ? "Yesterday" : `${daysAgo}d ago`;
-            memCtx.push(`[${timeLabel}] ${m.content}${m.emotion_tag ? ` (mood: ${m.emotion_tag})` : ""}`);
-          });
-        }
-        if (summaries && summaries.length > 0) {
-          summaries.forEach((s) => {
-            memCtx.push(`[Summary] ${s.summary} (topics: ${(s.key_topics as string[] || []).join(", ")})`);
-          });
-        }
+        memCtx.push(...formatRecall(memories, facts, summaries || []));
         setMemoryContext(memCtx);
         setHistoryLoaded(true);
         return;
       }
 
-      const [convResult, memoriesResult, summariesResult] = await Promise.all([
+
+
+      const [convResult, recallResult, summariesResult] = await Promise.all([
         supabase
           .from("conversations")
           .select("id")
@@ -250,14 +279,7 @@ const Chat = () => {
           .order("updated_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
-        supabase
-          .from("user_memories")
-          .select("content, emotion_tag, category, created_at")
-          .eq("user_id", user.id)
-          .eq("agent_id", agentId)
-          .order("importance", { ascending: false })
-          .order("created_at", { ascending: false })
-          .limit(20),
+        recallFromEdge(""),
         supabase
           .from("conversation_summaries")
           .select("summary, key_topics")
@@ -266,6 +288,7 @@ const Chat = () => {
           .order("created_at", { ascending: false })
           .limit(5),
       ]);
+
 
       const convData = convResult.data;
 
@@ -342,22 +365,8 @@ const Chat = () => {
         setMessages([{ id: "welcome", role: "assistant", content: getWelcomeMessage(agent) }]);
       }
 
-      const memories = memoriesResult.data;
-      const summaries = summariesResult.data;
-      const memCtx: string[] = [];
-      if (memories && memories.length > 0) {
-        memories.forEach((m) => {
-          const daysAgo = Math.floor((Date.now() - new Date(m.created_at || "").getTime()) / 86400000);
-          const timeLabel = daysAgo === 0 ? "Today" : daysAgo === 1 ? "Yesterday" : `${daysAgo}d ago`;
-          memCtx.push(`[${timeLabel}] ${m.content}${m.emotion_tag ? ` (mood: ${m.emotion_tag})` : ""}`);
-        });
-      }
-      if (summaries && summaries.length > 0) {
-        summaries.forEach((s) => {
-          memCtx.push(`[Summary] ${s.summary} (topics: ${(s.key_topics as string[] || []).join(", ")})`);
-        });
-      }
-      setMemoryContext(memCtx);
+      setMemoryContext(formatRecall(recallResult.memories, recallResult.facts, summariesResult.data || []));
+
       setHistoryLoaded(true);
     };
     loadConversationAndMemories();
@@ -639,6 +648,41 @@ const Chat = () => {
       .map((m) => ({ role: m.role, content: m.content }));
     apiMessages.push({ role: "user", content: userMsg.content + drawnCardContext + pastCardContext });
 
+    // Semantic recall using the just-sent user text — refresh memoryContext for this turn.
+    let turnMemoryContext = memoryContext;
+    try {
+      const { data: recallData } = await supabase.functions.invoke("recall-memory", {
+        body: { query: text, agentId, k: 8 },
+      });
+      const rMems = (recallData as any)?.memories || [];
+      const rFacts = (recallData as any)?.facts || [];
+      if (rMems.length > 0 || rFacts.length > 0) {
+        const fresh: string[] = [];
+        const isZh = locale === "zh";
+        if (rFacts.length > 0) {
+          const header = isZh ? "[关于用户 · 跨角色记得]" : "[About user · cross-agent]";
+          rFacts.forEach((f: any) => {
+            const src = f.source_agent_id && f.source_agent_id !== agentId ? ` (from ${f.source_agent_id})` : "";
+            fresh.push(`${header} ${f.category}/${f.key}: ${f.value}${src}`);
+          });
+        }
+        rMems.forEach((m: any) => {
+          const daysAgo = Math.floor((Date.now() - new Date(m.created_at || "").getTime()) / 86400000);
+          const tl = daysAgo === 0 ? "Today" : daysAgo === 1 ? "Yesterday" : `${daysAgo}d ago`;
+          const crossTag = m.agent_id && m.agent_id !== agentId ? ` {from ${m.agent_id}}` : "";
+          fresh.push(`[${tl}] ${m.content}${m.emotion_tag ? ` (mood: ${m.emotion_tag})` : ""}${crossTag}`);
+        });
+        // Preserve any [Just assessed] / [Summary] entries already in memoryContext.
+        const preserved = memoryContext.filter((s) => s.startsWith("[Just assessed]") || s.startsWith("[Summary]"));
+        turnMemoryContext = [...preserved, ...fresh];
+        setMemoryContext(turnMemoryContext);
+      }
+    } catch (e) {
+      console.error("[Chat] turn recall failed:", e);
+    }
+
+
+
     let assistantContent = "";
 
     const upsertAssistant = (chunk: string) => {
@@ -656,8 +700,9 @@ const Chat = () => {
       await streamChat({
         messages: apiMessages,
         agentId,
-        memoryContext,
+        memoryContext: turnMemoryContext,
         bondLevel,
+
         accessToken: session?.access_token,
         locale,
         unlockedShards: easterEggsFound,
@@ -739,6 +784,21 @@ const Chat = () => {
           if (convId && assistantContent) {
             saveMessage(convId, "assistant", assistantContent);
           }
+
+          // Fire-and-forget: extract incremental memory + profile facts from this turn.
+          supabase.functions
+            .invoke("extract-memory-incremental", {
+              body: {
+                agentId,
+                locale,
+                recentMessages: [
+                  { role: "user", content: userMsg.content },
+                  { role: "assistant", content: assistantContent },
+                ],
+              },
+            })
+            .catch((err) => console.error("[Chat] extract-memory-incremental failed:", err));
+
         },
         onError: (error) => {
           setIsStreaming(false);
