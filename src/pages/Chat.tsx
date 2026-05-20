@@ -262,22 +262,13 @@ const Chat = () => {
             ? `[刚刚完成测评] 用户完成了与 ${c.partnerName}${c.partnerMbti ? `（${c.partnerMbti}）` : ""}${c.partnerZodiac ? ` ${c.partnerZodiac}` : ""} 的缘分配对。整体匹配度 ${c.overallScore}%—${c.title}。${c.summary}。优势：${c.strengths.join("；")}。冲突点：${c.conflicts.join("；")}。爱的语言——我的：${c.loveLanguage.mine}，对方：${c.loveLanguage.partner}。建议：${c.loveLanguage.tip}。${c.deepAnalysis ? ` 深度分析：${c.deepAnalysis.slice(0, 800)}` : ""}`
             : `[Just assessed] User completed Compatibility analysis with ${c.partnerName}${c.partnerMbti ? ` (${c.partnerMbti})` : ""}${c.partnerZodiac ? ` ${c.partnerZodiac}` : ""}. Overall ${c.overallScore}% — ${c.title}. ${c.summary}. Strengths: ${c.strengths.join("; ")}. Conflicts: ${c.conflicts.join("; ")}. Love language — mine: ${c.loveLanguage.mine}, partner: ${c.loveLanguage.partner}. Tip: ${c.loveLanguage.tip}.${c.deepAnalysis ? ` Deep analysis: ${c.deepAnalysis.slice(0, 800)}` : ""}`);
         }
-        if (memories && memories.length > 0) {
-          memories.forEach((m) => {
-            const daysAgo = Math.floor((Date.now() - new Date(m.created_at || "").getTime()) / 86400000);
-            const timeLabel = daysAgo === 0 ? "Today" : daysAgo === 1 ? "Yesterday" : `${daysAgo}d ago`;
-            memCtx.push(`[${timeLabel}] ${m.content}${m.emotion_tag ? ` (mood: ${m.emotion_tag})` : ""}`);
-          });
-        }
-        if (summaries && summaries.length > 0) {
-          summaries.forEach((s) => {
-            memCtx.push(`[Summary] ${s.summary} (topics: ${(s.key_topics as string[] || []).join(", ")})`);
-          });
-        }
+        memCtx.push(...formatRecall(memories, facts, summaries || []));
         setMemoryContext(memCtx);
         setHistoryLoaded(true);
         return;
       }
+
+
 
       const [convResult, memoriesResult, summariesResult] = await Promise.all([
         supabase
