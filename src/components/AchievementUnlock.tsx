@@ -71,12 +71,13 @@ const AchievementUnlock = ({ achievement, onClose }: Props) => {
             onClick={onClose}
             className="mt-5 rounded-xl bg-gradient-golden px-6 py-2.5 text-sm font-medium text-primary-foreground active:scale-[0.97]"
           >
-            Amazing!
+            {t("achievements.cta")}
           </motion.button>
         </motion.div>
       </motion.div>
     )}
   </AnimatePresence>
-);
+  );
+};
 
 export default AchievementUnlock;
