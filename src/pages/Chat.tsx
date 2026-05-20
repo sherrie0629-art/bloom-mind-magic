@@ -700,8 +700,9 @@ const Chat = () => {
       await streamChat({
         messages: apiMessages,
         agentId,
-        memoryContext,
+        memoryContext: turnMemoryContext,
         bondLevel,
+
         accessToken: session?.access_token,
         locale,
         unlockedShards: easterEggsFound,
