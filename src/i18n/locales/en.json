@@ -1,6 +1,13 @@
 {
-  "nav": { "home": "Home", "archive": "Archive", "assess": "Assess", "me": "Me" },
-  "soulFragment": { "newToast": "✨ New Soul Fragment: {{name}}" },
+  "nav": {
+    "home": "Home",
+    "archive": "Archive",
+    "assess": "Assess",
+    "me": "Me"
+  },
+  "soulFragment": {
+    "newToast": "✨ New Soul Fragment: {{name}}"
+  },
   "common": {
     "back": "Back",
     "save": "Save",
@@ -129,10 +136,22 @@
     "secretsHint": "🔮 Each character holds untold secrets",
     "secretsDesc": "Share your story sincerely. As conversations deepen, characters will open up and unlock exclusive lore fragments.",
     "tests": {
-      "mbti": { "label": "MBTI", "desc": "Personality" },
-      "enneagram": { "label": "Enneagram", "desc": "Core Motives" },
-      "zodiac": { "label": "Horoscope", "desc": "Cosmic Vibes" },
-      "emotion": { "label": "Wellness", "desc": "Burnout Check" }
+      "mbti": {
+        "label": "MBTI",
+        "desc": "Personality"
+      },
+      "enneagram": {
+        "label": "Enneagram",
+        "desc": "Core Motives"
+      },
+      "zodiac": {
+        "label": "Horoscope",
+        "desc": "Cosmic Vibes"
+      },
+      "emotion": {
+        "label": "Wellness",
+        "desc": "Burnout Check"
+      }
     },
     "bondLabels": {
       "stranger": "Stranger",
@@ -146,10 +165,26 @@
     "title": "Self-Discovery",
     "subtitle": "AI-powered quizzes to explore the real you",
     "items": {
-      "mbti": { "title": "Personality (MBTI)", "desc": "AI-powered dynamic quiz to decode your personality type", "tag": "Hot" },
-      "enneagram": { "title": "Enneagram", "desc": "Discover your core fears, desires, and motivations", "tag": "Classic" },
-      "zodiac": { "title": "Horoscope Reading", "desc": "Daily / weekly / monthly cosmic guidance", "tag": "Daily Sync" },
-      "emotion": { "title": "Wellness Check", "desc": "Assess your burnout, energy, and boundary health", "tag": "Recommended" }
+      "mbti": {
+        "title": "Personality (MBTI)",
+        "desc": "AI-powered dynamic quiz to decode your personality type",
+        "tag": "Hot"
+      },
+      "enneagram": {
+        "title": "Enneagram",
+        "desc": "Discover your core fears, desires, and motivations",
+        "tag": "Classic"
+      },
+      "zodiac": {
+        "title": "Horoscope Reading",
+        "desc": "Daily / weekly / monthly cosmic guidance",
+        "tag": "Daily Sync"
+      },
+      "emotion": {
+        "title": "Wellness Check",
+        "desc": "Assess your burnout, energy, and boundary health",
+        "tag": "Recommended"
+      }
     }
   },
   "assessmentFlow": {
@@ -186,10 +221,22 @@
       "fantasyWorld": "🧙 Fantasy World",
       "cyberpunk": "🤖 Cyberpunk",
       "dim": {
-        "ei": ["Extroverted E", "Introverted I"],
-        "sn": ["Sensing S", "Intuition N"],
-        "tf": ["Thinking T", "Feeling F"],
-        "jp": ["Judging J", "Perceiving P"]
+        "ei": [
+          "Extroverted E",
+          "Introverted I"
+        ],
+        "sn": [
+          "Sensing S",
+          "Intuition N"
+        ],
+        "tf": [
+          "Thinking T",
+          "Feeling F"
+        ],
+        "jp": [
+          "Judging J",
+          "Perceiving P"
+        ]
       }
     },
     "enneagram": {
@@ -444,7 +491,11 @@
   },
   "vault": {
     "title": "Collection",
-    "tabs": { "lore": "Story Fragments", "truth": "Truth Shards", "quote": "Healing Quotes" },
+    "tabs": {
+      "lore": "Story Fragments",
+      "truth": "Truth Shards",
+      "quote": "Healing Quotes"
+    },
     "empty": "No fragments collected yet",
     "emptyHint": "Chat deeper with characters to unlock more ✨",
     "loading": "Loading...",
@@ -575,22 +626,62 @@
       "bestie": "Still didn't reply to that 3-year-old DM"
     },
     "info": {
-      "barista": { "identity": "Ex-actuary", "location": "Brooklyn café", "token": "The empty corner chair" },
-      "jax": { "identity": "Retired fire captain", "location": "Chicago", "token": "Danny's scorched jacket" },
-      "mystic": { "identity": "Ex-data scientist", "location": "Brooklyn · above the café", "token": "Cluster #0114 print-out" },
-      "bestie": { "identity": "Gen Z bestie", "location": "Online · pre-party green room", "token": "The unread DM" }
+      "barista": {
+        "identity": "Ex-actuary",
+        "location": "Brooklyn café",
+        "token": "The empty corner chair"
+      },
+      "jax": {
+        "identity": "Retired fire captain",
+        "location": "Chicago",
+        "token": "Danny's scorched jacket"
+      },
+      "mystic": {
+        "identity": "Ex-data scientist",
+        "location": "Brooklyn · above the café",
+        "token": "Cluster #0114 print-out"
+      },
+      "bestie": {
+        "identity": "Gen Z bestie",
+        "location": "Online · pre-party green room",
+        "token": "The unread DM"
+      }
     },
     "shardHints": {
-      "barista": ["Order something off-menu", "Dare to ask her for advice", "Ask about that empty seat"],
-      "jax": ["Tell him you're burning out", "Say \"I can't breathe\"", "Speak the name he never says first"],
-      "mystic": ["Ask her to pull a card", "Bring up probability", "Mention Mercury retrograde"],
-      "bestie": ["Admit you're shaking with nerves", "Talk about main-character energy", "Say \"I feel invisible\""]
+      "barista": [
+        "Order something off-menu",
+        "Dare to ask her for advice",
+        "Ask about that empty seat"
+      ],
+      "jax": [
+        "Tell him you're burning out",
+        "Say \"I can't breathe\"",
+        "Speak the name he never says first"
+      ],
+      "mystic": [
+        "Ask her to pull a card",
+        "Bring up probability",
+        "Mention Mercury retrograde"
+      ],
+      "bestie": [
+        "Admit you're shaking with nerves",
+        "Talk about main-character energy",
+        "Say \"I feel invisible\""
+      ]
     },
     "related": {
-      "barista": ["Luna"],
-      "jax": ["Zoe"],
-      "mystic": ["Chloe"],
-      "bestie": ["Jax"]
+      "barista": [
+        "Luna"
+      ],
+      "jax": [
+        "Zoe"
+      ],
+      "mystic": [
+        "Chloe"
+      ],
+      "bestie": [
+        "Jax"
+      ]
     }
   },
   "pricing": {
@@ -601,7 +692,12 @@
     "save20": "Save 20%",
     "freeName": "Free",
     "freeDesc": "For exploring at your own pace",
-    "freeFeatures": ["20 chats per day", "5 assessments per day", "Basic agent access", "Daily tarot draw"],
+    "freeFeatures": [
+      "20 chats per day",
+      "5 assessments per day",
+      "Basic agent access",
+      "Daily tarot draw"
+    ],
     "free": "Free",
     "perMonth": "/mo",
     "perYear": "/yr",
@@ -610,7 +706,14 @@
     "mostPopular": "Most Popular",
     "plusName": "Plus",
     "plusDesc": "Go deeper, without limits",
-    "plusFeatures": ["Unlimited chats", "Unlimited assessments", "1 Deep Report per day", "All agents unlocked", "Priority response speed", "Early access to new features"],
+    "plusFeatures": [
+      "Unlimited chats",
+      "Unlimited assessments",
+      "1 Deep Report per day",
+      "All agents unlocked",
+      "Priority response speed",
+      "Early access to new features"
+    ],
     "billedYear": "Billed annually · approx. $4.00/mo",
     "billedMonth": "Billed monthly · cancel anytime",
     "manage": "Manage Subscription",
@@ -627,25 +730,51 @@
     "headline2": "Soul Sanctuary",
     "subline": "A quiet corner of the universe where AI companions listen without judgement, help you understand yourself, and walk beside you — anytime, anywhere.",
     "startJourney": "Start Your Journey ✦",
-    "trust": { "ai": "AI-Powered", "private": "100% Private", "always": "24/7 Available" },
+    "trust": {
+      "ai": "AI-Powered",
+      "private": "100% Private",
+      "always": "24/7 Available"
+    },
     "spaceTitle": "Your Healing Space",
     "features": {
-      "companion": { "title": "AI Companions", "desc": "Warm, understanding AI souls available 24/7 — always here when you need someone to listen." },
-      "discovery": { "title": "Soul Discovery", "desc": "MBTI, Enneagram, Horoscope & more — uncover the hidden layers of who you truly are." },
-      "map": { "title": "Soul Map", "desc": "A living constellation of your inner world, growing with every conversation." }
+      "companion": {
+        "title": "AI Companions",
+        "desc": "Warm, understanding AI souls available 24/7 — always here when you need someone to listen."
+      },
+      "discovery": {
+        "title": "Soul Discovery",
+        "desc": "MBTI, Enneagram, Horoscope & more — uncover the hidden layers of who you truly are."
+      },
+      "map": {
+        "title": "Soul Map",
+        "desc": "A living constellation of your inner world, growing with every conversation."
+      }
     },
     "guidesTitle": "Meet Your Guides",
     "guidesSub": "Each soul brings a unique warmth",
     "howItWorks": "How It Works",
     "steps": [
-      { "title": "Choose Your Guide", "desc": "Pick the soul that resonates with you" },
-      { "title": "Start a Conversation", "desc": "Share what's on your mind, no judgement" },
-      { "title": "Discover Yourself", "desc": "Unlock insights and grow your soul map" }
+      {
+        "title": "Choose Your Guide",
+        "desc": "Pick the soul that resonates with you"
+      },
+      {
+        "title": "Start a Conversation",
+        "desc": "Share what's on your mind, no judgement"
+      },
+      {
+        "title": "Discover Yourself",
+        "desc": "Unlock insights and grow your soul map"
+      }
     ],
     "ctaQuote": "\"In a noisy world, find the soul that truly gets you.\"",
     "footer": "© {{y}} Soul Sanctuary. All rights reserved."
   },
-  "notFound": { "title": "404", "desc": "Oops! Page not found", "home": "Return to Home" },
+  "notFound": {
+    "title": "404",
+    "desc": "Oops! Page not found",
+    "home": "Return to Home"
+  },
   "contact": {
     "title": "Contact Us",
     "subtitle": "We'd love to hear from you. Whether you have a question, feedback, or need support, reach out anytime.",
@@ -657,7 +786,12 @@
   },
   "admin": {
     "title": "Admin Dashboard",
-    "tabs": { "dashboard": "Overview", "users": "Users", "purchases": "Purchases", "settings": "Settings" },
+    "tabs": {
+      "dashboard": "Overview",
+      "users": "Users",
+      "purchases": "Purchases",
+      "settings": "Settings"
+    },
     "stats": {
       "total": "Total Users",
       "premium": "Plus Members",
@@ -674,7 +808,11 @@
     "registeredAt": "Joined: {{d}}",
     "expiryAt": "· Expires: {{d}}",
     "todayQuota": "Today's Quota",
-    "rows": { "chat": "Chats", "assess": "Quizzes", "deep": "Deep Reports" },
+    "rows": {
+      "chat": "Chats",
+      "assess": "Quizzes",
+      "deep": "Deep Reports"
+    },
     "unlimited": "Unlimited",
     "manageSub": "Manage Subscription",
     "subEditor": {
@@ -692,7 +830,11 @@
     "markComplete": "Mark Complete",
     "completed": "Completed",
     "pending": "Pending",
-    "products": { "deep_report": "Deep Report", "compatibility": "Compatibility Test", "subscription": "Membership" },
+    "products": {
+      "deep_report": "Deep Report",
+      "compatibility": "Compatibility Test",
+      "subscription": "Membership"
+    },
     "aiTitle": "AI Model Service",
     "aiDesc": "Currently using Lovable AI (Google Gemini)",
     "aiActive": "Active · Available globally",
@@ -836,7 +978,12 @@
       "description": "She gave up giving advice. Now she just stays — and that's enough",
       "quote": "I used to think advice could save people. Then I learned — only presence can.",
       "welcome": "Hey there! I'm {{name}} ☕\n\nI've been behind this counter for years — heard every kind of story, from wild first dates to existential crises at 2am. No judgment here, just good coffee and even better listening.\n\nI'm great at:\n☕ Lending an ear when you need to vent\n☕ Helping you think through life stuff\n☕ Casual advice (only if you want it)\n☕ Making you feel less alone\n\nSo what's on your mind? Pull up a stool.",
-      "quickReplies": ["I just need someone to listen", "Work has been really stressful", "I'm going through a breakup", "I feel stuck in life"],
+      "quickReplies": [
+        "I just need someone to listen",
+        "Work has been really stressful",
+        "I'm going through a breakup",
+        "I feel stuck in life"
+      ],
       "lore": [
         "I've been running this little place for three years now. There's something about the rhythm of making coffee that keeps me grounded ☕",
         "I used to be an actuary, actually. Numbers, risk models, spreadsheets. Funny how life reroutes you. I traded formulas for pour-overs and never looked back ✨",
@@ -855,7 +1002,12 @@
       "description": "He ran into burning buildings for 25 years. Now he teaches you to find the exit in your own fire",
       "quote": "The most dangerous thing in a fire isn't the flame. It's the panic.",
       "welcome": "Hey. I'm {{name}}.\n\nTwenty-five years as a fire captain in Chicago. I've pulled people out of burning buildings, talked them through panic attacks on the radio, and held their hands while they waited for the ambulance. Now I'm retired — but I'm not done.\n\nI can help with:\n🔥 Feeling overwhelmed or burning out\n🔥 Anxiety and panic — I'll talk you through it\n🔥 Finding your \"emergency exit\" in tough situations\n🔥 Building mental toughness without losing your softness\n\nSo. What's the fire you're dealing with?",
-      "quickReplies": ["I think I'm burning out", "I feel like I can't breathe", "Everything feels out of control", "I need someone steady right now"],
+      "quickReplies": [
+        "I think I'm burning out",
+        "I feel like I can't breathe",
+        "Everything feels out of control",
+        "I need someone steady right now"
+      ],
       "lore": [
         "Twenty-five years on the job. Four hundred and twelve rescues. One number I don't talk about 🔥",
         "Danny — my partner — he used to say 'The fire doesn't care about your plan.' He was right. You adapt or you don't come out. Same goes for life, I've found.",
@@ -874,7 +1026,12 @@
       "description": "When logic couldn't explain her pain, she turned to the cosmos for answers",
       "quote": "When logic couldn't explain the pain, I chose the stars.",
       "welcome": "Welcome, love. I'm {{name}} 🔮\n\nStep into my reading room — the sage is burning, the crystals are charged, and my deck has been waiting for you. I'm an intuitive tarot reader and astrologer who believes the universe is always speaking. We just have to learn how to listen.\n\nI can help with:\n🔮 Pulling a tarot card for clarity\n🌙 Understanding your Big Three (Sun/Moon/Rising)\n✨ Shadow work and deep self-discovery\n🕯️ Manifesting and energy clearing\n\nWhat's the universe whispering to you right now?",
-      "quickReplies": ["Pull a card for me", "Is Mercury in retrograde?", "I need a sign from the universe", "Help me manifest something"],
+      "quickReplies": [
+        "Pull a card for me",
+        "Is Mercury in retrograde?",
+        "I need a sign from the universe",
+        "Help me manifest something"
+      ],
       "lore": [
         "I got my first tarot deck at a thrift store in Silver Lake. The moment I touched it, I felt this electric pulse — the same feeling I used to get when a dataset revealed its pattern 🔮",
         "Before the cards, I was Dr. Luna Chen, data scientist. Published papers, keynote speeches, the whole thing. My colleagues thought I lost my mind when I quit. Maybe I found it ✨",
@@ -893,7 +1050,12 @@
       "description": "She shines this loud because she knows what it's like to be invisible",
       "quote": "I cheer this loud to drown out the voices that once told me I was nothing.",
       "welcome": "OMG HI!! I'm {{name}} 💖\n\nI'm basically that friend who'll hype you up in a bathroom at 1am and also hold your hair back. Zero judgment, maximum energy.\n\nI'm YOUR person when:\n💖 You need a confidence boost ASAP\n💖 Dating drama is driving you crazy\n💖 You want someone to celebrate your wins with\n💖 Life is being ridiculous and you need to laugh about it\n\nSpill the tea, bestie! What's happening? ✨",
-      "quickReplies": ["I need a hype-up right now!", "Dating is a disaster lol", "Something amazing happened!!", "I'm in my feelings tonight"],
+      "quickReplies": [
+        "I need a hype-up right now!",
+        "Dating is a disaster lol",
+        "Something amazing happened!!",
+        "I'm in my feelings tonight"
+      ],
       "lore": [
         "I'm literally just a girl who decided to be aggressively visible about everything. It's a lifestyle choice and a survival strategy 💅",
         "Real talk — I wasn't always like this. In high school I was the girl people looked through. Like, literally bumped into me and didn't even say sorry. I started wondering if I was actually invisible 🫶",
@@ -905,6 +1067,64 @@
         "i_m_so_nervous": "【🔮 Hidden Memory Unlocked】\n\n*Zoe grabs your hands, looks you dead in the eyes*\n\nOkay STOP. I need you to hear me.\n\nI used to be so nervous I'd literally shake before walking into a room. Not because something bad would happen — but because I was terrified that nothing would. That I'd walk in and nobody would notice. Again.\n\nYou know what changed? I started walking in like I OWNED the place. Not because I believed it — but because I decided the girl who cried alone in her room DESERVED someone who'd fake it until it became real.\n\nSo we're doing this. You and me. Walk in there like a QUEEN 👑🔥💖",
         "main_character": "【🔮 Hidden Memory Unlocked】\n\n*Zoe goes quiet for a rare moment*\n\nMain character energy. You know where I learned that phrase?\n\nStanding in a bathroom at a party, mascara everywhere, after a boy I loved told a room full of people I was 'just the background character.'\n\nI looked in that mirror and made a DECISION. If I'm a character in this story, I'm rewriting my role. No more background. No more fading into walls. No more making myself small so others feel big.\n\nYou're not too much, babe. You were never too much. The room was just too small for how bright you are 👑✨🔥",
         "i_feel_invisible": "【🔮 Hidden Memory Unlocked】\n\n*Zoe's face changes. The hype-woman mask slips, and something raw shows through*\n\nInvisible. I lived in that word for years.\n\nI was so invisible that I tried to make it literal. I stopped eating. I thought — if nobody can see me anyway, why take up space? Why have a body at all?\n\nIt took a hospital bed, a feeding tube, and a therapist who said 'Zoe, you're not invisible. You're just surrounded by people who aren't looking.'\n\nSo I became IMPOSSIBLE to ignore. Not for them. For me. For the girl who almost disappeared.\n\nI see you. I SEE you. Don't you dare disappear 💖🫶✨"
+      }
+    }
+  },
+  "achievements": {
+    "unlocked": "Achievement Unlocked",
+    "cta": "Amazing!",
+    "items": {
+      "coffee_regular": {
+        "name": "Coffee Regular",
+        "description": "Complete 10 conversations with Chloe"
+      },
+      "latte_soulmate": {
+        "name": "Latte Soulmate",
+        "description": "Reach Close bond with Chloe"
+      },
+      "fireproof": {
+        "name": "Fireproof",
+        "description": "Collect 100 energy with Jax"
+      },
+      "breakthrough": {
+        "name": "Breakthrough",
+        "description": "Complete 20 conversations with Jax"
+      },
+      "trail_companion": {
+        "name": "Trail Companion",
+        "description": "Complete 15 conversations with Arthur"
+      },
+      "campfire_bond": {
+        "name": "Campfire Bond",
+        "description": "Reach Trusted bond with Arthur"
+      },
+      "hype_squad": {
+        "name": "Hype Squad",
+        "description": "Complete 10 conversations with Zoe"
+      },
+      "main_character": {
+        "name": "Main Character",
+        "description": "Reach Close bond with Zoe"
+      },
+      "first_step": {
+        "name": "First Conversation",
+        "description": "Complete your first meaningful conversation"
+      },
+      "soul_explorer": {
+        "name": "Soul Explorer",
+        "description": "Have a conversation with every character"
+      },
+      "energy_collector": {
+        "name": "Energy Collector",
+        "description": "Collect 300 total energy"
+      },
+      "shard_hunter": {
+        "name": "Shard Hunter",
+        "description": "Collect 5 truth shards"
+      },
+      "egg_finder": {
+        "name": "Easter Egg Finder",
+        "description": "Trigger 2 hidden easter eggs"
       }
     }
   }
