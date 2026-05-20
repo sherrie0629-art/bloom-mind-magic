@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import type { AchievementDef } from "@/data/achievements";
 
 interface Props {
@@ -6,7 +7,9 @@ interface Props {
   onClose: () => void;
 }
 
-const AchievementUnlock = ({ achievement, onClose }: Props) => (
+const AchievementUnlock = ({ achievement, onClose }: Props) => {
+  const { t } = useTranslation();
+  return (
   <AnimatePresence>
     {achievement && (
       <motion.div
@@ -40,7 +43,7 @@ const AchievementUnlock = ({ achievement, onClose }: Props) => (
             transition={{ delay: 0.25 }}
             className="text-xs font-medium text-secondary"
           >
-            🏆 Achievement Unlocked
+            🏆 {t("achievements.unlocked")}
           </motion.p>
 
           <motion.h2
@@ -49,7 +52,7 @@ const AchievementUnlock = ({ achievement, onClose }: Props) => (
             transition={{ delay: 0.35 }}
             className="mt-1 font-display text-xl font-bold text-foreground"
           >
-            {achievement.name}
+            {t(`achievements.items.${achievement.id}.name`, { defaultValue: achievement.name })}
           </motion.h2>
 
           <motion.p
@@ -58,7 +61,7 @@ const AchievementUnlock = ({ achievement, onClose }: Props) => (
             transition={{ delay: 0.45 }}
             className="mt-2 text-sm text-muted-foreground"
           >
-            {achievement.description}
+            {t(`achievements.items.${achievement.id}.description`, { defaultValue: achievement.description })}
           </motion.p>
 
           <motion.button
@@ -68,12 +71,13 @@ const AchievementUnlock = ({ achievement, onClose }: Props) => (
             onClick={onClose}
             className="mt-5 rounded-xl bg-gradient-golden px-6 py-2.5 text-sm font-medium text-primary-foreground active:scale-[0.97]"
           >
-            Amazing!
+            {t("achievements.cta")}
           </motion.button>
         </motion.div>
       </motion.div>
     )}
   </AnimatePresence>
-);
+  );
+};
 
 export default AchievementUnlock;
