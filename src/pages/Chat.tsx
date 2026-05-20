@@ -365,22 +365,8 @@ const Chat = () => {
         setMessages([{ id: "welcome", role: "assistant", content: getWelcomeMessage(agent) }]);
       }
 
-      const memories = memoriesResult.data;
-      const summaries = summariesResult.data;
-      const memCtx: string[] = [];
-      if (memories && memories.length > 0) {
-        memories.forEach((m) => {
-          const daysAgo = Math.floor((Date.now() - new Date(m.created_at || "").getTime()) / 86400000);
-          const timeLabel = daysAgo === 0 ? "Today" : daysAgo === 1 ? "Yesterday" : `${daysAgo}d ago`;
-          memCtx.push(`[${timeLabel}] ${m.content}${m.emotion_tag ? ` (mood: ${m.emotion_tag})` : ""}`);
-        });
-      }
-      if (summaries && summaries.length > 0) {
-        summaries.forEach((s) => {
-          memCtx.push(`[Summary] ${s.summary} (topics: ${(s.key_topics as string[] || []).join(", ")})`);
-        });
-      }
-      setMemoryContext(memCtx);
+      setMemoryContext(formatRecall(recallResult.memories, recallResult.facts, summariesResult.data || []));
+
       setHistoryLoaded(true);
     };
     loadConversationAndMemories();
