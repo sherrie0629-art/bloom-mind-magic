@@ -468,9 +468,12 @@ export type Database = {
           category: string | null
           content: string
           created_at: string
+          embedding: string | null
           emotion_tag: string | null
+          expires_at: string | null
           id: string
           importance: number
+          last_used_at: string | null
           user_id: string
         }
         Insert: {
@@ -478,9 +481,12 @@ export type Database = {
           category?: string | null
           content: string
           created_at?: string
+          embedding?: string | null
           emotion_tag?: string | null
+          expires_at?: string | null
           id?: string
           importance?: number
+          last_used_at?: string | null
           user_id: string
         }
         Update: {
@@ -488,10 +494,49 @@ export type Database = {
           category?: string | null
           content?: string
           created_at?: string
+          embedding?: string | null
           emotion_tag?: string | null
+          expires_at?: string | null
           id?: string
           importance?: number
+          last_used_at?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_profile_facts: {
+        Row: {
+          category: string
+          confidence: number
+          created_at: string
+          id: string
+          key: string
+          last_confirmed_at: string
+          source_agent_id: string | null
+          user_id: string
+          value: string
+        }
+        Insert: {
+          category: string
+          confidence?: number
+          created_at?: string
+          id?: string
+          key: string
+          last_confirmed_at?: string
+          source_agent_id?: string | null
+          user_id: string
+          value: string
+        }
+        Update: {
+          category?: string
+          confidence?: number
+          created_at?: string
+          id?: string
+          key?: string
+          last_confirmed_at?: string
+          source_agent_id?: string | null
+          user_id?: string
+          value?: string
         }
         Relationships: []
       }
@@ -557,12 +602,32 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      decay_memories: { Args: never; Returns: undefined }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
           _user_id: string
         }
         Returns: boolean
+      }
+      match_user_memories: {
+        Args: {
+          p_agent_id: string
+          p_match_count?: number
+          p_query_embedding: string
+          p_user_id: string
+        }
+        Returns: {
+          agent_id: string
+          category: string
+          content: string
+          created_at: string
+          emotion_tag: string
+          id: string
+          importance: number
+          score: number
+          similarity: number
+        }[]
       }
     }
     Enums: {
