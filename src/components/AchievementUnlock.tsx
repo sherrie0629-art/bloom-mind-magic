@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import type { AchievementDef } from "@/data/achievements";
 
 interface Props {
