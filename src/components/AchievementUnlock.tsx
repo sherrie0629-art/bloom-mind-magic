@@ -7,7 +7,9 @@ interface Props {
   onClose: () => void;
 }
 
-const AchievementUnlock = ({ achievement, onClose }: Props) => (
+const AchievementUnlock = ({ achievement, onClose }: Props) => {
+  const { t } = useTranslation();
+  return (
   <AnimatePresence>
     {achievement && (
       <motion.div
