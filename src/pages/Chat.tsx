@@ -270,7 +270,7 @@ const Chat = () => {
 
 
 
-      const [convResult, memoriesResult, summariesResult] = await Promise.all([
+      const [convResult, recallResult, summariesResult] = await Promise.all([
         supabase
           .from("conversations")
           .select("id")
@@ -279,14 +279,7 @@ const Chat = () => {
           .order("updated_at", { ascending: false })
           .limit(1)
           .maybeSingle(),
-        supabase
-          .from("user_memories")
-          .select("content, emotion_tag, category, created_at")
-          .eq("user_id", user.id)
-          .eq("agent_id", agentId)
-          .order("importance", { ascending: false })
-          .order("created_at", { ascending: false })
-          .limit(20),
+        recallFromEdge(""),
         supabase
           .from("conversation_summaries")
           .select("summary, key_topics")
@@ -295,6 +288,7 @@ const Chat = () => {
           .order("created_at", { ascending: false })
           .limit(5),
       ]);
+
 
       const convData = convResult.data;
 
