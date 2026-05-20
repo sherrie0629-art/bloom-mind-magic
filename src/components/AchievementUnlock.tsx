@@ -43,7 +43,7 @@ const AchievementUnlock = ({ achievement, onClose }: Props) => {
             transition={{ delay: 0.25 }}
             className="text-xs font-medium text-secondary"
           >
-            🏆 Achievement Unlocked
+            🏆 {t("achievements.unlocked")}
           </motion.p>
 
           <motion.h2
