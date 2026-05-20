@@ -61,7 +61,7 @@ const AchievementUnlock = ({ achievement, onClose }: Props) => {
             transition={{ delay: 0.45 }}
             className="mt-2 text-sm text-muted-foreground"
           >
-            {achievement.description}
+            {t(`achievements.items.${achievement.id}.description`, { defaultValue: achievement.description })}
           </motion.p>
 
           <motion.button
