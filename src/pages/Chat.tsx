@@ -620,10 +620,24 @@ const Chat = () => {
       }
     }
 
+    // Retrospective context: user is asking about a previously drawn card.
+    let pastCardContext = "";
+    if (agentId === "mystic" && !drawnCardContext && isRetrospectiveCardRef(text)) {
+      const lastCardMsg = [...messages].reverse().find((m) => m.kind === "tarot-card" && m.tarotCard);
+      if (lastCardMsg?.tarotCard) {
+        const c = lastCardMsg.tarotCard;
+        const posZh = c.isReversed ? "逆位" : "正位";
+        const posEn = c.isReversed ? "Reversed" : "Upright";
+        pastCardContext = locale === "zh"
+          ? `\n\n[上一张牌回顾：用户此前抽到 ${c.cardNameCn}（${posZh}），关键词：${c.keywords.join("、")}。请围绕这张已经抽出的牌继续解读用户的问题，不要再抽新牌，也不要说"我为你抽一张"。]`
+          : `\n\n[Previous card recap: User already drew ${c.cardName} (${posEn}). Keywords: ${c.keywords.join(", ")}. Interpret this existing card in light of their question. Do NOT draw a new card or say "let me pull a card".]`;
+      }
+    }
+
     const apiMessages: Msg[] = messages
       .filter((m) => m.id !== "welcome" && m.kind !== "tarot-card")
       .map((m) => ({ role: m.role, content: m.content }));
-    apiMessages.push({ role: "user", content: userMsg.content + drawnCardContext });
+    apiMessages.push({ role: "user", content: userMsg.content + drawnCardContext + pastCardContext });
 
     let assistantContent = "";
 
