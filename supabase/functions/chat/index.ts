@@ -352,7 +352,8 @@ serve(async (req) => {
     fullSystemPrompt += langLine;
     const requestBody = JSON.stringify({
       model: MODEL,
-      max_tokens: 1024,
+      max_tokens: 2048,
+      reasoning_effort: "none",
       messages: [
         { role: "system", content: fullSystemPrompt },
         ...messages,
@@ -387,7 +388,20 @@ serve(async (req) => {
       });
     }
 
-    return new Response(response.body, {
+    // Tap the stream to log finish_reason for diagnostics, pass bytes through unchanged
+    const decoder = new TextDecoder();
+    const tap = new TransformStream<Uint8Array, Uint8Array>({
+      transform(chunk, controller) {
+        try {
+          const text = decoder.decode(chunk, { stream: true });
+          const m = text.match(/"finish_reason"\s*:\s*"([^"]+)"/);
+          if (m) console.log("[chat] finish_reason:", m[1]);
+        } catch (_) { /* ignore */ }
+        controller.enqueue(chunk);
+      },
+    });
+
+    return new Response(response.body!.pipeThrough(tap), {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
