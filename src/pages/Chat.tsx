@@ -189,6 +189,7 @@ const Chat = () => {
     };
 
     const recallFromEdge = async (query: string): Promise<{ memories: any[]; facts: any[] }> => {
+      if (!user) return { memories: [], facts: [] };
       try {
         const { data, error } = await supabase.functions.invoke("recall-memory", {
           body: { query: query || "recent conversation context", agentId, k: 8 },
@@ -200,6 +201,7 @@ const Chat = () => {
         return { memories: [], facts: [] };
       }
     };
+
 
     const loadConversationAndMemories = async () => {
       if (hasAssessmentContext) {
@@ -646,40 +648,42 @@ const Chat = () => {
     const apiMessages: Msg[] = messages
       .filter((m) => m.id !== "welcome" && m.kind !== "tarot-card")
       .map((m) => ({ role: m.role, content: m.content }));
-    apiMessages.push({ role: "user", content: userMsg.content + drawnCardContext + pastCardContext });
-
     // Semantic recall using the just-sent user text — refresh memoryContext for this turn.
     let turnMemoryContext = memoryContext;
-    try {
-      const { data: recallData } = await supabase.functions.invoke("recall-memory", {
-        body: { query: text, agentId, k: 8 },
-      });
-      const rMems = (recallData as any)?.memories || [];
-      const rFacts = (recallData as any)?.facts || [];
-      if (rMems.length > 0 || rFacts.length > 0) {
-        const fresh: string[] = [];
-        const isZh = locale === "zh";
-        if (rFacts.length > 0) {
-          const header = isZh ? "[关于用户 · 跨角色记得]" : "[About user · cross-agent]";
-          rFacts.forEach((f: any) => {
-            const src = f.source_agent_id && f.source_agent_id !== agentId ? ` (from ${f.source_agent_id})` : "";
-            fresh.push(`${header} ${f.category}/${f.key}: ${f.value}${src}`);
-          });
-        }
-        rMems.forEach((m: any) => {
-          const daysAgo = Math.floor((Date.now() - new Date(m.created_at || "").getTime()) / 86400000);
-          const tl = daysAgo === 0 ? "Today" : daysAgo === 1 ? "Yesterday" : `${daysAgo}d ago`;
-          const crossTag = m.agent_id && m.agent_id !== agentId ? ` {from ${m.agent_id}}` : "";
-          fresh.push(`[${tl}] ${m.content}${m.emotion_tag ? ` (mood: ${m.emotion_tag})` : ""}${crossTag}`);
+    if (user) {
+      try {
+        const { data: recallData } = await supabase.functions.invoke("recall-memory", {
+          body: { query: text, agentId, k: 8 },
         });
-        // Preserve any [Just assessed] / [Summary] entries already in memoryContext.
-        const preserved = memoryContext.filter((s) => s.startsWith("[Just assessed]") || s.startsWith("[Summary]"));
-        turnMemoryContext = [...preserved, ...fresh];
-        setMemoryContext(turnMemoryContext);
+        const rMems = (recallData as any)?.memories || [];
+        const rFacts = (recallData as any)?.facts || [];
+        if (rMems.length > 0 || rFacts.length > 0) {
+          const fresh: string[] = [];
+          const isZh = locale === "zh";
+          if (rFacts.length > 0) {
+            const header = isZh ? "[关于用户 · 跨角色记得]" : "[About user · cross-agent]";
+            rFacts.forEach((f: any) => {
+              const src = f.source_agent_id && f.source_agent_id !== agentId ? ` (from ${f.source_agent_id})` : "";
+              fresh.push(`${header} ${f.category}/${f.key}: ${f.value}${src}`);
+            });
+          }
+          rMems.forEach((m: any) => {
+            const daysAgo = Math.floor((Date.now() - new Date(m.created_at || "").getTime()) / 86400000);
+            const tl = daysAgo === 0 ? "Today" : daysAgo === 1 ? "Yesterday" : `${daysAgo}d ago`;
+            const crossTag = m.agent_id && m.agent_id !== agentId ? ` {from ${m.agent_id}}` : "";
+            fresh.push(`[${tl}] ${m.content}${m.emotion_tag ? ` (mood: ${m.emotion_tag})` : ""}${crossTag}`);
+          });
+          // Preserve any [Just assessed] / [Summary] entries already in memoryContext.
+          const preserved = memoryContext.filter((s) => s.startsWith("[Just assessed]") || s.startsWith("[Summary]"));
+          turnMemoryContext = [...preserved, ...fresh];
+          setMemoryContext(turnMemoryContext);
+        }
+      } catch (e) {
+        console.error("[Chat] turn recall failed:", e);
       }
-    } catch (e) {
-      console.error("[Chat] turn recall failed:", e);
     }
+
+
 
 
 
@@ -756,18 +760,21 @@ const Chat = () => {
           }
 
           // Fire-and-forget: extract incremental memory + profile facts from this turn.
-          supabase.functions
-            .invoke("extract-memory-incremental", {
-              body: {
-                agentId,
-                locale,
-                recentMessages: [
-                  { role: "user", content: userMsg.content },
-                  { role: "assistant", content: assistantContent },
-                ],
-              },
-            })
-            .catch((err) => console.error("[Chat] extract-memory-incremental failed:", err));
+          if (user) {
+            supabase.functions
+              .invoke("extract-memory-incremental", {
+                body: {
+                  agentId,
+                  locale,
+                  recentMessages: [
+                    { role: "user", content: userMsg.content },
+                    { role: "assistant", content: assistantContent },
+                  ],
+                },
+              })
+              .catch((err) => console.error("[Chat] extract-memory-incremental failed:", err));
+          }
+
 
         },
         onError: (error) => {
