@@ -29,7 +29,7 @@ import SEO from "@/components/SEO";
 import { useBond } from "@/hooks/useBond";
 import { useSubscription } from "@/hooks/useSubscription";
 import { parseGameMarkers, type BranchOption, type Atmosphere } from "@/lib/parseGameMarkers";
-import { generateFallbackOptions } from "@/lib/generateFallbackOptions";
+
 import { toast } from "sonner";
 import { generateSoulFragment } from "@/hooks/useSoulFragment";
 import TarotCardInline, { type InlineTarotCard } from "@/components/TarotCardInline";
@@ -711,40 +711,10 @@ const Chat = () => {
           console.log("[Chat] raw AI response:", assistantContent.slice(-200));
           const { cleanContent, energyGain, branchOptions: parsedOptions, truthShard, atmosphere: newAtmosphere } = parseGameMarkers(assistantContent);
           
-          let finalBranchOptions: BranchOption[] | null = null;
-          if (parsedOptions && parsedOptions.length > 0) {
-            finalBranchOptions = parsedOptions;
-          } else {
-            const assistantMsgsWithOptions = messages.filter(
-              m => m.role === "assistant" && m.branchOptions && m.branchOptions.length > 0
-            );
-            const lastOptionsIdx = assistantMsgsWithOptions.length > 0
-              ? messages.indexOf(assistantMsgsWithOptions[assistantMsgsWithOptions.length - 1])
-              : -1;
-            const assistantsSinceLast = messages
-              .slice(lastOptionsIdx + 1)
-              .filter(m => m.role === "assistant").length;
+          // 只信任 AI 自己输出的 Options，不再做客户端兜底强出
+          const finalBranchOptions: BranchOption[] | null =
+            parsedOptions && parsedOptions.length > 0 ? parsedOptions : null;
 
-            // Last user message — for length / question heuristics
-            const lastUserMsg = [...apiMessages].reverse().find(m => m.role === "user")?.content || "";
-            const isTooShort = lastUserMsg.trim().length < 12;
-            const isPureQuestion = /[?？]\s*$/.test(lastUserMsg.trim());
-
-            // Stricter cooldown: only after 4+ assistant turns without options,
-            // and skip if user message is too short or a pure question
-            const cooldownPassed = assistantsSinceLast + 1 >= 4;
-            if (cooldownPassed && !isTooShort && !isPureQuestion) {
-              const recentlyShown = assistantMsgsWithOptions
-                .slice(-3)
-                .flatMap(m => (m.branchOptions || []).map(o => o.text));
-              finalBranchOptions = generateFallbackOptions(
-                agentId,
-                [...apiMessages, { role: "assistant", content: cleanContent }],
-                t,
-                recentlyShown
-              );
-            }
-          }
           
           console.log("[Chat] parsed markers:", { branchOptions: finalBranchOptions?.length, fromAI: !!(parsedOptions && parsedOptions.length > 0), energyGain, atmosphere: newAtmosphere });
 
