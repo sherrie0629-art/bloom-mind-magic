@@ -189,6 +189,7 @@ const Chat = () => {
     };
 
     const recallFromEdge = async (query: string): Promise<{ memories: any[]; facts: any[] }> => {
+      if (!user) return { memories: [], facts: [] };
       try {
         const { data, error } = await supabase.functions.invoke("recall-memory", {
           body: { query: query || "recent conversation context", agentId, k: 8 },
@@ -200,6 +201,7 @@ const Chat = () => {
         return { memories: [], facts: [] };
       }
     };
+
 
     const loadConversationAndMemories = async () => {
       if (hasAssessmentContext) {
