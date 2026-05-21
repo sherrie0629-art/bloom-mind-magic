@@ -714,7 +714,16 @@ const Chat = () => {
         onDone: async () => {
           console.log("[Chat] raw AI response:", assistantContent.slice(-200));
           const { cleanContent, energyGain, branchOptions: parsedOptions, truthShard, atmosphere: newAtmosphere } = parseGameMarkers(assistantContent);
-          
+
+          // 兜底：模型只吐了 markers / 空内容，避免渲染空气泡
+          if (!cleanContent.trim()) {
+            console.warn("[Chat] empty body, only markers — dropping bubble and asking user to retry");
+            setMessages((prev) => prev.filter((m) => m.id !== "streaming"));
+            setIsStreaming(false);
+            toast.error(locale === "zh" ? "她好像走神了，再发一次试试 🌙" : "She drifted off — try again 🌙");
+            return;
+          }
+
           // 只信任 AI 自己输出的 Options，不再做客户端兜底强出
           const finalBranchOptions: BranchOption[] | null =
             parsedOptions && parsedOptions.length > 0 ? parsedOptions : null;
