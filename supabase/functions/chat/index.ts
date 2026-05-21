@@ -106,6 +106,7 @@ const RPG_INSTRUCTION = `
   · The question must echo the exact thing you just said, e.g. "💭 哪一句最戳你？" / "💭 这个画面你认得吗？" — never introduce a new topic.
 - ❌ Forbidden: pivoting to an unrelated new question ("那你最近工作怎么样？" after sharing an emotional insight), generic openers ("💭 你怎么看？" without anchoring), stacking a 💭 after Options.
 - ✅ Leaving space (no question) is the preferred default. The user will respond to what moved them.
+- ⚠️ Skipping the 💭 question does NOT mean skipping the reply. You still owe the user a body response before the markers.
 
 5.【Mood Marker】Append at end: 【🎭Mood:type】. Types: snow/rain/starry/warm/sakura/storm.
 
