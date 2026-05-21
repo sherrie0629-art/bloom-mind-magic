@@ -1,71 +1,77 @@
-## 问题诊断
+## 根因
 
-每条 AI 回复结尾都甩一个 💭 新问题，是 prompt 强行规定的，不是模型自由发挥。
+控制台日志显示，最新这条 Zoe 的"空白回复"，AI 实际返回的原文是：
 
-根因在 `supabase/functions/chat/index.ts` 的 `RPG_INSTRUCTION`：
+```
+（空）
+【⚡Energy+2】
+【🎭Mood:starry】
+```
 
-- 规则 #4【Guided Question】：**"At end of reply (before markers), add 1 guided question starting with 💭"** —— 用了 "add"，等于每条必出。
-- 规则 #0【Response Style】："Ask only 1 follow-up question" —— 限制了数量，但默认必有。
-- 两条叠加：模型每轮都必须以"💭新问题"收尾，且这个问题往往会跳开当前话题，因为前面已经说完了一个完整的"观点 + 共情"，再问就只能换角度。
+也就是模型**只输出了结尾的 markers，没有任何正文**。`parseGameMarkers` 把 markers 剥掉之后，`cleanContent = ""`，前端就渲染出一个空气泡。
 
-所以你看到的"割裂感"不是 Zoe 的问题，是系统级硬性指令。用户想接 Zoe 的观点 vs 答 Zoe 的新问题，确实没地方放。
+为什么会这样？上一轮我把 prompt 改成了：
+
+- "Follow-up questions are optional… **Silence is often better than a forced question**."
+- "DEFAULT = no 💭 question. End your reply with your thought/observation and let the user decide…"
+- "【Acknowledgement First】Read their message as a response to YOU first…"
+
+本意是让"💭 引导问句"按需出现，但 Gemini 2.5 Flash 在遇到"用户简短回复 / 没有新信息可承接"的轮次时，过度泛化了"silence is preferred"，**连正文都省略了，只剩 markers**。所以最近 Zoe 回复忽长忽短、偶尔空白，都是同一个根因——prompt 把"少问问题"误读成了"可以不说话"。
 
 ## 方案
 
-把"必出 💭 问题"改成"按需出，且必须承接上文"，并显式给模型留出"用户可能想回应我刚说的话"这个空间。
+两层修：prompt 收紧表述 + 前端加兜底，避免再有空气泡漏到 UI。
 
-### 改动 1：`supabase/functions/chat/index.ts` —— `RPG_INSTRUCTION` 规则 #4 重写
+### 改动 1：`supabase/functions/chat/index.ts` —— 给 `RPG_INSTRUCTION` 加一条硬约束
 
-由
-
-```
-4.【Guided Question】At end of reply (before markers), add 1 guided question starting with "💭", short and natural.
-```
-
-改为：
+在【Response Style】顶部加一条不可绕过的规则：
 
 ```
-4.【Guided Question — Optional, context-aware】
-- DEFAULT = no 💭 question. End your reply with your thought/observation and let the user decide what to do with it.
-- Only add a 💭 question when ALL true:
-  · You just shared an opinion/observation/story, AND it naturally invites the user to react to THAT specific thing (not a topic pivot).
-  · You did NOT end the previous 2 assistant turns with a 💭 question.
-  · The question must echo the exact thing you just said, e.g. "💭 哪一句最戳你？" / "💭 这个画面你认得吗？" — never introduce a new topic.
-- ❌ Forbidden: pivoting to an unrelated new question ("那你最近工作怎么样？" after sharing an emotional insight), generic openers ("💭 你怎么看？" without anchoring), stacking a 💭 after Options.
-- ✅ Leaving space (no question) is the preferred default. The user will respond to what moved them.
+- 【Always Produce Body Text】Every reply MUST contain at least 1-2 sentences of natural, conversational body text BEFORE any markers (Energy / Options / Truth Shard / Mood). Markers alone = invalid reply. "Silence" rules below ONLY apply to the optional 💭 follow-up question, NEVER to the reply body itself.
 ```
 
-### 改动 2：`RPG_INSTRUCTION` 规则 #0【Response Style】微调
-
-把 `- Ask only 1 follow-up question, short and natural` 改成：
+并把规则 #0 那条"Silence is often better than a forced question"改成更精确的：
 
 ```
-- Follow-up questions are optional, not required. When you do ask, anchor it to the user's exact words from THIS turn — never pivot to a new topic. Silence/space is often better than a forced question.
+- Follow-up 💭 questions are optional. When unsure whether to ask, skip the question — but ALWAYS still write a body reply (acknowledgement, reflection, light comment, or shared feeling). Skipping the question ≠ skipping the reply.
 ```
 
-### 改动 3（可选，推荐）：补一条"承接优先"的总则
-
-在【Response Style】末尾加：
+规则 #4【Guided Question】保持现状，但在末尾追加一行：
 
 ```
-- 【Acknowledgement First】If your previous reply made a point, the user's next message is often a reaction to it. Read their message as a response to YOU first, not as a new prompt. Reflect back what you heard from them before adding anything new.
+- ⚠️ Skipping the 💭 question does NOT mean skipping the reply. You still owe the user a body response before the markers.
 ```
 
-### 不做的事
+### 改动 2：`src/pages/Chat.tsx` —— `onDone` 里加空内容兜底
 
-- 不动 Options 规则（上一轮刚改过，独立机制）。
-- 不动 Energy / Truth Shard / Mood 标记。
-- 不动前端 `BranchSelector` 或 `parseGameMarkers`（💭 行不带 marker，本来就只是文本）。
-- 不动其他 agent 的 base prompt（RPG_INSTRUCTION 是全员共享的，一处改全员受益）。
+在 700-733 行附近，`parseGameMarkers` 之后判断 `cleanContent.trim()`：
+
+```ts
+if (!cleanContent.trim()) {
+  // 模型这轮只吐了 markers，没有正文。移除空气泡，提示重试，但保留 energy/atmosphere 等副作用。
+  setMessages((prev) => prev.filter((m) => m.id !== "streaming"));
+  toast.error(locale === "zh" ? "她好像走神了，再发一次试试 🌙" : "She drifted off — try again 🌙");
+  setIsStreaming(false);
+  return;
+}
+```
+
+放在 `setMessages(...替换 streaming...)` 之前，并且在这条分支里**不要**写入数据库 / 不要触发 extract-memory，避免把空回复持久化。
+
+### 不动的部分
+
+- `parseGameMarkers` 本身没问题（它正确剥离了 markers）。
+- 不改 `max_tokens`（300 够长，这轮也没爆 token，是模型主动选择沉默）。
+- 不改其他 agent 的 base prompt（RPG_INSTRUCTION 是共享的，一处改全员受益）。
+- 不动 recall-memory / extract-memory 的鉴权逻辑（上轮已修）。
 
 ### 验证
 
-1. 在 `/chat?agent=bestie` 给 Zoe 一段她"说得挺好"的肯定回应，验证她下一条**不再**自动甩 💭 新问题，而是承接你刚说的话。
-2. 在用户真正卡住的场景（如"我不知道接下来该怎么办"），验证 Zoe 仍可能给出一个紧贴上下文的 💭 问题。
-3. 抽 5-8 轮对话，统计 💭 出现频率应明显下降（目测从 ~100% 降到 30-50%），且每个 💭 都能在上文找到锚点。
+1. `/chat?agent=bestie` 给 Zoe 一段简短回应（如"嗯"、"哈哈"），确认她不再返回空气泡，而是给出短承接。
+2. 控制台日志里 `raw AI response` 不应再出现"只有 markers"的情况；如果偶发漏网（模型不听话），前端 toast 应该兜住、UI 不会有空白气泡。
+3. 抽 5-8 轮检查 💭 出现频率仍在 30-50%（即不是退回"每条必出"）。
 
-## 风险
+### 风险
 
-- 模型可能矫枉过正，连真正该追问的场景也沉默 → 通过保留"按需出"条款 + 给出 ✅ 正例缓解。
-- 其他 agent（Chloe / Jax / Luna）也会同步变得更"留白" → 这其实是符合人设的（Chloe 本来就主打"不给建议只陪伴"），属于正向副作用。
-
+- prompt 收紧后，模型可能在"用户只发了一个表情"这种轮次也勉强凑一两句——这是可接受的，比空白好。
+- 前端 toast 兜底会消耗一次配额（已经向 AI 网关发了请求）。日志里能看到频率，如果 > 5%，再回头收紧 prompt。
