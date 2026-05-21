@@ -29,7 +29,7 @@ import SEO from "@/components/SEO";
 import { useBond } from "@/hooks/useBond";
 import { useSubscription } from "@/hooks/useSubscription";
 import { parseGameMarkers, type BranchOption, type Atmosphere } from "@/lib/parseGameMarkers";
-import { generateFallbackOptions } from "@/lib/generateFallbackOptions";
+
 import { toast } from "sonner";
 import { generateSoulFragment } from "@/hooks/useSoulFragment";
 import TarotCardInline, { type InlineTarotCard } from "@/components/TarotCardInline";
