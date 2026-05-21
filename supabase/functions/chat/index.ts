@@ -352,7 +352,7 @@ serve(async (req) => {
     fullSystemPrompt += langLine;
     const requestBody = JSON.stringify({
       model: MODEL,
-      max_tokens: 300,
+      max_tokens: 1024,
       messages: [
         { role: "system", content: fullSystemPrompt },
         ...messages,
