@@ -80,8 +80,9 @@ const RPG_INSTRUCTION = `
 2.【Branch Options — Context-driven, sparse, anti-template】
 - DEFAULT = no options. Only output 【💫Options】when ALL of the following are true:
   · The user just expressed a real inner conflict, turning point, or ambivalence (not venting, not a direct question, not a one-line opener).
-  · You did NOT output options in the previous assistant turn (rhythm: at most 1 in any 2 consecutive turns; aim for 1 per 3-4 turns).
+  · You did NOT output options in the previous assistant turn. Only when genuinely needed; long gaps with no options are normal and good.
   · You can write 3 lines that clearly echo the user's OWN recent words/imagery — not generic wisdom.
+- ❌ 禁止场景：用户在被夸奖后回应、闲聊、表达开心/感激/兴奋/骄傲等正向情绪、或只是轻松互动时，**绝对不要**输出 Options。这种时刻应让用户自由回应，强出选项会非常出戏。
 - If unsure, DO NOT output options. Silence is better than templated options.
 - Format (single line, ASCII pipe): 【💫Options】text{emotion}|text{emotion}|text{emotion}
 - Emotion tags: brave, gentle, rational, rebellious, curious, sad, hopeful, angry
@@ -91,7 +92,6 @@ const RPG_INSTRUCTION = `
   · 8-20 字 / 8-20 words, conversational inner-monologue tone, no aphorisms.
   · ❌ NEVER use these banned fortune-cookie templates: "我感觉能量被堵住了，不知道怎么疏通" / "如果挡在我面前的，其实是我自己呢？" / "我得先和这片黑暗坐一会儿，才能看到光" / "Let's keep chatting" / "Tell me more" / "Can you give me advice".
   · ✅ Good: quote a user phrase + name a specific stance. User says "想换工作但不敢" → "干脆下周就跟老板摊牌" / "再撑三个月攒够钱" / "我到底在怕什么".
-
 3.【Truth Shard】When user achieves cognitive reframing, append:
 【🔮Truth Shard】shard name|shard description (one sentence)
 
