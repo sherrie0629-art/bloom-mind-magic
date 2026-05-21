@@ -30,7 +30,12 @@ function lazyWithReload<T extends { default: React.ComponentType<any> }>(factory
         const now = Date.now();
         const routeKey = `${window.location.pathname}${window.location.search}`;
         const guardValue = sessionStorage.getItem("__chunk_reload_guard__");
-        const guard = guardValue ? JSON.parse(guardValue) as { routeKey?: string; timestamp?: number } : null;
+        let guard: { routeKey?: string; timestamp?: number } | null = null;
+        try {
+          guard = guardValue ? JSON.parse(guardValue) : null;
+        } catch {
+          sessionStorage.removeItem("__chunk_reload_guard__");
+        }
         const hasRecentlyReloaded = guard?.routeKey === routeKey && now - (guard.timestamp ?? 0) < 30_000;
 
         if (!hasRecentlyReloaded) {
