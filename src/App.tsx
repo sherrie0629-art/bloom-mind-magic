@@ -11,19 +11,30 @@ import SiteFooter from "./components/SiteFooter.tsx";
 import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner.tsx";
 import LocaleSync from "./components/LocaleSync.tsx";
 
-// Retry dynamic import once, then force a hard reload if a stale chunk cannot be fetched
+// Retry dynamic import once, then force a hard reload if a stale route chunk cannot be fetched
 // (typically after a new deploy invalidated the previous hashed chunk file names).
+// The reload guard is scoped to the current route and expires quickly so one stale chunk does
+// not leave the app permanently unable to recover from another lazy page import failure.
 function lazyWithReload<T extends { default: React.ComponentType<any> }>(factory: () => Promise<T>) {
   return lazy(async () => {
     try {
-      return await factory();
+      const module = await factory();
+      sessionStorage.removeItem("__chunk_reload_guard__");
+      return module;
     } catch (err) {
       try {
-        return await factory();
+        const module = await factory();
+        sessionStorage.removeItem("__chunk_reload_guard__");
+        return module;
       } catch (err2) {
-        const reloaded = sessionStorage.getItem("__chunk_reloaded__");
-        if (!reloaded) {
-          sessionStorage.setItem("__chunk_reloaded__", "1");
+        const now = Date.now();
+        const routeKey = `${window.location.pathname}${window.location.search}`;
+        const guardValue = sessionStorage.getItem("__chunk_reload_guard__");
+        const guard = guardValue ? JSON.parse(guardValue) as { routeKey?: string; timestamp?: number } : null;
+        const hasRecentlyReloaded = guard?.routeKey === routeKey && now - (guard.timestamp ?? 0) < 30_000;
+
+        if (!hasRecentlyReloaded) {
+          sessionStorage.setItem("__chunk_reload_guard__", JSON.stringify({ routeKey, timestamp: now }));
           window.location.reload();
           // Return a placeholder while reload happens
           return { default: () => null } as unknown as T;
