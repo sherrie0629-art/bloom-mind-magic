@@ -760,18 +760,21 @@ const Chat = () => {
           }
 
           // Fire-and-forget: extract incremental memory + profile facts from this turn.
-          supabase.functions
-            .invoke("extract-memory-incremental", {
-              body: {
-                agentId,
-                locale,
-                recentMessages: [
-                  { role: "user", content: userMsg.content },
-                  { role: "assistant", content: assistantContent },
-                ],
-              },
-            })
-            .catch((err) => console.error("[Chat] extract-memory-incremental failed:", err));
+          if (user) {
+            supabase.functions
+              .invoke("extract-memory-incremental", {
+                body: {
+                  agentId,
+                  locale,
+                  recentMessages: [
+                    { role: "user", content: userMsg.content },
+                    { role: "assistant", content: assistantContent },
+                  ],
+                },
+              })
+              .catch((err) => console.error("[Chat] extract-memory-incremental failed:", err));
+          }
+
 
         },
         onError: (error) => {
