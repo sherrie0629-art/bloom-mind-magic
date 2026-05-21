@@ -683,8 +683,7 @@ const Chat = () => {
       }
     }
 
-      console.error("[Chat] turn recall failed:", e);
-    }
+
 
 
 
