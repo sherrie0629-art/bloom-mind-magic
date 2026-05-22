@@ -510,20 +510,34 @@ serve(async (req) => {
       });
     }
 
-    // Tap the stream to log finish_reason for diagnostics, pass bytes through unchanged
-    const decoder = new TextDecoder();
-    const tap = new TransformStream<Uint8Array, Uint8Array>({
-      transform(chunk, controller) {
-        try {
-          const text = decoder.decode(chunk, { stream: true });
-          const m = text.match(/"finish_reason"\s*:\s*"([^"]+)"/);
-          if (m) console.log("[chat] finish_reason:", m[1]);
-        } catch (_) { /* ignore */ }
-        controller.enqueue(chunk);
-      },
-    });
+    const rawSse = await response.text();
+    const { content: aiContent, finishReason } = parseStreamText(rawSse);
+    const cleanBody = cleanBodyForValidation(aiContent);
+    console.log("[chat] finish_reason:", finishReason || "unknown");
+    console.log("[chat] body_chars:", cleanBody.length, "raw_chars:", aiContent.length);
 
-    return new Response(response.body!.pipeThrough(tap), {
+    if (!cleanBody && aiContent.trim()) {
+      console.warn("[chat] marker-only response detected; attempting repair");
+      const latestUserText = Array.isArray(messages)
+        ? [...messages].reverse().find((m: any) => m?.role === "user")?.content || ""
+        : "";
+      const markers = extractTrailingMarkers(aiContent) || "【🎭Mood:warm】";
+      const repaired = await repairMarkerOnlyReply({
+        apiKey: LOVABLE_API_KEY,
+        model: MODEL,
+        basePrompt,
+        latestUserText,
+        markers,
+        isZh,
+        agentId,
+      });
+      console.log("[chat] marker-only repair body_chars:", cleanBodyForValidation(repaired).length);
+      return new Response(makeSseResponse(repaired), {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      });
+    }
+
+    return new Response(rawSse, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
