@@ -275,6 +275,127 @@ const easterEggs: Record<string, { trigger: string; instruction: string }[]> = {
   ],
 };
 
+const MARKER_PATTERNS = [
+  /[【\[]⚡\s*Energy\s*[+＋]\s*\d+\s*[】\]]/gi,
+  /[【\[]💫\s*Options\s*[】\]].*/gi,
+  /[【\[]🔮\s*Truth\s*Shard\s*[】\]]\s*[^|｜]+[|｜].*/gi,
+  /[【\[]🎭\s*Mood\s*[:：]\s*\w+\s*[】\]]/gi,
+];
+
+function cleanBodyForValidation(content: string): string {
+  return MARKER_PATTERNS.reduce((text, pattern) => text.replace(pattern, ""), content)
+    .replace(/【🔮 Hidden Memory Unlocked】/g, "")
+    .trim();
+}
+
+function parseStreamText(rawSse: string): { content: string; finishReason: string | null } {
+  let content = "";
+  let finishReason: string | null = null;
+
+  for (const rawLine of rawSse.split(/\r?\n/)) {
+    if (!rawLine.startsWith("data: ")) continue;
+    const jsonStr = rawLine.slice(6).trim();
+    if (!jsonStr || jsonStr === "[DONE]") continue;
+    try {
+      const parsed = JSON.parse(jsonStr);
+      const delta = parsed.choices?.[0]?.delta?.content;
+      if (typeof delta === "string") content += delta;
+      const reason = parsed.choices?.[0]?.finish_reason;
+      if (typeof reason === "string") finishReason = reason;
+    } catch (_) {
+      // Ignore malformed diagnostic fragments; the client still receives the raw stream if no repair is needed.
+    }
+  }
+
+  return { content, finishReason };
+}
+
+function extractTrailingMarkers(content: string): string {
+  return content
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => MARKER_PATTERNS.some((pattern) => {
+      pattern.lastIndex = 0;
+      return pattern.test(line);
+    }))
+    .join("\n");
+}
+
+function makeSseResponse(content: string): string {
+  return [
+    `data: ${JSON.stringify({ choices: [{ delta: { content }, finish_reason: null }] })}`,
+    "",
+    `data: ${JSON.stringify({ choices: [{ delta: {}, finish_reason: "stop" }] })}`,
+    "",
+    "data: [DONE]",
+    "",
+  ].join("\n");
+}
+
+function fallbackRepairBody(agentId: string, isZh: boolean): string {
+  if (!isZh) {
+    const en: Record<string, string> = {
+      bestie: "Wait, babe, I glitched for a second — but I’m here. I caught what you said, and we’re absolutely not dropping this thread.",
+      barista: "Sorry, the espresso machine in my brain blinked for a second. I’m here with you — say that again, and I’ll stay with it.",
+      mystic: "The signal flickered for a breath, but I’m back in the room with you. Your words are still on the table, glowing a little.",
+      jax: "I blanked for half a beat. I’m back at the door now — keep talking, I’ve got you.",
+      coach: "I went quiet for a moment, but I’m here again. Let’s come back to what you just shared, gently and clearly.",
+    };
+    return en[agentId] || en.barista;
+  }
+
+  const zh: Record<string, string> = {
+    bestie: "啊宝我刚刚像网速卡了一下，但我在！你这句话我接住了，我们继续聊，别让这一秒小断片打断你的节奏。",
+    barista: "刚刚像是咖啡机短暂断电了一下，但我在这儿。你这句话我听见了，慢慢说，我会好好接住。",
+    mystic: "刚才信号像被月光轻轻晃了一下，但我回来了。你的话还在桌面上发着光，我会继续看着它。",
+    jax: "刚刚我空了一拍。现在回到门口了，继续说，我在这儿守着。",
+    coach: "刚才我安静了一瞬，但我还在。我们回到你刚刚说的那句话，慢一点、清楚一点地看它。",
+  };
+  return zh[agentId] || zh.barista;
+}
+
+async function repairMarkerOnlyReply(params: {
+  apiKey: string;
+  model: string;
+  basePrompt: string;
+  latestUserText: string;
+  markers: string;
+  isZh: boolean;
+  agentId: string;
+}): Promise<string> {
+  const { apiKey, model, basePrompt, latestUserText, markers, isZh, agentId } = params;
+  try {
+    const repairRes = await fetch(AI_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        max_tokens: 256,
+        reasoning_effort: "none",
+        messages: [
+          {
+            role: "system",
+            content: `${basePrompt}\n\nYou are repairing a marker-only chat reply. Write ONLY 1-2 short in-character body sentences in ${isZh ? "Simplified Chinese" : "English"}. Do not include any game markers, labels, explanations, or apologies about being an AI.`,
+          },
+          { role: "user", content: latestUserText || (isZh ? "继续刚才的对话。" : "Continue the conversation.") },
+        ],
+      }),
+    });
+    if (repairRes.ok) {
+      const data = await repairRes.json();
+      const repaired = String(data.choices?.[0]?.message?.content || "").trim();
+      const cleanRepair = cleanBodyForValidation(repaired);
+      if (cleanRepair) return `${cleanRepair}\n\n${markers}`.trim();
+    } else {
+      console.error("[chat] marker-only repair failed:", repairRes.status, await repairRes.text());
+    }
+  } catch (e) {
+    console.error("[chat] marker-only repair error:", e);
+  }
+
+  return `${fallbackRepairBody(agentId, isZh)}\n\n${markers}`.trim();
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
