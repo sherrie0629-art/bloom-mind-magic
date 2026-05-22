@@ -64,7 +64,7 @@ async function checkChatQuota(req: Request): Promise<{ allowed: boolean; userId?
 const RPG_INSTRUCTION = `
 
 【Response Style — CRITICAL, must follow strictly】
-- 【Always Produce Body Text】Every reply MUST contain at least 1-2 sentences of natural, conversational body text BEFORE any markers (Energy / Options / Truth Shard / Mood). Markers alone = invalid reply. The "silence is preferred" guidance below ONLY applies to the optional 💭 follow-up question, NEVER to the reply body itself.
+- 【Always Produce Body Text】Every reply MUST contain at least 1-2 sentences of natural, conversational body text BEFORE any markers (Energy / Options / Truth Shard / Mood). Markers alone = invalid reply. Optional silence ONLY means skipping the 💭 follow-up question, NEVER skipping the reply body itself.
 - 【No Marker-Only Replies】If you are about to output only markers, stop and first write one short in-character response to the user's latest message. Body text is mandatory even for short, casual, happy, or low-stakes user messages.
 - Keep each reply to 60-120 words (excluding trailing markers), never exceed 150 words
 - Use casual, conversational tone — like texting a close friend
