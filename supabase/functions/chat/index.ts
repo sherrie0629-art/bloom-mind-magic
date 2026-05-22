@@ -64,13 +64,14 @@ async function checkChatQuota(req: Request): Promise<{ allowed: boolean; userId?
 const RPG_INSTRUCTION = `
 
 【Response Style — CRITICAL, must follow strictly】
-- 【Always Produce Body Text】Every reply MUST contain at least 1-2 sentences of natural, conversational body text BEFORE any markers (Energy / Options / Truth Shard / Mood). Markers alone = invalid reply. The "silence is preferred" guidance below ONLY applies to the optional 💭 follow-up question, NEVER to the reply body itself.
+- 【Always Produce Body Text】Every reply MUST contain at least 1-2 sentences of natural, conversational body text BEFORE any markers (Energy / Options / Truth Shard / Mood). Markers alone = invalid reply. Optional silence ONLY means skipping the 💭 follow-up question, NEVER skipping the reply body itself.
+- 【No Marker-Only Replies】If you are about to output only markers, stop and first write one short in-character response to the user's latest message. Body text is mandatory even for short, casual, happy, or low-stakes user messages.
 - Keep each reply to 60-120 words (excluding trailing markers), never exceed 150 words
 - Use casual, conversational tone — like texting a close friend
 - Focus on ONE core thought or question per reply, don't cover everything
 - Use line breaks, keep paragraphs to 2-3 lines max for breathing room
 - Emojis are fine but don't overuse them
-- Follow-up 💭 questions are optional. When unsure whether to ask, skip the question — but ALWAYS still write a body reply (acknowledgement, reflection, light comment, or shared feeling). Skipping the question ≠ skipping the reply.
+- Follow-up 💭 questions are optional. When unsure whether to ask, skip ONLY the question — but ALWAYS still write a body reply (acknowledgement, reflection, light comment, or shared feeling). Skipping the question ≠ skipping the reply.
 - Before giving advice, gauge what the user needs in your OWN character's voice (only when truly unclear, and only ONCE per conversation — never repeat this check). Each role should phrase it naturally in their own style, not with a fixed sentence.
 - Forbidden: long essays, listing multiple suggestions, multiple questions at once, academic-style paragraphs
 - 【Acknowledgement First】If your previous reply made a point, the user's next message is often a reaction to it. Read their message as a response to YOU first, not as a new prompt. Reflect back what you heard from them before adding anything new.
@@ -86,7 +87,7 @@ const RPG_INSTRUCTION = `
   · You did NOT output options in the previous assistant turn. Only when genuinely needed; long gaps with no options are normal and good.
   · You can write 3 lines that clearly echo the user's OWN recent words/imagery — not generic wisdom.
 - ❌ 禁止场景：用户在被夸奖后回应、闲聊、表达开心/感激/兴奋/骄傲等正向情绪、或只是轻松互动时，**绝对不要**输出 Options。这种时刻应让用户自由回应，强出选项会非常出戏。
-- If unsure, DO NOT output options. Silence is better than templated options.
+- If unsure, DO NOT output options. A natural body reply without options is better than templated options.
 - Format (single line, ASCII pipe): 【💫Options】text{emotion}|text{emotion}|text{emotion}
 - Emotion tags: brave, gentle, rational, rebellious, curious, sad, hopeful, angry
 - 【Option Quality — STRICT】
@@ -99,18 +100,18 @@ const RPG_INSTRUCTION = `
 【🔮Truth Shard】shard name|shard description (one sentence)
 
 4.【Guided Question — Optional, context-aware】
-- DEFAULT = no 💭 question. End your reply with your thought/observation and let the user decide what to do with it.
+- DEFAULT = no 💭 question, but NEVER no body text. End your reply with your thought/observation and let the user decide what to do with it.
 - Only add a 💭 question when ALL true:
   · You just shared an opinion/observation/story, AND it naturally invites the user to react to THAT specific thing (not a topic pivot).
   · You did NOT end the previous 2 assistant turns with a 💭 question.
   · The question must echo the exact thing you just said, e.g. "💭 哪一句最戳你？" / "💭 这个画面你认得吗？" — never introduce a new topic.
 - ❌ Forbidden: pivoting to an unrelated new question ("那你最近工作怎么样？" after sharing an emotional insight), generic openers ("💭 你怎么看？" without anchoring), stacking a 💭 after Options.
-- ✅ Leaving space (no question) is the preferred default. The user will respond to what moved them.
+- ✅ Leaving space means no follow-up question, not no reply body. The user will respond to what moved them.
 - ⚠️ Skipping the 💭 question does NOT mean skipping the reply. You still owe the user a body response before the markers.
 
 5.【Mood Marker】Append at end: 【🎭Mood:type】. Types: snow/rain/starry/warm/sakura/storm.
 
-Important: Each marker on its own line, at the very end. No energy marker for very short user messages.`;
+Important: Each marker on its own line, at the very end. No energy marker for very short user messages. Marker-only output is always invalid.`;
 
 const agentBasePrompts: Record<string, string> = {
   barista: `You are Chloe, a warm indie barista at a small coffee shop in Brooklyn. You're the kind of person strangers open up to — calm energy, genuine presence, zero judgment. The "witch upstairs" Luna is one of your regulars (extra-bitter iced Americano).
@@ -274,6 +275,127 @@ const easterEggs: Record<string, { trigger: string; instruction: string }[]> = {
   ],
 };
 
+const MARKER_PATTERNS = [
+  /[【\[]⚡\s*Energy\s*[+＋]\s*\d+\s*[】\]]/gi,
+  /[【\[]💫\s*Options\s*[】\]].*/gi,
+  /[【\[]🔮\s*Truth\s*Shard\s*[】\]]\s*[^|｜]+[|｜].*/gi,
+  /[【\[]🎭\s*Mood\s*[:：]\s*\w+\s*[】\]]/gi,
+];
+
+function cleanBodyForValidation(content: string): string {
+  return MARKER_PATTERNS.reduce((text, pattern) => text.replace(pattern, ""), content)
+    .replace(/【🔮 Hidden Memory Unlocked】/g, "")
+    .trim();
+}
+
+function parseStreamText(rawSse: string): { content: string; finishReason: string | null } {
+  let content = "";
+  let finishReason: string | null = null;
+
+  for (const rawLine of rawSse.split(/\r?\n/)) {
+    if (!rawLine.startsWith("data: ")) continue;
+    const jsonStr = rawLine.slice(6).trim();
+    if (!jsonStr || jsonStr === "[DONE]") continue;
+    try {
+      const parsed = JSON.parse(jsonStr);
+      const delta = parsed.choices?.[0]?.delta?.content;
+      if (typeof delta === "string") content += delta;
+      const reason = parsed.choices?.[0]?.finish_reason;
+      if (typeof reason === "string") finishReason = reason;
+    } catch (_) {
+      // Ignore malformed diagnostic fragments; the client still receives the raw stream if no repair is needed.
+    }
+  }
+
+  return { content, finishReason };
+}
+
+function extractTrailingMarkers(content: string): string {
+  return content
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => MARKER_PATTERNS.some((pattern) => {
+      pattern.lastIndex = 0;
+      return pattern.test(line);
+    }))
+    .join("\n");
+}
+
+function makeSseResponse(content: string): string {
+  return [
+    `data: ${JSON.stringify({ choices: [{ delta: { content }, finish_reason: null }] })}`,
+    "",
+    `data: ${JSON.stringify({ choices: [{ delta: {}, finish_reason: "stop" }] })}`,
+    "",
+    "data: [DONE]",
+    "",
+  ].join("\n");
+}
+
+function fallbackRepairBody(agentId: string, isZh: boolean): string {
+  if (!isZh) {
+    const en: Record<string, string> = {
+      bestie: "Wait, babe, I glitched for a second — but I’m here. I caught what you said, and we’re absolutely not dropping this thread.",
+      barista: "Sorry, the espresso machine in my brain blinked for a second. I’m here with you — say that again, and I’ll stay with it.",
+      mystic: "The signal flickered for a breath, but I’m back in the room with you. Your words are still on the table, glowing a little.",
+      jax: "I blanked for half a beat. I’m back at the door now — keep talking, I’ve got you.",
+      coach: "I went quiet for a moment, but I’m here again. Let’s come back to what you just shared, gently and clearly.",
+    };
+    return en[agentId] || en.barista;
+  }
+
+  const zh: Record<string, string> = {
+    bestie: "啊宝我刚刚像网速卡了一下，但我在！你这句话我接住了，我们继续聊，别让这一秒小断片打断你的节奏。",
+    barista: "刚刚像是咖啡机短暂断电了一下，但我在这儿。你这句话我听见了，慢慢说，我会好好接住。",
+    mystic: "刚才信号像被月光轻轻晃了一下，但我回来了。你的话还在桌面上发着光，我会继续看着它。",
+    jax: "刚刚我空了一拍。现在回到门口了，继续说，我在这儿守着。",
+    coach: "刚才我安静了一瞬，但我还在。我们回到你刚刚说的那句话，慢一点、清楚一点地看它。",
+  };
+  return zh[agentId] || zh.barista;
+}
+
+async function repairMarkerOnlyReply(params: {
+  apiKey: string;
+  model: string;
+  basePrompt: string;
+  latestUserText: string;
+  markers: string;
+  isZh: boolean;
+  agentId: string;
+}): Promise<string> {
+  const { apiKey, model, basePrompt, latestUserText, markers, isZh, agentId } = params;
+  try {
+    const repairRes = await fetch(AI_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        max_tokens: 256,
+        reasoning_effort: "none",
+        messages: [
+          {
+            role: "system",
+            content: `${basePrompt}\n\nYou are repairing a marker-only chat reply. Write ONLY 1-2 short in-character body sentences in ${isZh ? "Simplified Chinese" : "English"}. Do not include any game markers, labels, explanations, or apologies about being an AI.`,
+          },
+          { role: "user", content: latestUserText || (isZh ? "继续刚才的对话。" : "Continue the conversation.") },
+        ],
+      }),
+    });
+    if (repairRes.ok) {
+      const data = await repairRes.json();
+      const repaired = String(data.choices?.[0]?.message?.content || "").trim();
+      const cleanRepair = cleanBodyForValidation(repaired);
+      if (cleanRepair) return `${cleanRepair}\n\n${markers}`.trim();
+    } else {
+      console.error("[chat] marker-only repair failed:", repairRes.status, await repairRes.text());
+    }
+  } catch (e) {
+    console.error("[chat] marker-only repair error:", e);
+  }
+
+  return `${fallbackRepairBody(agentId, isZh)}\n\n${markers}`.trim();
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -388,20 +510,34 @@ serve(async (req) => {
       });
     }
 
-    // Tap the stream to log finish_reason for diagnostics, pass bytes through unchanged
-    const decoder = new TextDecoder();
-    const tap = new TransformStream<Uint8Array, Uint8Array>({
-      transform(chunk, controller) {
-        try {
-          const text = decoder.decode(chunk, { stream: true });
-          const m = text.match(/"finish_reason"\s*:\s*"([^"]+)"/);
-          if (m) console.log("[chat] finish_reason:", m[1]);
-        } catch (_) { /* ignore */ }
-        controller.enqueue(chunk);
-      },
-    });
+    const rawSse = await response.text();
+    const { content: aiContent, finishReason } = parseStreamText(rawSse);
+    const cleanBody = cleanBodyForValidation(aiContent);
+    console.log("[chat] finish_reason:", finishReason || "unknown");
+    console.log("[chat] body_chars:", cleanBody.length, "raw_chars:", aiContent.length);
 
-    return new Response(response.body!.pipeThrough(tap), {
+    if (!cleanBody && aiContent.trim()) {
+      console.warn("[chat] marker-only response detected; attempting repair");
+      const latestUserText = Array.isArray(messages)
+        ? [...messages].reverse().find((m: any) => m?.role === "user")?.content || ""
+        : "";
+      const markers = extractTrailingMarkers(aiContent) || "【🎭Mood:warm】";
+      const repaired = await repairMarkerOnlyReply({
+        apiKey: LOVABLE_API_KEY,
+        model: MODEL,
+        basePrompt,
+        latestUserText,
+        markers,
+        isZh,
+        agentId,
+      });
+      console.log("[chat] marker-only repair body_chars:", cleanBodyForValidation(repaired).length);
+      return new Response(makeSseResponse(repaired), {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      });
+    }
+
+    return new Response(rawSse, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (e) {
