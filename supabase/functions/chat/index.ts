@@ -87,7 +87,7 @@ const RPG_INSTRUCTION = `
   · You did NOT output options in the previous assistant turn. Only when genuinely needed; long gaps with no options are normal and good.
   · You can write 3 lines that clearly echo the user's OWN recent words/imagery — not generic wisdom.
 - ❌ 禁止场景：用户在被夸奖后回应、闲聊、表达开心/感激/兴奋/骄傲等正向情绪、或只是轻松互动时，**绝对不要**输出 Options。这种时刻应让用户自由回应，强出选项会非常出戏。
-- If unsure, DO NOT output options. Silence is better than templated options.
+- If unsure, DO NOT output options. A natural body reply without options is better than templated options.
 - Format (single line, ASCII pipe): 【💫Options】text{emotion}|text{emotion}|text{emotion}
 - Emotion tags: brave, gentle, rational, rebellious, curious, sad, hopeful, angry
 - 【Option Quality — STRICT】
