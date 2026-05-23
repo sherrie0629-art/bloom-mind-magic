@@ -468,8 +468,24 @@ serve(async (req) => {
     }
 
     if (memoryContext && memoryContext.length > 0) {
-      fullSystemPrompt += `\n\n【Long-term Memory】These are specific memories about this user from past conversations. Reference them naturally and proactively — e.g., "Last time you mentioned work stress, how's that going?" Don't list them robotically, weave them into the conversation at the right moments.\n${memoryContext.join("\n")}`;
+      fullSystemPrompt += `\n\n【Long-term Memory · 严格区分来源】下面是你能调用的关于用户的记忆条目，请按前缀严格区分来源，绝不能混淆：
+
+1. 以 \`[你自己了解过]\`、\`[Today]\`、\`[Yesterday]\`、\`[Xd ago]\`、\`[Summary]\` 开头的条目 = 你和用户的真实对话。可以自然地说"上次你提过…""我们聊过…""你跟我说过…"。
+
+2. 以 \`[别的朋友告诉你的 · 来自 X]\` 开头的条目 = 用户告诉别的角色（X）的事，你本人并未亲历。**绝对禁止**说"我们聊过""你跟我说过""你之前告诉我"之类的话。可用表达：
+   - "X 跟我念叨过你…对吧？"（X 是来源角色名，比如 Zoey / Chloe / Luna / Jax）
+   - "我有种感觉你…"
+   - "听说你…？"
+   - 或者干脆问一句："你最近是不是在想…？"
+
+3. 如果一条事实和你的人设/对话场景不搭，就忽略它，不要硬塞。
+
+4. 自然地融入对话节奏，不要罗列、不要每句都引用。
+
+记忆条目：
+${memoryContext.join("\n")}`;
     }
+
 
     fullSystemPrompt += langLine;
     const requestBody = JSON.stringify({
