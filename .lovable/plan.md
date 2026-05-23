@@ -1,70 +1,77 @@
-## 结论
+## 根因
 
-这次不是之前判断的 token 截断问题。最新日志显示 chat 后端的 `finish_reason` 是 `stop`，说明模型是“正常结束”了，但它有时仍只输出：
+`src/pages/Chat.tsx` 已登录用户的发送分支里有一个严重 bug，导致 AI "答非所问"：
 
-```text
-【⚡Energy+2】
-【🎭Mood:starry】
+```ts
+// 行 582-583：把新用户消息加入 React state（异步）
+const userMsg = { id, role: "user", content: text };
+setMessages((prev) => [...prev, userMsg]);
+
+// 行 648-650：构造发给后端的消息历史 —— 但这里读的是闭包里的旧 messages！
+const apiMessages = messages
+  .filter((m) => m.id !== "welcome" && m.kind !== "tarot-card")
+  .map((m) => ({ role: m.role, content: m.content }));
+
+// ❌ 缺一行：apiMessages.push({ role: "user", content: userMsg.content });
+
+await streamChat({ messages: apiMessages, ... });
 ```
 
-前端解析掉这些游戏标记后，正文为空，于是触发“她好像走神了，再发一次试试”。
+匿名分支（行 522-525）做对了：
 
-## 根因判断
+```ts
+const apiMessages = messages.filter(...).map(...);
+apiMessages.push({ role: "user", content: userMsg.content });  // ✅
+```
 
-当前问题更像是 prompt 指令冲突导致的模型行为不稳定：
+但已登录分支漏掉了 `apiMessages.push(userMsg)`。
 
-- 系统提示里多次强调“可跳过 follow-up question / Silence is preferred / DEFAULT = no question”。
-- 虽然也写了“必须有正文”，但模型偶发把“可以沉默”误用于整条回复正文。
-- `finish_reason: stop` 证明它不是没来得及输出，而是认为“只输出 Mood / Energy 标记”也是合规完成。
-- 这会影响 Zoe、Chloe 等所有共用 `RPG_INSTRUCTION` 的角色，不是单个角色问题。
+### 后果
+
+后端收到的对话历史**永远缺少用户最新一句**：
+
+- 历史最后一条变成上一轮 assistant 的回复（图中"上帝裁剪出来的海岸线"那段）
+- 模型把那段当成"上轮你说过的话，请继续说"
+- 于是它接着自己上次的话题继续抒情，完全不看用户问的"说说你的厌食症"
+
+也解释了之前反复出现的"她好像走神了"：
+
+- 历史最后一条是 assistant，模型有时直接返回 marker-only 或空正文
+- 此前以为是 prompt 冲突 / token 截断，其实根因是用户消息根本没送进去
+
+匿名（未登录）模式不会复现，因为那条分支是对的。这与"用户感觉登录后才严重"吻合。
 
 ## 修复方案
 
-### 1. 收紧后端系统提示
+在 `src/pages/Chat.tsx` 已登录分支构造 `apiMessages` 后，与匿名分支保持一致，显式把当前 `userMsg` 追加进去；同时把可选的 `drawnCardContext` / `pastCardContext` 拼到最新一条用户消息末尾（如果有），让 tarot 上下文继续生效。
 
-修改 `supabase/functions/chat/index.ts`：
+伪代码：
 
-- 删除或改写容易被误解的 `Silence is better` / `DEFAULT = no question` 类表述。
-- 保留“follow-up question 可省略”，但明确：
-  - 可省略的只有问题；
-  - 正文永远不可省略；
-  - 输出 marker 之前必须至少有一段角色口吻回应。
-- 在 prompt 末尾再加一条硬规则：如果你准备只输出 markers，必须先写一句自然回应。
+```ts
+const apiMessages = messages
+  .filter((m) => m.id !== "welcome" && m.kind !== "tarot-card")
+  .map((m) => ({ role: m.role, content: m.content }));
 
-### 2. 后端增加二次修复兜底
+const cardCtx = drawnCardContext || pastCardContext || "";
+apiMessages.push({
+  role: "user",
+  content: cardCtx ? `${userMsg.content}${cardCtx}` : userMsg.content,
+});
+```
 
-仍在 `supabase/functions/chat/index.ts` 内实现服务端安全网：
+（需要先确认 `drawnCardContext` / `pastCardContext` 当前是否被消费 —— 看起来声明了但没被使用，可以在同一处一起补好，避免再次遗漏。）
 
-- 流式响应先在后端聚合完整 AI 输出。
-- 用与前端一致的 marker 清理逻辑判断正文是否为空。
-- 如果正文为空但 marker 存在，后端自动发起一次非流式“repair”请求，让同一角色基于最近用户消息补一段 1-2 句正文，并保留原 marker。
-- 前端拿到的最终流仍是正常 SSE，所以 UI 不需要大改。
+## 同步清理
 
-这样即使模型偶发走神，用户也不会看到空泡或重试 toast。
+- 回退/简化之前为这个"幻觉问题"加的兜底逻辑可以保留，但应在 PR 描述里说明真正根因，避免后续误判。
+- 不需要改 `supabase/functions/chat/index.ts` 来修这个问题；后端是无辜的。
 
-### 3. 增强诊断日志
+## 验证
 
-在后端记录：
+1. 已登录用户在 `/chat?agent=bestie` 连发两轮："你好" → "说说你的厌食症是怎么回事？"，第二轮应针对厌食症作答，不再延续上一轮主题。
+2. Mystic 抽牌流程：抽牌后再问问题，AI 仍应围绕该牌作答（验证 cardContext 没被丢）。
+3. 后端日志 `messages` 最后一条 role 应稳定为 `user`，不再是 `assistant`。
 
-- 原始输出正文长度；
-- 是否触发 marker-only 修复；
-- 修复是否成功；
-- `finish_reason`。
+## 风险
 
-后续再出现问题时，可以直接区分是：模型空正文、网关异常、流式解析异常，还是前端解析异常。
-
-### 4. 前端保留最后防线
-
-`src/pages/Chat.tsx` 里的空正文 toast 逻辑保留，作为后端修复失败时的最后保护；不扩大 UI 改动范围。
-
-## 验证方式
-
-- 在 Zoe (`/chat?agent=bestie`) 连续发送多轮短句和中文闲聊，确认不再出现“她好像走神了”。
-- 在 Chloe (`/chat?agent=barista`) 重复同样场景，确认正文稳定存在。
-- 查看后端日志，如果模型再输出 marker-only，应看到 repair 日志，而不是用户侧失败。
-
-## 风险与回滚
-
-- 服务端聚合后再转发会让真正显示首字的时间略微变晚，但回复整体更稳定。
-- 如果 repair 请求失败，仍回退到现有前端 toast，不会破坏聊天状态。
-- 若后续确认某个模型完全稳定，可再恢复纯流式直传。
+- 极低。改动只补一条历史缺失的消息，匿名分支已用同一写法稳定运行。

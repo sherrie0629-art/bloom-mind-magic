@@ -648,6 +648,8 @@ const Chat = () => {
     const apiMessages: Msg[] = messages
       .filter((m) => m.id !== "welcome" && m.kind !== "tarot-card")
       .map((m) => ({ role: m.role, content: m.content }));
+    const latestUserContent = `${userMsg.content}${drawnCardContext || pastCardContext || ""}`;
+    apiMessages.push({ role: "user", content: latestUserContent });
     // Semantic recall using the just-sent user text — refresh memoryContext for this turn.
     let turnMemoryContext = memoryContext;
     if (user) {
