@@ -946,7 +946,7 @@ const Chat = () => {
               ) : (
               <div className="flex flex-col max-w-[75%] md:max-w-[60%]">
                 <div
-                  className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed select-none ${
+                  className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                     msg.role === "user"
                       ? "bg-primary text-primary-foreground rounded-br-md"
                       : "bg-card text-card-foreground shadow-card rounded-bl-md"
