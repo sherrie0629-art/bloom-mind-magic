@@ -158,6 +158,12 @@ const Chat = () => {
       return;
     }
 
+    const agentNameById = (id?: string | null) => {
+      if (!id) return "";
+      const a = agents.find((x) => x.id === id);
+      return a?.name || id;
+    };
+
     const formatRecall = (
       memories: any[] | null | undefined,
       facts: any[] | null | undefined,
@@ -166,18 +172,30 @@ const Chat = () => {
       const out: string[] = [];
       const isZh = locale === "zh";
       if (facts && facts.length > 0) {
-        const header = isZh ? "[关于用户 · 跨角色记得]" : "[About user · cross-agent]";
         facts.forEach((f) => {
-          const src = f.source_agent_id && f.source_agent_id !== agentId ? ` (from ${f.source_agent_id})` : "";
-          out.push(`${header} ${f.category}/${f.key}: ${f.value}${src}`);
+          const fromOther = f.source_agent_id && f.source_agent_id !== agentId;
+          if (fromOther) {
+            const src = agentNameById(f.source_agent_id);
+            const head = isZh ? `[别的朋友告诉你的 · 来自 ${src}]` : `[Heard from another friend · from ${src}]`;
+            out.push(`${head} ${f.category}/${f.key}: ${f.value}`);
+          } else {
+            const head = isZh ? "[你自己了解过]" : "[You learned this yourself]";
+            out.push(`${head} ${f.category}/${f.key}: ${f.value}`);
+          }
         });
       }
       if (memories && memories.length > 0) {
         memories.forEach((m) => {
           const daysAgo = Math.floor((Date.now() - new Date(m.created_at || "").getTime()) / 86400000);
           const timeLabel = daysAgo === 0 ? "Today" : daysAgo === 1 ? "Yesterday" : `${daysAgo}d ago`;
-          const crossTag = m.agent_id && m.agent_id !== agentId ? ` {from ${m.agent_id}}` : "";
-          out.push(`[${timeLabel}] ${m.content}${m.emotion_tag ? ` (mood: ${m.emotion_tag})` : ""}${crossTag}`);
+          const fromOther = m.agent_id && m.agent_id !== agentId;
+          if (fromOther) {
+            const src = agentNameById(m.agent_id);
+            const head = isZh ? `[别的朋友告诉你的 · 来自 ${src}]` : `[Heard from another friend · from ${src}]`;
+            out.push(`${head} ${m.content}${m.emotion_tag ? ` (mood: ${m.emotion_tag})` : ""}`);
+          } else {
+            out.push(`[${timeLabel}] ${m.content}${m.emotion_tag ? ` (mood: ${m.emotion_tag})` : ""}`);
+          }
         });
       }
       if (summaries && summaries.length > 0) {
@@ -187,6 +205,7 @@ const Chat = () => {
       }
       return out;
     };
+
 
     const recallFromEdge = async (query: string): Promise<{ memories: any[]; facts: any[] }> => {
       if (!user) return { memories: [], facts: [] };
