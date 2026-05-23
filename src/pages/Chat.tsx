@@ -160,7 +160,7 @@ const Chat = () => {
 
     const agentNameById = (id?: string | null) => {
       if (!id) return "";
-      const a = agents.find((x) => x.id === id);
+      const a = RAW_AGENTS.find((x) => x.id === id);
       return a?.name || id;
     };
 
