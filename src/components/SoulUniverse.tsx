@@ -1,7 +1,9 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { ACHIEVEMENTS } from "@/data/achievements";
+import { localizeAchievement } from "@/lib/localizeAchievement";
 
 interface SoulFragment {
   id: string;
@@ -17,12 +19,14 @@ interface Props {
 
 const SoulUniverse = ({ fragments, unlockedIds }: Props) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const constellationCount = unlockedIds.length;
   const starCount = fragments.length;
 
   // Find next closest constellation
   const locked = ACHIEVEMENTS.filter((a) => !unlockedIds.includes(a.id));
   const nextGoal = locked.length > 0 ? locked[0] : null;
+  const nextGoalLoc = nextGoal ? localizeAchievement(nextGoal, t) : null;
 
   // Show up to 5 recent fragment emojis
   const previewFragments = fragments.slice(0, 5);
@@ -73,15 +77,15 @@ const SoulUniverse = ({ fragments, unlockedIds }: Props) => {
 
         {/* Text */}
         <div className="flex-1 min-w-0">
-          <h4 className="font-display text-sm font-semibold text-foreground">Soul Map</h4>
+          <h4 className="font-display text-sm font-semibold text-foreground">{t("soulMap.title")}</h4>
           <p className="text-[11px] text-muted-foreground mt-0.5">
             {starCount > 0
-              ? `${starCount} stars · ${constellationCount} constellations`
-              : "Start exploring to collect your first star"}
+              ? t("soulMap.cardSummary", { stars: starCount, c: constellationCount })
+              : t("soulMap.cardEmpty")}
           </p>
-          {nextGoal && starCount > 0 && (
+          {nextGoalLoc && starCount > 0 && (
             <p className="text-[10px] text-secondary mt-0.5 truncate">
-              Next constellation: {nextGoal.constellation.name}
+              {t("soulMap.cardNext", { name: nextGoalLoc.constellationName })}
             </p>
           )}
         </div>

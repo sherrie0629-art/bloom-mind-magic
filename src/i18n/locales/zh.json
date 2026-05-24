@@ -530,7 +530,11 @@
   },
   "soulMap": {
     "title": "灵魂星图",
+    "seoDescription": "探索你的灵魂星图：星座成就与来自对话、性格测评收集的星辰碎片。",
     "starsConst": "{{stars}} 颗星 · {{c}} 个星座",
+    "cardSummary": "{{stars}} 颗星 · {{c}} 个星座",
+    "cardEmpty": "开始探索，收集你的第一颗星",
+    "cardNext": "下一个星座：{{name}}",
     "groups": {
       "assessment": "测评之星",
       "chat": "对话之星"
@@ -539,6 +543,7 @@
     "emptyChat": "进行深度对话以获得星辰 💫",
     "constellation": "星座图谱",
     "constUnlocked": "已解锁",
+    "lockedHint": "尚未解锁",
     "nextGoal": "🧭 下一个目标",
     "chat": "对话",
     "source": "来源：{{src}}"
@@ -1076,55 +1081,68 @@
     "items": {
       "coffee_regular": {
         "name": "咖啡常客",
-        "description": "与 Chloe 完成 10 次对话"
+        "description": "与 Chloe 完成 10 次对话",
+        "constellation": "咖啡师座"
       },
       "latte_soulmate": {
         "name": "拿铁知己",
-        "description": "与 Chloe 达成「亲密」羁绊"
+        "description": "与 Chloe 达成「亲密」羁绊",
+        "constellation": "手冲座"
       },
       "fireproof": {
         "name": "防火墙",
-        "description": "与 Jax 累积 100 点能量"
+        "description": "与 Jax 累积 100 点能量",
+        "constellation": "防火墙座"
       },
       "breakthrough": {
         "name": "突破时刻",
-        "description": "与 Jax 完成 20 次对话"
+        "description": "与 Jax 完成 20 次对话",
+        "constellation": "突破座"
       },
       "trail_companion": {
         "name": "同行者",
-        "description": "与 Arthur 完成 15 次对话"
+        "description": "与 Arthur 完成 15 次对话",
+        "constellation": "山径座"
       },
       "campfire_bond": {
         "name": "篝火之交",
-        "description": "与 Arthur 达成「信赖」羁绊"
+        "description": "与 Arthur 达成「信赖」羁绊",
+        "constellation": "篝火座"
       },
       "hype_squad": {
         "name": "应援团",
-        "description": "与 Zoe 完成 10 次对话"
+        "description": "与 Zoe 完成 10 次对话",
+        "constellation": "王冠座"
       },
       "main_character": {
         "name": "主角光环",
-        "description": "与 Zoe 达成「亲密」羁绊"
+        "description": "与 Zoe 达成「亲密」羁绊",
+        "constellation": "聚光座"
       },
       "first_step": {
         "name": "初次相遇",
-        "description": "完成你的第一次深度对话"
+        "description": "完成你的第一次深度对话",
+        "constellation": "起源座"
       },
       "soul_explorer": {
         "name": "灵魂探索者",
-        "description": "与每位角色都对话过"
+        "description": "与每位角色都对话过",
+        "constellation": "探索者座"
       },
       "energy_collector": {
         "name": "能量收集者",
-        "description": "累计获得 300 点能量"
+        "description": "累计获得 300 点能量",
+        "constellation": "能量座"
       },
       "shard_hunter": {
         "name": "真理碎片猎人",
-        "description": "收集 5 枚真理碎片"
+        "description": "收集 5 枚真理碎片",
+        "constellation": "猎手座"
       },
       "egg_finder": {
         "name": "彩蛋发现者",
-        "description": "触发 2 个隐藏彩蛋"
+        "description": "触发 2 个隐藏彩蛋",
+        "constellation": "寻觅者座"
       }
     }
   }

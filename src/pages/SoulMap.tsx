@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAchievements } from "@/hooks/useAchievements";
 import { ACHIEVEMENTS, type AchievementDef } from "@/data/achievements";
+import { localizeAchievement } from "@/lib/localizeAchievement";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import DesktopLayout from "@/components/DesktopLayout";
 import SEO from "@/components/SEO";
@@ -47,7 +48,7 @@ const SoulMap = () => {
   return (
     <DesktopLayout maxWidth="4xl">
     <div className="min-h-screen pb-12" style={{ background: "linear-gradient(180deg, hsl(225 50% 8%), hsl(260 40% 12%), hsl(225 45% 10%))" }}>
-      <SEO title={`${t("soulMap.title")} — ${t("home.appName")}`} description="Explore your personal soul map with constellation achievements and fragments collected from chats and personality assessments." />
+      <SEO title={`${t("soulMap.title")} — ${t("home.appName")}`} description={t("soulMap.seoDescription")} />
       <div className="flex items-center gap-3 px-5 pt-12 pb-4">
         <button onClick={() => navigate(-1)} className="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80 active:scale-95 transition-transform"><ArrowLeft className="h-4 w-4" /></button>
         <h1 className="font-display text-lg font-semibold text-white/90">{t("soulMap.title")}</h1>
@@ -66,28 +67,44 @@ const SoulMap = () => {
       <div className="px-5 mt-8">
         <h3 className="text-xs font-semibold text-white/50 mb-3 flex items-center gap-1.5"><span>⭐</span>{t("soulMap.constellation")}<span className="text-[10px] text-white/30 ml-1">({unlocked.length}/{ACHIEVEMENTS.length})</span></h3>
         <div className="grid grid-cols-2 gap-3">
-          {unlocked.map((ach, i) => (<motion.button key={ach.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} onClick={() => setSelectedConstellation(ach)} className="rounded-2xl p-4 text-left" style={{ background: "linear-gradient(135deg, hsl(38 75% 55% / 0.12), hsl(25 85% 60% / 0.06))", border: "1px solid hsl(38 75% 55% / 0.25)" }}>
+          {unlocked.map((ach, i) => {
+            const loc = localizeAchievement(ach, t);
+            return (
+            <motion.button key={ach.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }} onClick={() => setSelectedConstellation(ach)} className="rounded-2xl p-4 text-left" style={{ background: "linear-gradient(135deg, hsl(38 75% 55% / 0.12), hsl(25 85% 60% / 0.06))", border: "1px solid hsl(38 75% 55% / 0.25)" }}>
             <div className="flex items-center gap-2 mb-1.5"><span className="text-xl">{ach.icon}</span><span className="text-[10px] text-white/40">{t("soulMap.constUnlocked")}</span></div>
-            <p className="text-xs font-semibold text-white/90">{ach.constellation.name}</p><p className="text-[10px] text-white/50 mt-0.5 line-clamp-1">{ach.name}</p>
-          </motion.button>))}
-          {locked.map((ach, i) => (<motion.button key={ach.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: (unlocked.length + i) * 0.06 }} onClick={() => setSelectedConstellation(ach)} className="rounded-2xl p-4 text-left border border-dashed border-white/10" style={{ background: "hsl(225 40% 15% / 0.5)" }}>
+            <p className="text-xs font-semibold text-white/90">{loc.constellationName}</p><p className="text-[10px] text-white/50 mt-0.5 line-clamp-1">{loc.name}</p>
+          </motion.button>
+            );
+          })}
+          {locked.map((ach, i) => {
+            const loc = localizeAchievement(ach, t);
+            return (
+          <motion.button key={ach.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: (unlocked.length + i) * 0.06 }} onClick={() => setSelectedConstellation(ach)} className="rounded-2xl p-4 text-left border border-dashed border-white/10" style={{ background: "hsl(225 40% 15% / 0.5)" }}>
             <div className="flex items-center gap-2 mb-1.5"><span className="text-xl opacity-30">🔒</span></div>
-            <p className="text-xs font-medium text-white/30">{ach.constellation.name}</p><p className="text-[10px] text-white/20 mt-0.5 line-clamp-1">???</p>
-          </motion.button>))}
+            <p className="text-xs font-medium text-white/30">{loc.constellationName}</p><p className="text-[10px] text-white/20 mt-0.5 line-clamp-1">{t("soulMap.lockedHint")}</p>
+          </motion.button>
+            );
+          })}
         </div>
       </div>
       {locked.length > 0 && (<div className="px-5 mt-8"><div className="rounded-2xl p-4" style={{ background: "linear-gradient(135deg, hsl(260 35% 20% / 0.6), hsl(225 50% 18% / 0.4))", border: "1px solid hsl(260 35% 65% / 0.15)" }}>
         <h4 className="text-xs font-semibold text-white/60 mb-2">{t("soulMap.nextGoal")}</h4>
-        {locked.slice(0, 2).map((ach) => (<div key={ach.id} className="flex items-center gap-2.5 py-1.5"><span className="text-lg">{ach.icon}</span><div className="flex-1 min-w-0"><p className="text-xs text-white/80 font-medium">{ach.constellation.name}</p><p className="text-[10px] text-white/40 truncate">{ach.description}</p></div>
+        {locked.slice(0, 2).map((ach) => {
+          const loc = localizeAchievement(ach, t);
+          return (<div key={ach.id} className="flex items-center gap-2.5 py-1.5"><span className="text-lg">{ach.icon}</span><div className="flex-1 min-w-0"><p className="text-xs text-white/80 font-medium">{loc.constellationName}</p><p className="text-[10px] text-white/40 truncate">{loc.description}</p></div>
           {ach.agentId && <button onClick={() => navigate(`/chat?agent=${ach.agentId}`)} className="flex-shrink-0 rounded-full px-3 py-1 text-[10px] font-medium text-white/70 border border-white/15 active:scale-95 transition-transform">{t("soulMap.chat")}</button>}
-        </div>))}
+        </div>);
+        })}
       </div></div>)}
       <Dialog open={!!selectedFragment} onOpenChange={() => setSelectedFragment(null)}>
         <DialogContent className="max-w-sm rounded-2xl">{selectedFragment && (<><DialogHeader className="items-center text-center"><div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full" style={{ backgroundColor: selectedFragment.color + "20" }}><span className="text-3xl">{selectedFragment.icon}</span></div><DialogTitle className="font-display text-lg">{selectedFragment.name}</DialogTitle><DialogDescription className="text-sm leading-relaxed">{selectedFragment.description}</DialogDescription></DialogHeader><div className="flex items-center justify-between text-[11px] text-muted-foreground pt-2 border-t border-border"><span>{t("soulMap.source", { src: sourceLabels[selectedFragment.source_id || selectedFragment.source_type] || selectedFragment.source_type })}</span><span>{new Date(selectedFragment.created_at).toLocaleDateString(i18n.language === "zh" ? "zh-CN" : "en-US")}</span></div></>)}</DialogContent>
       </Dialog>
       <Dialog open={!!selectedConstellation} onOpenChange={() => setSelectedConstellation(null)}>
-        <DialogContent className="max-w-sm rounded-2xl">{selectedConstellation && (<><DialogHeader className="items-center text-center"><div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-muted"><span className="text-3xl">{unlockedIds.includes(selectedConstellation.id) ? selectedConstellation.icon : "🔒"}</span></div><DialogTitle className="font-display text-lg">{selectedConstellation.constellation.name}</DialogTitle><DialogDescription className="text-sm leading-relaxed">{unlockedIds.includes(selectedConstellation.id) ? selectedConstellation.description : selectedConstellation.description}</DialogDescription></DialogHeader>
-          {!unlockedIds.includes(selectedConstellation.id) && selectedConstellation.agentId && (<div className="pt-2 text-center"><button onClick={() => { setSelectedConstellation(null); navigate(`/chat?agent=${selectedConstellation.agentId}`); }} className="rounded-2xl bg-gradient-golden px-6 py-2.5 text-sm font-medium text-primary-foreground active:scale-95 transition-transform">{t("soulMap.chat")} ✨</button></div>)}</>)}</DialogContent>
+        <DialogContent className="max-w-sm rounded-2xl">{selectedConstellation && (() => {
+          const loc = localizeAchievement(selectedConstellation, t);
+          return (<><DialogHeader className="items-center text-center"><div className="mx-auto mb-2 flex h-16 w-16 items-center justify-center rounded-full bg-muted"><span className="text-3xl">{unlockedIds.includes(selectedConstellation.id) ? selectedConstellation.icon : "🔒"}</span></div><DialogTitle className="font-display text-lg">{loc.constellationName}</DialogTitle><DialogDescription className="text-sm leading-relaxed">{loc.description}</DialogDescription></DialogHeader>
+          {!unlockedIds.includes(selectedConstellation.id) && selectedConstellation.agentId && (<div className="pt-2 text-center"><button onClick={() => { setSelectedConstellation(null); navigate(`/chat?agent=${selectedConstellation.agentId}`); }} className="rounded-2xl bg-gradient-golden px-6 py-2.5 text-sm font-medium text-primary-foreground active:scale-95 transition-transform">{t("soulMap.chat")} ✨</button></div>)}</>);
+        })()}</DialogContent>
       </Dialog>
     </div>
     </DesktopLayout>

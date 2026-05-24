@@ -530,7 +530,11 @@
   },
   "soulMap": {
     "title": "Soul Map",
+    "seoDescription": "Explore your personal soul map with constellation achievements and fragments collected from chats and personality assessments.",
     "starsConst": "{{stars}} stars · {{c}} constellations",
+    "cardSummary": "{{stars}} stars · {{c}} constellations",
+    "cardEmpty": "Start exploring to collect your first star",
+    "cardNext": "Next constellation: {{name}}",
     "groups": {
       "assessment": "Assessment Stars",
       "chat": "Conversation Stars"
@@ -539,6 +543,7 @@
     "emptyChat": "Have deep conversations to earn stars 💫",
     "constellation": "Constellation Guide",
     "constUnlocked": "Unlocked",
+    "lockedHint": "Locked",
     "nextGoal": "🧭 Next Goal",
     "chat": "Chat",
     "source": "Source: {{src}}"
@@ -1076,55 +1081,68 @@
     "items": {
       "coffee_regular": {
         "name": "Coffee Regular",
-        "description": "Complete 10 conversations with Chloe"
+        "description": "Complete 10 conversations with Chloe",
+        "constellation": "The Barista"
       },
       "latte_soulmate": {
         "name": "Latte Soulmate",
-        "description": "Reach Close bond with Chloe"
+        "description": "Reach Close bond with Chloe",
+        "constellation": "The Pour-Over"
       },
       "fireproof": {
         "name": "Fireproof",
-        "description": "Collect 100 energy with Jax"
+        "description": "Collect 100 energy with Jax",
+        "constellation": "The Firewall"
       },
       "breakthrough": {
         "name": "Breakthrough",
-        "description": "Complete 20 conversations with Jax"
+        "description": "Complete 20 conversations with Jax",
+        "constellation": "The Breakthrough"
       },
       "trail_companion": {
         "name": "Trail Companion",
-        "description": "Complete 15 conversations with Arthur"
+        "description": "Complete 15 conversations with Arthur",
+        "constellation": "The Trail"
       },
       "campfire_bond": {
         "name": "Campfire Bond",
-        "description": "Reach Trusted bond with Arthur"
+        "description": "Reach Trusted bond with Arthur",
+        "constellation": "The Campfire"
       },
       "hype_squad": {
         "name": "Hype Squad",
-        "description": "Complete 10 conversations with Zoe"
+        "description": "Complete 10 conversations with Zoe",
+        "constellation": "The Crown"
       },
       "main_character": {
         "name": "Main Character",
-        "description": "Reach Close bond with Zoe"
+        "description": "Reach Close bond with Zoe",
+        "constellation": "The Spotlight"
       },
       "first_step": {
         "name": "First Conversation",
-        "description": "Complete your first meaningful conversation"
+        "description": "Complete your first meaningful conversation",
+        "constellation": "The Beginning"
       },
       "soul_explorer": {
         "name": "Soul Explorer",
-        "description": "Have a conversation with every character"
+        "description": "Have a conversation with every character",
+        "constellation": "The Explorer"
       },
       "energy_collector": {
         "name": "Energy Collector",
-        "description": "Collect 300 total energy"
+        "description": "Collect 300 total energy",
+        "constellation": "The Energy"
       },
       "shard_hunter": {
         "name": "Shard Hunter",
-        "description": "Collect 5 truth shards"
+        "description": "Collect 5 truth shards",
+        "constellation": "The Hunter"
       },
       "egg_finder": {
         "name": "Easter Egg Finder",
-        "description": "Trigger 2 hidden easter eggs"
+        "description": "Trigger 2 hidden easter eggs",
+        "constellation": "The Seeker"
       }
     }
   }
