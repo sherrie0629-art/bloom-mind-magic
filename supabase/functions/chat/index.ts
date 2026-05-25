@@ -48,9 +48,9 @@ async function checkChatQuota(req: Request): Promise<{ allowed: boolean; userId?
 
       // Increment usage
       if (usage) {
-        await authedClient.from("usage_tracking").update({ chat_count: currentCount + 1 }).eq("id", usage.id);
+        await createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!).from("usage_tracking").update({ chat_count: currentCount + 1 }).eq("id", usage.id);
       } else {
-        await authedClient.from("usage_tracking").insert({ user_id: userId, track_date: today, chat_count: 1, assessment_count: 0, deep_report_count: 0 });
+        await createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!).from("usage_tracking").insert({ user_id: userId, track_date: today, chat_count: 1, assessment_count: 0, deep_report_count: 0 });
       }
 
       return { allowed: true, userId };
