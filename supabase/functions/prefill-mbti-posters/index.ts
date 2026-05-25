@@ -92,6 +92,7 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization") || "";
     const token = authHeader.replace("Bearer ", "");
+    console.log("incoming", { method: req.method, hasAuth: !!token, tokenLen: token.length });
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const admin = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey);
 
