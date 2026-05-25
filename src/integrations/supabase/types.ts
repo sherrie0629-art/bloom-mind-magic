@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievement_defs: {
+        Row: {
+          agent_id: string | null
+          condition_agent_id: string | null
+          condition_type: string
+          id: string
+          threshold: number
+        }
+        Insert: {
+          agent_id?: string | null
+          condition_agent_id?: string | null
+          condition_type: string
+          id: string
+          threshold: number
+        }
+        Update: {
+          agent_id?: string | null
+          condition_agent_id?: string | null
+          condition_type?: string
+          id?: string
+          threshold?: number
+        }
+        Relationships: []
+      }
       achievements: {
         Row: {
           achievement_id: string
@@ -603,6 +627,10 @@ export type Database = {
     }
     Functions: {
       decay_memories: { Args: never; Returns: undefined }
+      grant_achievement: {
+        Args: { p_achievement_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

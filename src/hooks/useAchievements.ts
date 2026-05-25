@@ -72,15 +72,13 @@ export function useAchievements(userId: string | undefined) {
       }
 
       if (met) {
-        alreadyUnlocked.add(ach.id);
-        await supabase.from("achievements").insert({
-          user_id: userId,
-          achievement_id: ach.id,
-          agent_id: ach.agentId || null,
-        });
-        setUnlockedIds((prev) => [...prev, ach.id]);
-        setNewlyUnlocked(ach);
-        break; // show one at a time
+        const { data: granted } = await (supabase as any).rpc("grant_achievement", { p_achievement_id: ach.id });
+        if (granted) {
+          alreadyUnlocked.add(ach.id);
+          setUnlockedIds((prev) => [...prev, ach.id]);
+          setNewlyUnlocked(ach);
+          break; // show one at a time
+        }
       }
     }
   }, [userId]);

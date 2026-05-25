@@ -32,9 +32,12 @@ const ShareSheet = ({ open, onClose, imageDataUrl, title, text, url, publicImage
     let cancelled = false;
     (async () => {
       try {
+        const { data: auth } = await supabase.auth.getUser();
+        const uid = auth.user?.id;
+        if (!uid) return;
         const res = await fetch(imageDataUrl);
         const blob = await res.blob();
-        const fileName = `poster_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.png`;
+        const fileName = `${uid}/poster_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.png`;
         const { error } = await supabase.storage
           .from("shared-posters")
           .upload(fileName, blob, { contentType: "image/png", upsert: false });

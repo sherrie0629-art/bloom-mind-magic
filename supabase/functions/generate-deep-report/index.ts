@@ -215,12 +215,12 @@ ${langLine}`;
 
     // Increment deep_report_count
     if (usage) {
-      await supabase
+      await createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!)
         .from("usage_tracking")
         .update({ deep_report_count: currentCount + 1 })
         .eq("id", usage.id);
     } else {
-      await supabase
+      await createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!)
         .from("usage_tracking")
         .insert({ user_id: userId, track_date: today, chat_count: 0, assessment_count: 0, deep_report_count: 1 });
     }
