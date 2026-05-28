@@ -1,0 +1,26 @@
+# Island AI
+
+> AI companions and personality assessments that help you understand yourself — through MBTI, Enneagram, tarot, and soulful conversation, available 24/7.
+
+## Product
+
+- [Home](/): Discover your AI companions and explore personality assessments.
+- [Assessments](/assessment): Browse all self-discovery quizzes — MBTI, Enneagram, Zodiac, Emotion, and more.
+- [MBTI Assessment](/assessment/mbti): Discover your 16-type personality profile.
+- [Enneagram Assessment](/assessment/enneagram): Explore your core motivations and fears.
+- [Zodiac Assessment](/assessment/zodiac): Uncover insights through astrological archetypes.
+- [Emotion Assessment](/assessment/emotion): Understand your emotional patterns and triggers.
+- [Compatibility](/assessment/compatibility): See how personality types connect and clash.
+- [Daily Tarot](/daily-tarot): Draw a daily card for guidance and reflection.
+
+## Companions
+
+- [Agent Archive](/archive): Meet the full cast of AI companions and their backstories.
+
+## Company
+
+- [Pricing](/pricing): Plans and pricing for premium features.
+- [Welcome](/welcome): Onboarding guide for new visitors.
+- [Contact](/contact): Reach out to the Island AI team.
+- [Privacy Policy](/privacy): How we handle your data.
+- [Terms of Service](/terms): Rules and conditions for using the platform.
