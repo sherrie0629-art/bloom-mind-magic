@@ -1,67 +1,60 @@
-# 修复跨角色记忆"冒认对话"问题
+# 塔罗牌面预填充缓存方案
 
-## 问题根因
+参照已有的 `prefill-mbti-posters` 模式，把 22 张大阿尔卡那 × 2 个方向（正位/逆位）= **44 张**塔罗牌图全部预生成并写入共享缓存。之后用户在每日塔罗或聊天抽牌时，都会直接命中缓存，秒出图。
 
-`recall-memory` 返回两类数据：
+## 现状
 
-- **memories**（按 agent 隔离）：每个角色只看到自己的对话记忆 ✅
-- **facts**（跨角色共享）：所有角色都能看到全部用户档案事实（如"想环游世界""想去挪威"）
+- 抽牌函数 `tarot-draw` 与 `chat-tarot-draw` 都已经在用 `tarot_card_art` 表 + `tarot-card-art` 存储桶做共享缓存，逻辑是「命中缓存 → 返回签名 URL；未命中 → 现场调用 Gemini 生成 → 上传 → 写表」。
+- 卡池（22 张 × 正/逆位关键词）已经在 `chat-tarot-draw/index.ts` 内置；可以直接复用同一份数据。
+- 桶 `tarot-card-art` 当前是私有桶，访问通过 `createSignedUrl`，无需改动权限。
 
-目前注入到 prompt 里时，facts 被打上标签 `[关于用户 · 跨角色记得] …value… (from zoey)`，但：
+## 新增内容
 
-1. "跨角色记得" 听起来还像"我记得"，模型容易当成自己的记忆
-2. `(from zoey)` 是英文小尾巴，模型几乎忽略
-3. 系统提示里只有一句通用的 "Reference them naturally"，没区分"我亲历的"和"别人转告的"，于是 Jax 直接说出"我们聊过你想去探索这个世界"——而用户其实只跟 Zoey 说过
+### 1. 边缘函数 `supabase/functions/prefill-tarot-cards/index.ts`
 
-## 解决方案
+完全对齐 `prefill-mbti-posters` 的鉴权与执行风格：
 
-分三层来处理：**数据分类 → 标签清晰 → 提示词约束**。
+- 鉴权：接受 service role key **或** 已登录管理员 JWT（`has_role(user_id, 'admin')`）。
+- 入参（POST body，可选）：
+  - `cardIds?: number[]` — 只生成指定卡牌（默认全部 22 张）
+  - `orientations?: ("up"|"rev")[]` — 默认 `["up","rev"]`
+  - `force?: boolean` — 为 true 时即使缓存已存在也重新生成并覆盖
+- 流程，每张卡（共最多 44 个组合）顺序执行：
+  1. 查 `tarot_card_art` 是否已有 `card_id + is_reversed` 记录；非 force 模式下命中即跳过。
+  2. 调用 Lovable AI Gateway（`google/gemini-3.1-flash-image-preview`），prompt 与 `chat-tarot-draw` 现有 `generateCardImage` 保持一致，确保风格统一。
+  3. 上传到 `tarot-card-art` 桶，路径 `shared/<id>_<up|rev>.png`（固定路径，便于 force 覆盖）。
+  4. `upsert` 写入 `tarot_card_art`。
+  5. 每张之间 `sleep(1500ms)` 限流，避免触发 429。
+- 返回 `{ summary: { generated, skipped, errors }, results: [...] }`。
 
-### 1. 在 `src/pages/Chat.tsx` 的 `formatRecall` 与转折 recall（约 161-188、662-680 行）
+### 2. 触发方式
 
-把 facts 按 `source_agent_id` 拆成两组：
+不加 UI 按钮，沿用 MBTI 预填的做法 —— 管理员在浏览器控制台执行：
 
-- **own facts**（source 缺失，或 source === 当前 agentId）→ 标签：`[你自己了解过] …`
-- **cross-agent facts**（source 是别的角色）→ 标签：`[别的朋友告诉你的 · 来自 {AgentName}] …`
-
-把"来自谁"翻译成角色中文名（Chloe/Jax/Luna/Zoe → 通过 agents.ts 查 name），而不是裸 id。
-
-### 2. 在 `supabase/functions/chat/index.ts`（约 470 行）扩写 Long-term Memory 说明
-
-将原本一句话扩成两段明确规则：
-
-```
-【Long-term Memory】
-- 以 [你自己了解过] 或 [Today]/[Yesterday]/[Xd ago] 开头的条目，是你和用户的真实对话，可以自然地说"上次你提过…""我们聊过…"。
-- 以 [别的朋友告诉你的 · 来自 X] 开头的条目，是用户告诉别的角色的事，你并未亲历。绝对不能说"我们聊过""你跟我说过"。可以用这些表达：
-    · "我有种感觉你…"
-    · "X 跟我念叨过你…"（X 是来源角色名）
-    · "听说你…对吧？"
-- 如果不确定来源，宁可问一句，也不要假装记得。
+```js
+window.supabase.functions.invoke('prefill-tarot-cards', { body: { force: false } })
 ```
 
-并在 system prompt 顶部加一条硬约束："Never fabricate shared history. If a fact didn't come from your own chat, attribute it or ask."
+满载一次约 44 × ~3s + 限流 ≈ 3 分钟，单次 invoke 在边缘函数 CPU 限额内可完成。若担心超时，可分批：`{ cardIds: [0,1,2,...,10] }`。
 
-### 3. （可选轻量增强）让角色互相"认识"
+### 3. 配套小改
 
-`agents.ts` 里 Chloe/Jax/Luna/Zoe 的 lore 本来就互相提及（Jax 是 Zoe 的"godfather figure"、Luna 住 Chloe 楼上）。当 Jax 看到来自 Zoey 的事实，可以自然说"Zoey 跟我提过你想去挪威"——既保留连续感，又不破坏逻辑。第 2 步的提示词已经为此铺好路。
+- `supabase/config.toml` 无需改动（默认 `verify_jwt = false`，我们在代码里自己校验）。
+- 已有抽牌函数完全不用改 —— 缓存填好后它们自然命中。
 
 ## 技术细节
 
-**文件改动**
+```text
+prefill-tarot-cards
+ ├─ auth check (service role | admin JWT)
+ ├─ build target list (cardIds × orientations)
+ ├─ for each (cardId, isReversed):
+ │    skip if exists && !force
+ │    fetch Gemini image (same prompt as chat-tarot-draw)
+ │    upload to tarot-card-art/shared/<id>_<up|rev>.png (upsert)
+ │    upsert tarot_card_art row
+ │    sleep 1500ms
+ └─ return summary
+```
 
-- `src/pages/Chat.tsx`：`formatRecall` 与第二次 recall 块；从 `agents` 数组按 id 取 name 做来源映射；中英两套文案
-- `supabase/functions/chat/index.ts`：第 470-471 行的 Long-term Memory 段落改写，加跨角色规则
-- 不动 DB、不动 recall-memory edge function
-
-**验证**
-
-1. 用 Zoey 聊一段"想去挪威环游世界" → 等待 `extract-memory-incremental` 写入 facts
-2. 切到 Jax 问"我最近想坚持跑步" → Jax 不应说"我们聊过"，应说类似"Zoey 跟我念叨过你想去挪威吧"或"我有种感觉你心里装着远方"
-3. 查 edge function 日志确认 system prompt 里 cross-agent facts 带正确前缀
-
-## 不做的事
-
-- 不改 facts 表结构、不改 RLS
-- 不关闭跨角色 facts 共享（这是产品特性，关掉就失去"一个灵魂宇宙"的感觉）
-- 不动 memories 的 agent 隔离逻辑（已经正确）
+确认后我会直接创建该函数并部署，再告知你在控制台运行的具体命令。
