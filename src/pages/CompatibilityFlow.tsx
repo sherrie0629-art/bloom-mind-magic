@@ -26,9 +26,13 @@ import {
 
 const MBTI_TYPES = ["INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ", "ENFP", "ISTJ", "ISFJ", "ESTJ", "ESFJ", "ISTP", "ISFP", "ESTP", "ESFP"];
 const ZODIAC_SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
+const MBTI_EMOJI: Record<string, string> = { INTJ: "🏛️", INTP: "🔭", ENTJ: "👑", ENTP: "⚡", INFJ: "🌙", INFP: "🌸", ENFJ: "🌻", ENFP: "🎈", ISTJ: "📋", ISFJ: "🧸", ESTJ: "🏗️", ESFJ: "🍰", ISTP: "🔧", ISFP: "🎨", ESTP: "🛹", ESFP: "🎤" };
+const ZODIAC_EMOJI: Record<string, string> = { Aries: "♈", Taurus: "♉", Gemini: "♊", Cancer: "♋", Leo: "♌", Virgo: "♍", Libra: "♎", Scorpio: "♏", Sagittarius: "♐", Capricorn: "♑", Aquarius: "♒", Pisces: "♓" };
 
 const STAGE_KEYS = ["crush", "talking", "dating", "longterm", "complicated"] as const;
+const STAGE_EMOJI: Record<string, string> = { crush: "👀", talking: "💬", dating: "🔥", longterm: "🌿", complicated: "🌀" };
 const VIBE_KEYS = ["deepTalk", "ghosted", "memes", "meal", "silence", "fight"] as const;
+const VIBE_EMOJI: Record<string, string> = { deepTalk: "💭", ghosted: "👻", memes: "😂", meal: "🍜", silence: "🧊", fight: "💥" };
 
 type Rarity = "SSR" | "SR" | "R" | "N";
 
