@@ -196,84 +196,241 @@ const CompatibilityFlow = () => {
       </div>
       <AnimatePresence mode="wait">
         {step === "input" && (
-          <motion.div key="input" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} className="px-6 mt-2 space-y-4">
-            <div className="rounded-2xl bg-card p-4 shadow-card text-center">
-              <Heart className="h-8 w-8 text-rose-warm mx-auto mb-2" />
+          <motion.div key="input" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -16 }} className="relative px-4 md:px-6 mt-2 space-y-5">
+            {/* Floating ambience */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden -z-10">
+              {["💗", "✨", "🌙", "💫", "🎴", "💕"].map((e, i) => (
+                <motion.span
+                  key={i}
+                  className="absolute text-2xl opacity-20 select-none"
+                  style={{ left: `${(i * 17 + 8) % 90}%`, top: `${(i * 23 + 10) % 80}%` }}
+                  animate={{ y: [0, -14, 0], rotate: [0, 8, -8, 0] }}
+                  transition={{ duration: 6 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.4 }}
+                >
+                  {e}
+                </motion.span>
+              ))}
+            </div>
+
+            {/* Intro */}
+            <div className="rounded-2xl bg-card/80 backdrop-blur p-4 shadow-card text-center">
+              <Heart className="h-8 w-8 text-rose-warm mx-auto mb-2 animate-pulse" />
               <h3 className="font-display text-base font-bold text-foreground">{t("assessmentFlow.compatibility.introTitle")}</h3>
               <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{t("assessmentFlow.compatibility.introDesc")}</p>
             </div>
 
-            <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="h-6 w-6 rounded-full bg-gradient-mystic flex items-center justify-center"><span className="text-xs">🙋</span></div>
-                <h4 className="text-sm font-semibold text-foreground">{t("assessmentFlow.compatibility.aboutMe")}</h4>
-              </div>
-              <input value={myName} onChange={(e) => setMyName(e.target.value)} placeholder={t("assessmentFlow.compatibility.yourName")} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-secondary" />
-              <div className="grid grid-cols-2 gap-2">
-                <select value={myMbti} onChange={(e) => setMyMbti(e.target.value)} className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-secondary">
-                  <option value="">{t("assessmentFlow.compatibility.mbtiOptional")}</option>
-                  {MBTI_TYPES.map((t2) => <option key={t2} value={t2}>{t2}</option>)}
-                </select>
-                <select value={myZodiac} onChange={(e) => setMyZodiac(e.target.value)} className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-secondary">
-                  <option value="">{t("assessmentFlow.compatibility.signOptional")}</option>
-                  {ZODIAC_SIGNS.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-              <textarea value={myTraits} onChange={(e) => setMyTraits(e.target.value)} placeholder={t("assessmentFlow.compatibility.describeMe")} rows={2} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-secondary resize-none" />
-            </div>
+            {/* Act 1 — dueling role cards */}
+            <div className="relative grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+              {/* Center heart link, only on md+ */}
+              <motion.div
+                aria-hidden
+                className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-rose-warm to-secondary shadow-glow"
+                animate={{ scale: [1, 1.18, 1] }}
+                transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <Heart className="h-5 w-5 text-white fill-white" />
+              </motion.div>
 
-            <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="h-6 w-6 rounded-full bg-gradient-golden flex items-center justify-center"><span className="text-xs">💕</span></div>
-                <h4 className="text-sm font-semibold text-foreground">{t("assessmentFlow.compatibility.aboutThem")}</h4>
-              </div>
-              <input value={partnerName} onChange={(e) => setPartnerName(e.target.value)} placeholder={t("assessmentFlow.compatibility.theirName")} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-secondary" />
-              <div className="grid grid-cols-2 gap-2">
-                <select value={partnerMbti} onChange={(e) => setPartnerMbti(e.target.value)} className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-secondary">
-                  <option value="">{t("assessmentFlow.compatibility.mbtiOptional")}</option>
-                  {MBTI_TYPES.map((t2) => <option key={t2} value={t2}>{t2}</option>)}
-                </select>
-                <select value={partnerZodiac} onChange={(e) => setPartnerZodiac(e.target.value)} className="rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-secondary">
-                  <option value="">{t("assessmentFlow.compatibility.signOptional")}</option>
-                  {ZODIAC_SIGNS.map((s) => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-              <textarea value={partnerTraits} onChange={(e) => setPartnerTraits(e.target.value)} placeholder={t("assessmentFlow.compatibility.describeThem")} rows={2} className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-1 focus:ring-secondary resize-none" />
-            </div>
-
-            <div className="rounded-2xl bg-card p-4 shadow-card space-y-3">
-              <h4 className="text-sm font-semibold text-foreground">{t("assessmentFlow.compatibility.stageLabel")}</h4>
-              <div className="flex flex-wrap gap-2">
-                {STAGE_KEYS.map((k) => (
-                  <button
-                    key={k}
-                    onClick={() => setStage(stage === k ? "" : k)}
-                    className={`rounded-full px-3 py-1.5 text-xs border transition ${stage === k ? "bg-rose-warm text-white border-rose-warm" : "bg-background border-border text-foreground"}`}
+              {(["mine", "them"] as const).map((side, idx) => {
+                const isMine = side === "mine";
+                const name = isMine ? myName : partnerName;
+                const setName = isMine ? setMyName : setPartnerName;
+                const mbti = isMine ? myMbti : partnerMbti;
+                const setMbti = isMine ? setMyMbti : setPartnerMbti;
+                const zodiac = isMine ? myZodiac : partnerZodiac;
+                const setZodiac = isMine ? setMyZodiac : setPartnerZodiac;
+                const traits = isMine ? myTraits : partnerTraits;
+                const setTraits = isMine ? setMyTraits : setPartnerTraits;
+                const headerKey = isMine ? "aboutMeFancy" : "aboutThemFancy";
+                const namePh = isMine ? "codenameMinePh" : "codenameThemPh";
+                const traitsPh = isMine ? "traitsMinePh" : "traitsThemPh";
+                const ribbon = isMine ? "from-indigo/80 to-lavender/80" : "from-rose-warm/80 to-gold/80";
+                return (
+                  <motion.div
+                    key={side}
+                    initial={{ opacity: 0, x: isMine ? -40 : 40, rotate: isMine ? -2 : 2 }}
+                    animate={{ opacity: 1, x: 0, rotate: 0 }}
+                    transition={{ type: "spring", stiffness: 110, damping: 14, delay: 0.05 + idx * 0.08 }}
+                    whileHover={{ y: -3, rotate: isMine ? -0.6 : 0.6 }}
+                    className="relative rounded-3xl bg-card p-5 shadow-card border-2 border-border/40 overflow-hidden"
                   >
-                    {t(`assessmentFlow.compatibility.stages.${k}`)}
-                  </button>
-                ))}
-              </div>
-              <h4 className="text-sm font-semibold text-foreground pt-1">{t("assessmentFlow.compatibility.vibeLabel")}</h4>
-              <div className="flex flex-wrap gap-2">
-                {VIBE_KEYS.map((k) => (
-                  <button
-                    key={k}
-                    onClick={() => setVibe(vibe === k ? "" : k)}
-                    className={`rounded-full px-3 py-1.5 text-xs border transition ${vibe === k ? "bg-secondary text-white border-secondary" : "bg-background border-border text-foreground"}`}
-                  >
-                    {t(`assessmentFlow.compatibility.vibes.${k}`)}
-                  </button>
-                ))}
+                    {/* Card ribbon / level sticker */}
+                    <div className={`absolute -top-3 left-4 rounded-full bg-gradient-to-r ${ribbon} px-3 py-1 text-[10px] font-bold text-white tracking-widest shadow-md`}>
+                      LV.??
+                    </div>
+                    <div className="absolute -top-10 -right-10 h-28 w-28 rounded-full bg-gradient-to-br from-white/40 to-transparent blur-2xl" />
+
+                    <div className="flex items-center justify-between mb-3 pt-1">
+                      <h4 className="font-display text-sm font-bold text-foreground">{t(`assessmentFlow.compatibility.${headerKey}`)}</h4>
+                      <span className="text-[10px] text-muted-foreground">#{isMine ? "P1" : "P2"}</span>
+                    </div>
+
+                    {/* Codename */}
+                    <div className="space-y-3">
+                      <input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder={t(`assessmentFlow.compatibility.${namePh}`)}
+                        className="w-full rounded-xl border border-border bg-background/60 px-3 py-2.5 text-sm font-medium text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-rose-warm/40 transition"
+                      />
+
+                      {/* MBTI badge popover */}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            type="button"
+                            className={`w-full rounded-xl border border-dashed px-3 py-2.5 text-sm flex items-center justify-between transition ${mbti ? "border-secondary/60 bg-secondary/10 text-foreground" : "border-border text-muted-foreground hover:border-secondary/40"}`}
+                          >
+                            {mbti ? (
+                              <span className="flex items-center gap-2"><span className="text-base">{MBTI_EMOJI[mbti]}</span><span className="font-semibold tracking-wider">{mbti}</span></span>
+                            ) : (
+                              <span>🎫 {t("assessmentFlow.compatibility.mbtiBadgeEmpty")}</span>
+                            )}
+                            <span className="text-xs opacity-60">{mbti ? "换" : "选"}</span>
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-72 p-3">
+                          <div className="grid grid-cols-4 gap-2">
+                            {MBTI_TYPES.map((m) => (
+                              <button
+                                key={m}
+                                onClick={() => setMbti(mbti === m ? "" : m)}
+                                className={`flex flex-col items-center gap-0.5 rounded-lg border px-1 py-2 text-[11px] font-semibold transition ${mbti === m ? "border-secondary bg-secondary/20 text-secondary scale-105" : "border-border bg-background hover:bg-muted"}`}
+                              >
+                                <span className="text-lg">{MBTI_EMOJI[m]}</span>
+                                <span>{m}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+
+                      {/* Zodiac gem strip */}
+                      <div>
+                        <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-thin">
+                          {!zodiac && (
+                            <span className="text-[11px] text-muted-foreground self-center shrink-0 mr-1">{t("assessmentFlow.compatibility.zodiacGemEmpty")}：</span>
+                          )}
+                          {ZODIAC_SIGNS.map((s) => (
+                            <motion.button
+                              key={s}
+                              type="button"
+                              onClick={() => setZodiac(zodiac === s ? "" : s)}
+                              whileTap={{ scale: 0.85 }}
+                              animate={zodiac === s ? { y: [-2, 0], scale: [1.1, 1.15] } : {}}
+                              className={`shrink-0 h-9 w-9 rounded-full text-base flex items-center justify-center border transition ${zodiac === s ? "bg-gradient-to-br from-gold to-rose-warm text-white border-transparent shadow-glow" : "bg-background border-border text-muted-foreground hover:text-foreground"}`}
+                              title={s}
+                            >
+                              {ZODIAC_EMOJI[s]}
+                            </motion.button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Traits with quick chips */}
+                      <textarea
+                        value={traits}
+                        onChange={(e) => setTraits(e.target.value)}
+                        placeholder={t(`assessmentFlow.compatibility.${traitsPh}`)}
+                        rows={2}
+                        className="w-full rounded-xl border border-border bg-background/60 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-rose-warm/40 resize-none"
+                      />
+                      <div className="flex flex-wrap gap-1.5">
+                        {(["traitChip1", "traitChip2", "traitChip3"] as const).map((k) => {
+                          const chip = t(`assessmentFlow.compatibility.${k}`);
+                          return (
+                            <button
+                              key={k}
+                              type="button"
+                              onClick={() => setTraits((traits ? traits.trim() + "、" : "") + chip)}
+                              className="rounded-full bg-muted/60 hover:bg-muted px-2.5 py-1 text-[11px] text-muted-foreground hover:text-foreground transition"
+                            >
+                              + {chip}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Act 2 — stage story carousel */}
+            <div className="rounded-2xl bg-card/80 backdrop-blur p-4 shadow-card">
+              <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-1.5">
+                <span>🎬</span> {t("assessmentFlow.compatibility.stageBlockTitle")}
+              </h4>
+              <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 snap-x snap-mandatory">
+                {STAGE_KEYS.map((k) => {
+                  const active = stage === k;
+                  return (
+                    <motion.button
+                      key={k}
+                      type="button"
+                      onClick={() => setStage(active ? "" : k)}
+                      whileTap={{ scale: 0.95 }}
+                      animate={{ scale: active ? 1.04 : 1, opacity: stage && !active ? 0.55 : 1 }}
+                      className={`snap-start shrink-0 w-40 rounded-2xl p-3 text-left border-2 transition ${active ? "border-rose-warm bg-gradient-to-br from-rose-warm/15 to-gold/10 shadow-glow" : "border-border bg-background hover:border-rose-warm/40"}`}
+                    >
+                      <div className="text-3xl mb-1">{STAGE_EMOJI[k]}</div>
+                      <div className="text-sm font-semibold text-foreground">{t(`assessmentFlow.compatibility.stages.${k}`).replace(/^[^\s]+\s/, "")}</div>
+                      <div className="text-[11px] text-muted-foreground leading-snug mt-0.5">{t(`assessmentFlow.compatibility.stageSubs.${k}`)}</div>
+                    </motion.button>
+                  );
+                })}
               </div>
             </div>
 
+            {/* Act 3 — vibe reaction grid */}
+            <div className="rounded-2xl bg-card/80 backdrop-blur p-4 shadow-card">
+              <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-1.5">
+                <span>💫</span> {t("assessmentFlow.compatibility.vibeBlockTitle")}
+              </h4>
+              <div className="grid grid-cols-3 gap-2">
+                {VIBE_KEYS.map((k) => {
+                  const active = vibe === k;
+                  return (
+                    <motion.button
+                      key={k}
+                      type="button"
+                      onClick={() => setVibe(active ? "" : k)}
+                      whileTap={{ scale: 0.9 }}
+                      animate={active ? { rotate: [0, -6, 6, 0] } : {}}
+                      transition={{ duration: 0.4 }}
+                      className={`relative flex flex-col items-center gap-1 rounded-2xl px-2 py-3 border-2 transition ${active ? "border-secondary bg-secondary/10 shadow-glow" : "border-border bg-background hover:border-secondary/40"}`}
+                    >
+                      <span className="text-2xl">{VIBE_EMOJI[k]}</span>
+                      <span className="text-[11px] font-medium text-foreground">{t(`assessmentFlow.compatibility.vibes.${k}`).replace(/^[^\s]+\s/, "")}</span>
+                      {active && (
+                        <motion.span
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1.4, opacity: 0 }}
+                          transition={{ duration: 0.8 }}
+                          className="absolute inset-0 rounded-2xl bg-secondary/30"
+                        />
+                      )}
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Submit */}
             <motion.button
-              whileTap={{ scale: 0.97, rotate: -1 }}
+              whileTap={{ scale: 0.96, rotate: -1 }}
+              whileHover={{ y: -2 }}
               onClick={handleSubmit}
-              className="w-full rounded-xl bg-gradient-golden py-3.5 text-sm font-semibold text-white flex items-center justify-center gap-2 shadow-lg"
+              className="relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-rose-warm via-gold to-secondary py-4 text-base font-bold text-white flex items-center justify-center gap-2 shadow-glow"
             >
-              <Sparkles className="h-4 w-4" /> {t("assessmentFlow.compatibility.analyzeBtn")}
+              <motion.span
+                aria-hidden
+                className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                animate={{ x: ["-100%", "100%"] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }}
+              />
+              <motion.span animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 1.2, repeat: Infinity }}>💗</motion.span>
+              <span className="relative">{t("assessmentFlow.compatibility.analyzeBtnFancy")}</span>
             </motion.button>
           </motion.div>
         )}
