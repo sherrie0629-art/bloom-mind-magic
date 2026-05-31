@@ -1,60 +1,57 @@
-# 塔罗牌面预填充缓存方案
+## 目标
 
-参照已有的 `prefill-mbti-posters` 模式，把 22 张大阿尔卡那 × 2 个方向（正位/逆位）= **44 张**塔罗牌图全部预生成并写入共享缓存。之后用户在每日塔罗或聊天抽牌时，都会直接命中缓存，秒出图。
+把现在中规中矩的"姓名 / MBTI / 星座 / 描述"双块表单，改成更有趣、像在填一张"恋爱档案卡 + 八卦小作文"的体验，但保留后端契约（myProfile / partnerProfile 字段不变）。
 
-## 现状
+## 新设计：三幕式输入流（仍在一屏，可滚动）
 
-- 抽牌函数 `tarot-draw` 与 `chat-tarot-draw` 都已经在用 `tarot_card_art` 表 + `tarot-card-art` 存储桶做共享缓存，逻辑是「命中缓存 → 返回签名 URL；未命中 → 现场调用 Gemini 生成 → 上传 → 写表」。
-- 卡池（22 张 × 正/逆位关键词）已经在 `chat-tarot-draw/index.ts` 内置；可以直接复用同一份数据。
-- 桶 `tarot-card-art` 当前是私有桶，访问通过 `createSignedUrl`，无需改动权限。
+### 幕一 · 你 vs TA 双角色卡
 
-## 新增内容
+并排两张可翻转的角色卡：左卡"我方出战 🧙‍♀️"，右卡"对方登场 💘"，中间用一颗跳动的心把两张卡连起来。
 
-### 1. 边缘函数 `supabase/functions/prefill-tarot-cards/index.ts`
+每张卡里把字段重新包装成档案：
 
-完全对齐 `prefill-mbti-posters` 的鉴权与执行风格：
+- 代号：原"名字"，placeholder 换成「叫 TA 什么都行～昵称、绰号、'前任'…」
+- 人格徽章：MBTI 改成 popover 弹出 16 个彩色徽章网格（每个 type 带 emoji，如 INFJ 🌙、ENTP ⚡），未选时显示「贴一枚人格徽章」
+- 星座宝石：12 星座改成横滑的 emoji 胶囊（♈♉♊…），选中高亮+弹跳
+- 一句话画像：textarea 改成「TA 是个怎样的人？一句吐槽也行」，下方 3 个一键填充 chip：「嘴硬心软」「e 人外表 i 人内心」「松弛感拉满」点击追加进 textarea
 
-- 鉴权：接受 service role key **或** 已登录管理员 JWT（`has_role(user_id, 'admin')`）。
-- 入参（POST body，可选）：
-  - `cardIds?: number[]` — 只生成指定卡牌（默认全部 22 张）
-  - `orientations?: ("up"|"rev")[]` — 默认 `["up","rev"]`
-  - `force?: boolean` — 为 true 时即使缓存已存在也重新生成并覆盖
-- 流程，每张卡（共最多 44 个组合）顺序执行：
-  1. 查 `tarot_card_art` 是否已有 `card_id + is_reversed` 记录；非 force 模式下命中即跳过。
-  2. 调用 Lovable AI Gateway（`google/gemini-3.1-flash-image-preview`），prompt 与 `chat-tarot-draw` 现有 `generateCardImage` 保持一致，确保风格统一。
-  3. 上传到 `tarot-card-art` 桶，路径 `shared/<id>_<up|rev>.png`（固定路径，便于 force 覆盖）。
-  4. `upsert` 写入 `tarot_card_art`。
-  5. 每张之间 `sleep(1500ms)` 限流，避免触发 429。
-- 返回 `{ summary: { generated, skipped, errors }, results: [...] }`。
+卡片头部加一枚装饰性"卡牌等级"贴纸，hover 时轻微 tilt + 光泽。
 
-### 2. 触发方式
+### 幕二 · 关系阶段（"我们正在…"）
 
-不加 UI 按钮，沿用 MBTI 预填的做法 —— 管理员在浏览器控制台执行：
+把原 STAGE pill 改成横滑的故事卡轮播（5 张），每张大 emoji + 阶段名 + 俏皮副标：
+- 暗恋中 👀 在朋友圈点赞但不敢评论
+- 暧昧期 💬 凌晨一点还在回消息
+- 热恋 🔥 连呼吸都是甜的
+- 长期关系 🌿 能一起沉默也舒服
+- 一言难尽 🌀 分了又合，合了又想分
 
-```js
-window.supabase.functions.invoke('prefill-tarot-cards', { body: { force: false } })
-```
+点中卡片放大+发光，其它缩小。state 映射到原 stage，key 不变。
 
-满载一次约 44 × ~3s + 限流 ≈ 3 分钟，单次 invoke 在边缘函数 CPU 限额内可完成。若担心超时，可分批：`{ cardIds: [0,1,2,...,10] }`。
+### 幕三 · 最近的氛围
 
-### 3. 配套小改
+VIBE_KEYS 改成 6 格大 emoji 反应面板（深聊💭 / 已读不回👻 / 互发梗图😂 / 共进一餐🍜 / 沉默冷战🧊 / 大吵一架💥），选中触发粒子小动画。
 
-- `supabase/config.toml` 无需改动（默认 `verify_jwt = false`，我们在代码里自己校验）。
-- 已有抽牌函数完全不用改 —— 缓存填好后它们自然命中。
+### 提交按钮
 
-## 技术细节
+文案改成「🎰 摇出我们的恋爱卡面」，按钮加心跳脉冲 + sheen 滚光，hover 微微抖动像在攒能量。
 
-```text
-prefill-tarot-cards
- ├─ auth check (service role | admin JWT)
- ├─ build target list (cardIds × orientations)
- ├─ for each (cardId, isReversed):
- │    skip if exists && !force
- │    fetch Gemini image (same prompt as chat-tarot-draw)
- │    upload to tarot-card-art/shared/<id>_<up|rev>.png (upsert)
- │    upsert tarot_card_art row
- │    sleep 1500ms
- └─ return summary
-```
+## 视觉与动效
 
-确认后我会直接创建该函数并部署，再告知你在控制台运行的具体命令。
+- 整页背景在 bg-gradient-calm 上叠一层非常淡的飘浮爱心/星屑（绝对定位 + framer-motion 慢飘）
+- 两张角色卡入场分别从左右滑入，之间画虚线 + 跳动的 ♡
+- 所有字段保持"可选"标签，校验逻辑、提交 payload 完全不变
+
+## 技术要点（仅 UI 层）
+
+- 只改 src/pages/CompatibilityFlow.tsx 的 step === "input" 段
+- 新增就近内联小组件，或拆到 src/components/compatibility/{RoleCard,StageCarousel,VibeGrid}.tsx
+- MBTI popover 用现有 @/components/ui/popover；星座胶囊用 overflow-x-auto；不引入新依赖
+- 新增中文文案补到 src/i18n/locales/zh.json，英文同步占位补到 en.json，全部新增 key、不动旧 key
+- 提交时仍组装相同的 myProfile / partnerProfile / stage / vibe，后端零改动
+
+## 不动的部分
+
+- 后端 edge function、compatibility_reports 表、loading + result 两个步骤
+- 字段语义（MBTI / 星座 / 自由描述 / stage / vibe）
+- 校验规则（双方姓名必填、至少一条 my/partner 信息）
