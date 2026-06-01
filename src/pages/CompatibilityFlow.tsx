@@ -338,8 +338,14 @@ const CompatibilityFlow = () => {
                         rows={2}
                         className="w-full rounded-xl border border-border bg-background/60 px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-rose-warm/40 resize-none"
                       />
-                      <div className="flex flex-wrap gap-1.5">
-                        {(["traitChip1", "traitChip2", "traitChip3"] as const).map((k) => {
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[11px] text-muted-foreground/70 mr-0.5">
+                          {t(`assessmentFlow.compatibility.${isMine ? "chipHintMine" : "chipHintThem"}`)}：
+                        </span>
+                        {(isMine
+                          ? (["traitMine1", "traitMine2", "traitMine3", "traitMine4", "traitMine5"] as const)
+                          : (["traitThem1", "traitThem2", "traitThem3", "traitThem4", "traitThem5"] as const)
+                        ).map((k) => {
                           const chip = t(`assessmentFlow.compatibility.${k}`);
                           return (
                             <button
