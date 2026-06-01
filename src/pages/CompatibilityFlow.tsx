@@ -28,6 +28,7 @@ const MBTI_TYPES = ["INTJ", "INTP", "ENTJ", "ENTP", "INFJ", "INFP", "ENFJ", "ENF
 const ZODIAC_SIGNS = ["Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo", "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"];
 const MBTI_EMOJI: Record<string, string> = { INTJ: "🏛️", INTP: "🔭", ENTJ: "👑", ENTP: "⚡", INFJ: "🌙", INFP: "🌸", ENFJ: "🌻", ENFP: "🎈", ISTJ: "📋", ISFJ: "🧸", ESTJ: "🏗️", ESFJ: "🍰", ISTP: "🔧", ISFP: "🎨", ESTP: "🛹", ESFP: "🎤" };
 const ZODIAC_EMOJI: Record<string, string> = { Aries: "♈", Taurus: "♉", Gemini: "♊", Cancer: "♋", Leo: "♌", Virgo: "♍", Libra: "♎", Scorpio: "♏", Sagittarius: "♐", Capricorn: "♑", Aquarius: "♒", Pisces: "♓" };
+const ZODIAC_DATES: Record<string, string> = { Aries: "3.21–4.19", Taurus: "4.20–5.20", Gemini: "5.21–6.21", Cancer: "6.22–7.22", Leo: "7.23–8.22", Virgo: "8.23–9.22", Libra: "9.23–10.23", Scorpio: "10.24–11.22", Sagittarius: "11.23–12.21", Capricorn: "12.22–1.19", Aquarius: "1.20–2.18", Pisces: "2.19–3.20" };
 
 const STAGE_KEYS = ["crush", "talking", "dating", "longterm", "complicated"] as const;
 const STAGE_EMOJI: Record<string, string> = { crush: "👀", talking: "💬", dating: "🔥", longterm: "🌿", complicated: "🌀" };
