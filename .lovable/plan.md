@@ -1,50 +1,63 @@
-## 目标
+## 问题
 
-两张角色卡当前共用同一组快捷标签（嘴硬心软 / e人外表i人内心 / 松弛感拉满），重复且单调。给两边各自一组主题不同、互有反差的标签，让填写更像“贴标签游戏”。
+现在「星座宝石」是一条横向 emoji 圆点：
+- 只显示符号，看不出是哪个星座，更看不出对应日期；
+- 12 个挤不下，必须左右滑动，体验生硬；
+- 与上方 MBTI 的「点开 Popover 选」交互不一致。
 
-## 改动
+## 改造方案
 
-仅 UI / 文案，不改后端字段与提交结构。
+把星座区域改成与 MBTI 同款的 **可折叠按钮 + 弹出网格**，语义清晰、无横滑。
 
-### 1. `src/i18n/locales/zh.json` & `en.json`
+### 交互
 
-在 `assessmentFlow.compatibility` 下新增两组标签，每组 5 个，删除/保留原 `traitChip1-3`（保留以防其他引用）。
-
-**我方（自我吐槽向 · 偏 i / 内省）**
-- 嘴硬心软
-- e人外表i人内心
-- 松弛感拉满
-- 容易上头
-- 嘴笨但很真诚
-
-**对方（观察 TA 向 · 偏外貌 + 谜语）**
-- 笑起来犯规
-- 神秘感拉满
-- 永远慢半拍
-- 情绪稳定到离谱
-- 像只难驯服的猫
-
-英文对应翻译保持同款轻俏感。
-
-### 2. `src/pages/CompatibilityFlow.tsx`（仅第 333-355 行附近）
-
-- 把 `["traitChip1","traitChip2","traitChip3"]` 改为根据 `isMine` 选择不同 key 数组：
-  - mine → `["traitMine1"..."traitMine5"]`
-  - them → `["traitThem1"..."traitThem5"]`
-- 标签更多时，外层 `flex-wrap` 已能换行，无布局变化。
-- 顺手在两组上方各加一个极小的提示前缀（"快捷词：" / "TA 像："）以加强差异感，i18n key 复用现有 placeholder 思路新增 `chipHintMine` / `chipHintThem`。
-
-### 3. 不变
-
-- 提交 payload、`myTraits`/`partnerTraits` state、字符拼接逻辑（`、` 连接）保持原样。
-- 其他卡片样式、动画、LV 徽章、MBTI / 星座 选择器均不动。
-
-## 视觉示意
+未选时：
+```
+[ ✨ 选一个星座（可不选） ▾ ]
+```
+点开 Popover，里面是 **4 列 × 3 行** 网格，每格：
 
 ```
-[我方 LV.??]                 [对方 LV.??]
-快捷词:                       TA 像:
-+嘴硬心软  +e外i内              +笑起来犯规  +神秘感拉满
-+松弛感拉满 +容易上头           +永远慢半拍  +情绪稳定到离谱
-+嘴笨但真诚                    +像只难驯服的猫
+┌──────────┐
+│   ♈      │
+│  白羊座   │
+│ 3.21-4.19│
+└──────────┘
 ```
+
+已选时按钮直接显示所选：
+```
+[ ♈ 白羊座  3.21-4.19  ✕ ]
+```
+右侧 ✕ 一键清除，再次点击按钮可重新选择。
+
+### 视觉细节
+
+- 网格格子：`rounded-xl border`，选中态用现有 `bg-gradient-to-br from-gold to-rose-warm text-white shadow-glow`；
+- emoji 居中略大（`text-xl`），下方中文名 `text-[11px]`，日期 `text-[10px] text-muted-foreground`；
+- Popover 宽度约 `w-[300px]`，内部 `grid-cols-4 gap-2 p-3`；
+- 选中后 Popover 自动关闭（受控 `open` 状态，与 MBTI 一致）。
+
+### 文案与数据
+
+在 `src/i18n/locales/zh.json` / `en.json` 的 `assessmentFlow.compatibility` 下：
+
+- 新增 `zodiacPickerEmpty`：「选一个星座（可不选）」/ "Pick a sign (optional)"
+- 新增 `zodiacNames`：12 项中文/英文名（白羊座…双鱼座 / Aries…Pisces）
+- 新增 `zodiacDates`：12 项日期范围字符串（"3.21-4.19" 等，中英共用）
+- 保留旧 `zodiacGemEmpty` 暂不删，防止其它地方引用
+
+### 代码改动（仅前端表现层）
+
+文件：`src/pages/CompatibilityFlow.tsx`
+
+1. 在文件顶部常量区，给 `ZODIAC_SIGNS` 顺序补上一份键名映射（如 `aries…pisces`），并新增 `ZODIAC_DATE_KEYS` 数组（与 `ZODIAC_SIGNS` 对齐）。
+2. 删除 311-331 行的横向 strip。
+3. 改成 `Popover`（参考 240-310 行 MBTI 的写法），`PopoverTrigger` 是上面描述的按钮，`PopoverContent` 是 4×3 网格，点击格子时 `setZodiac(...)` 并关闭 popover。
+4. 提交逻辑、`myZodiac` / `partnerZodiac` 字段、传给后端的 payload 完全不变。
+
+### 不动的部分
+
+- 后端 / `compatibility_reports` 表 / edge function 不动；
+- MBTI 选择、特质 chips、其它 step 全部不动；
+- 移动端同样适用（网格在 `w-[300px]` 下也能放下，Popover 自适应）。
