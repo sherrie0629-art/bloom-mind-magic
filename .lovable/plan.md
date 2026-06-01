@@ -1,57 +1,50 @@
 ## 目标
 
-把现在中规中矩的"姓名 / MBTI / 星座 / 描述"双块表单，改成更有趣、像在填一张"恋爱档案卡 + 八卦小作文"的体验，但保留后端契约（myProfile / partnerProfile 字段不变）。
+两张角色卡当前共用同一组快捷标签（嘴硬心软 / e人外表i人内心 / 松弛感拉满），重复且单调。给两边各自一组主题不同、互有反差的标签，让填写更像“贴标签游戏”。
 
-## 新设计：三幕式输入流（仍在一屏，可滚动）
+## 改动
 
-### 幕一 · 你 vs TA 双角色卡
+仅 UI / 文案，不改后端字段与提交结构。
 
-并排两张可翻转的角色卡：左卡"我方出战 🧙‍♀️"，右卡"对方登场 💘"，中间用一颗跳动的心把两张卡连起来。
+### 1. `src/i18n/locales/zh.json` & `en.json`
 
-每张卡里把字段重新包装成档案：
+在 `assessmentFlow.compatibility` 下新增两组标签，每组 5 个，删除/保留原 `traitChip1-3`（保留以防其他引用）。
 
-- 代号：原"名字"，placeholder 换成「叫 TA 什么都行～昵称、绰号、'前任'…」
-- 人格徽章：MBTI 改成 popover 弹出 16 个彩色徽章网格（每个 type 带 emoji，如 INFJ 🌙、ENTP ⚡），未选时显示「贴一枚人格徽章」
-- 星座宝石：12 星座改成横滑的 emoji 胶囊（♈♉♊…），选中高亮+弹跳
-- 一句话画像：textarea 改成「TA 是个怎样的人？一句吐槽也行」，下方 3 个一键填充 chip：「嘴硬心软」「e 人外表 i 人内心」「松弛感拉满」点击追加进 textarea
+**我方（自我吐槽向 · 偏 i / 内省）**
+- 嘴硬心软
+- e人外表i人内心
+- 松弛感拉满
+- 容易上头
+- 嘴笨但很真诚
 
-卡片头部加一枚装饰性"卡牌等级"贴纸，hover 时轻微 tilt + 光泽。
+**对方（观察 TA 向 · 偏外貌 + 谜语）**
+- 笑起来犯规
+- 神秘感拉满
+- 永远慢半拍
+- 情绪稳定到离谱
+- 像只难驯服的猫
 
-### 幕二 · 关系阶段（"我们正在…"）
+英文对应翻译保持同款轻俏感。
 
-把原 STAGE pill 改成横滑的故事卡轮播（5 张），每张大 emoji + 阶段名 + 俏皮副标：
-- 暗恋中 👀 在朋友圈点赞但不敢评论
-- 暧昧期 💬 凌晨一点还在回消息
-- 热恋 🔥 连呼吸都是甜的
-- 长期关系 🌿 能一起沉默也舒服
-- 一言难尽 🌀 分了又合，合了又想分
+### 2. `src/pages/CompatibilityFlow.tsx`（仅第 333-355 行附近）
 
-点中卡片放大+发光，其它缩小。state 映射到原 stage，key 不变。
+- 把 `["traitChip1","traitChip2","traitChip3"]` 改为根据 `isMine` 选择不同 key 数组：
+  - mine → `["traitMine1"..."traitMine5"]`
+  - them → `["traitThem1"..."traitThem5"]`
+- 标签更多时，外层 `flex-wrap` 已能换行，无布局变化。
+- 顺手在两组上方各加一个极小的提示前缀（"快捷词：" / "TA 像："）以加强差异感，i18n key 复用现有 placeholder 思路新增 `chipHintMine` / `chipHintThem`。
 
-### 幕三 · 最近的氛围
+### 3. 不变
 
-VIBE_KEYS 改成 6 格大 emoji 反应面板（深聊💭 / 已读不回👻 / 互发梗图😂 / 共进一餐🍜 / 沉默冷战🧊 / 大吵一架💥），选中触发粒子小动画。
+- 提交 payload、`myTraits`/`partnerTraits` state、字符拼接逻辑（`、` 连接）保持原样。
+- 其他卡片样式、动画、LV 徽章、MBTI / 星座 选择器均不动。
 
-### 提交按钮
+## 视觉示意
 
-文案改成「🎰 摇出我们的恋爱卡面」，按钮加心跳脉冲 + sheen 滚光，hover 微微抖动像在攒能量。
-
-## 视觉与动效
-
-- 整页背景在 bg-gradient-calm 上叠一层非常淡的飘浮爱心/星屑（绝对定位 + framer-motion 慢飘）
-- 两张角色卡入场分别从左右滑入，之间画虚线 + 跳动的 ♡
-- 所有字段保持"可选"标签，校验逻辑、提交 payload 完全不变
-
-## 技术要点（仅 UI 层）
-
-- 只改 src/pages/CompatibilityFlow.tsx 的 step === "input" 段
-- 新增就近内联小组件，或拆到 src/components/compatibility/{RoleCard,StageCarousel,VibeGrid}.tsx
-- MBTI popover 用现有 @/components/ui/popover；星座胶囊用 overflow-x-auto；不引入新依赖
-- 新增中文文案补到 src/i18n/locales/zh.json，英文同步占位补到 en.json，全部新增 key、不动旧 key
-- 提交时仍组装相同的 myProfile / partnerProfile / stage / vibe，后端零改动
-
-## 不动的部分
-
-- 后端 edge function、compatibility_reports 表、loading + result 两个步骤
-- 字段语义（MBTI / 星座 / 自由描述 / stage / vibe）
-- 校验规则（双方姓名必填、至少一条 my/partner 信息）
+```
+[我方 LV.??]                 [对方 LV.??]
+快捷词:                       TA 像:
++嘴硬心软  +e外i内              +笑起来犯规  +神秘感拉满
++松弛感拉满 +容易上头           +永远慢半拍  +情绪稳定到离谱
++嘴笨但真诚                    +像只难驯服的猫
+```
