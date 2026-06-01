@@ -252,13 +252,16 @@ const CompatibilityFlow = () => {
                     animate={{ opacity: 1, x: 0, rotate: 0 }}
                     transition={{ type: "spring", stiffness: 110, damping: 14, delay: 0.05 + idx * 0.08 }}
                     whileHover={{ y: -3, rotate: isMine ? -0.6 : 0.6 }}
-                    className="relative rounded-3xl bg-card p-5 shadow-card border-2 border-border/40 overflow-hidden"
+                    className="relative rounded-3xl bg-card p-5 shadow-card border-2 border-border/40 mt-3"
                   >
+                    {/* Decorative blur clipped to card */}
+                    <div className="pointer-events-none absolute inset-0 rounded-3xl overflow-hidden">
+                      <div className="absolute -top-10 -right-10 h-28 w-28 rounded-full bg-gradient-to-br from-white/40 to-transparent blur-2xl" />
+                    </div>
                     {/* Card ribbon / level sticker */}
-                    <div className={`absolute -top-3 left-4 rounded-full bg-gradient-to-r ${ribbon} px-3 py-1 text-[10px] font-bold text-white tracking-widest shadow-md`}>
+                    <div className={`absolute -top-3 left-4 z-10 rounded-full bg-gradient-to-r ${ribbon} px-3 py-1 text-[10px] font-bold text-white tracking-widest shadow-md`}>
                       LV.??
                     </div>
-                    <div className="absolute -top-10 -right-10 h-28 w-28 rounded-full bg-gradient-to-br from-white/40 to-transparent blur-2xl" />
 
                     <div className="flex items-center justify-between mb-3 pt-1">
                       <h4 className="font-display text-sm font-bold text-foreground">{t(`assessmentFlow.compatibility.${headerKey}`)}</h4>
