@@ -101,6 +101,8 @@ const CompatibilityFlow = () => {
 
   const [stage, setStage] = useState<string>("");
   const [vibe, setVibe] = useState<string>("");
+  const [openMbtiSide, setOpenMbtiSide] = useState<"mine" | "them" | null>(null);
+  const [openZodiacSide, setOpenZodiacSide] = useState<"mine" | "them" | null>(null);
 
   const loadingLines = (t("assessmentFlow.compatibility.loadingLines", { returnObjects: true, defaultValue: [] }) as string[]) || [];
 
