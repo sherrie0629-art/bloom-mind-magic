@@ -135,8 +135,21 @@ const CompatibilityFlow = () => {
       if (!r.rarity) r.rarity = deriveRarity(r.overallScore);
       setResult(r);
       setStep("result");
-      const { data: inserted } = await (supabase as any).from("compatibility_reports").insert({ user_id: user.id, partner_info: { name: partnerName, mbti: partnerMbti, zodiac: partnerZodiac, traits: partnerTraits, stage: stageLabel, recentVibe: vibeLabel }, result_data: r, is_paid: false }).select("id").single();
-      if (inserted?.id) setSavedReportId(inserted.id);
+      const { data: inserted, error: insertError } = await (supabase as any)
+        .from("compatibility_reports")
+        .insert({
+          user_id: user.id,
+          partner_info: { name: partnerName, mbti: partnerMbti, zodiac: partnerZodiac, traits: partnerTraits, stage: stageLabel, recentVibe: vibeLabel },
+          result_data: r,
+        })
+        .select("id")
+        .single();
+      if (insertError) {
+        console.error("[compatibility] save failed", insertError);
+        toast.error(t("assessmentFlow.compatibility.saveFail", { defaultValue: "结果未能保存，请稍后在「我的测评报告」重试" }));
+      } else if (inserted?.id) {
+        setSavedReportId(inserted.id);
+      }
     } catch (e: any) {
       if (isDailyLimitError(e)) toast.error(t("assessmentFlow.compatibility.dailyLimitReached", { n: 20 }));
       else toast.error(e.message || t("assessmentFlow.compatibility.analyzeFail"));

@@ -1,63 +1,34 @@
-## 问题
+## 现象说明
 
-现在「星座宝石」是一条横向 emoji 圆点：
-- 只显示符号，看不出是哪个星座，更看不出对应日期；
-- 12 个挤不下，必须左右滑动，体验生硬；
-- 与上方 MBTI 的「点开 Popover 选」交互不一致。
+缘分配对结果本来应该出现在「我的测评报告」里，并且点击后进入配对详情页回访。列表页逻辑已经存在：`AssessmentReports.tsx` 会同时读取普通测评结果和 `compatibility_reports` 配对结果。
 
-## 改造方案
+## 原因
 
-把星座区域改成与 MBTI 同款的 **可折叠按钮 + 弹出网格**，语义清晰、无横滑。
+问题出在配对结果生成后的保存逻辑：`CompatibilityFlow.tsx` 插入 `compatibility_reports` 时带了一个数据库表里不存在的字段 `is_paid`。
 
-### 交互
+数据库实际字段只有：
 
-未选时：
-```
-[ ✨ 选一个星座（可不选） ▾ ]
-```
-点开 Popover，里面是 **4 列 × 3 行** 网格，每格：
-
-```
-┌──────────┐
-│   ♈      │
-│  白羊座   │
-│ 3.21-4.19│
-└──────────┘
+```text
+id, user_id, partner_info, result_data, created_at
 ```
 
-已选时按钮直接显示所选：
-```
-[ ♈ 白羊座  3.21-4.19  ✕ ]
-```
-右侧 ✕ 一键清除，再次点击按钮可重新选择。
+因此插入会失败，但当前代码没有处理保存错误，导致用户看到结果页正常展示，实际没有存入数据库，所以之后在「我的测评报告」里看不到，也无法从历史记录回访。
 
-### 视觉细节
+## 修改计划
 
-- 网格格子：`rounded-xl border`，选中态用现有 `bg-gradient-to-br from-gold to-rose-warm text-white shadow-glow`；
-- emoji 居中略大（`text-xl`），下方中文名 `text-[11px]`，日期 `text-[10px] text-muted-foreground`；
-- Popover 宽度约 `w-[300px]`，内部 `grid-cols-4 gap-2 p-3`；
-- 选中后 Popover 自动关闭（受控 `open` 状态，与 MBTI 一致）。
+1. 修改 `src/pages/CompatibilityFlow.tsx`
+   - 删除保存时多余的 `is_paid: false` 字段。
+   - 增加保存失败的错误处理，避免以后静默丢失结果。
+   - 保存成功后继续记录 `savedReportId`，让详情、海报、深度报告解锁逻辑保持不变。
 
-### 文案与数据
+2. 保持现有回访入口不变
+   - 「我的测评报告」会自动展示新保存的缘分配对结果。
+   - 点击配对报告后进入 `/compatibility-reports/:id` 查看完整结果。
 
-在 `src/i18n/locales/zh.json` / `en.json` 的 `assessmentFlow.compatibility` 下：
+## 修复后的回访方式
 
-- 新增 `zodiacPickerEmpty`：「选一个星座（可不选）」/ "Pick a sign (optional)"
-- 新增 `zodiacNames`：12 项中文/英文名（白羊座…双鱼座 / Aries…Pisces）
-- 新增 `zodiacDates`：12 项日期范围字符串（"3.21-4.19" 等，中英共用）
-- 保留旧 `zodiacGemEmpty` 暂不删，防止其它地方引用
+修复后，用户重新做一次缘分配对，结果会保存到「我的测评报告」中；以后进入「我的测评报告」，点击对应的缘分配对卡片即可回访。
 
-### 代码改动（仅前端表现层）
+## 已生成过但没保存的结果
 
-文件：`src/pages/CompatibilityFlow.tsx`
-
-1. 在文件顶部常量区，给 `ZODIAC_SIGNS` 顺序补上一份键名映射（如 `aries…pisces`），并新增 `ZODIAC_DATE_KEYS` 数组（与 `ZODIAC_SIGNS` 对齐）。
-2. 删除 311-331 行的横向 strip。
-3. 改成 `Popover`（参考 240-310 行 MBTI 的写法），`PopoverTrigger` 是上面描述的按钮，`PopoverContent` 是 4×3 网格，点击格子时 `setZodiac(...)` 并关闭 popover。
-4. 提交逻辑、`myZodiac` / `partnerZodiac` 字段、传给后端的 payload 完全不变。
-
-### 不动的部分
-
-- 后端 / `compatibility_reports` 表 / edge function 不动；
-- MBTI 选择、特质 chips、其它 step 全部不动；
-- 移动端同样适用（网格在 `w-[300px]` 下也能放下，Popover 自适应）。
+之前因为保存失败，数据库里没有记录，所以旧结果无法从历史中恢复；需要重新做一次配对，修复后新的结果会被保存。
