@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { gatewayFetch, type PaddleEnv } from "../_shared/paddle.ts";
 
 const responseHeaders = {
@@ -16,6 +17,18 @@ serve(async (req) => {
   }
 
   try {
+    // Require signed-in caller to prevent unauthenticated Paddle API consumption
+    const authHeader = req.headers.get("Authorization");
+    const token = authHeader?.startsWith("Bearer ") ? authHeader.replace("Bearer ", "") : null;
+    if (!token || token === Deno.env.get("SUPABASE_ANON_KEY")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, ...responseHeaders });
+    }
+    const authClient = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!);
+    const { data: claimsData, error: claimsErr } = await authClient.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, ...responseHeaders });
+    }
+
     const { priceId, environment } = await req.json();
     if (!priceId) {
       return new Response(JSON.stringify({ error: "priceId required" }), {

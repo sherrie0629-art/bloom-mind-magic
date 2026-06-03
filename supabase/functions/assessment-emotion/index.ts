@@ -37,6 +37,18 @@ function fetchAI(model: string, requestBody: Record<string, unknown>): Promise<R
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
+    const _authHeader = req.headers.get("Authorization");
+    const _authToken = _authHeader?.startsWith("Bearer ") ? _authHeader.replace("Bearer ", "") : null;
+    if (!_authToken || _authToken === Deno.env.get("SUPABASE_ANON_KEY")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    {
+      const _ac = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!);
+      const { data: _cl, error: _ce } = await _ac.auth.getClaims(_authToken);
+      if (_ce || !_cl?.claims?.sub) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
     const body = await req.json();
     const locale = body.locale || "en";
     const langInstr = locale === "zh" ? "\nLANG: Respond entirely in Simplified Chinese (简体中文). All field values, descriptions must be Chinese." : "\nLANG: Respond entirely in natural English.";
