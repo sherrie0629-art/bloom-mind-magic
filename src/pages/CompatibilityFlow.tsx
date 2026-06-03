@@ -101,6 +101,8 @@ const CompatibilityFlow = () => {
 
   const [stage, setStage] = useState<string>("");
   const [vibe, setVibe] = useState<string>("");
+  const [openMbtiSide, setOpenMbtiSide] = useState<"mine" | "them" | null>(null);
+  const [openZodiacSide, setOpenZodiacSide] = useState<"mine" | "them" | null>(null);
 
   const loadingLines = (t("assessmentFlow.compatibility.loadingLines", { returnObjects: true, defaultValue: [] }) as string[]) || [];
 
@@ -292,7 +294,7 @@ const CompatibilityFlow = () => {
                       />
 
                       {/* MBTI badge popover */}
-                      <Popover>
+                      <Popover open={openMbtiSide === side} onOpenChange={(o) => setOpenMbtiSide(o ? side : null)}>
                         <PopoverTrigger asChild>
                           <button
                             type="button"
@@ -311,7 +313,11 @@ const CompatibilityFlow = () => {
                             {MBTI_TYPES.map((m) => (
                               <button
                                 key={m}
-                                onClick={() => setMbti(mbti === m ? "" : m)}
+                                onClick={() => {
+                                  const next = mbti === m ? "" : m;
+                                  setMbti(next);
+                                  if (next) setOpenMbtiSide(null);
+                                }}
                                 className={`flex flex-col items-center gap-0.5 rounded-lg border px-1 py-2 text-[11px] font-semibold transition ${mbti === m ? "border-secondary bg-secondary/20 text-secondary scale-105" : "border-border bg-background hover:bg-muted"}`}
                               >
                                 <span className="text-lg">{MBTI_EMOJI[m]}</span>
@@ -323,7 +329,7 @@ const CompatibilityFlow = () => {
                       </Popover>
 
                       {/* Zodiac picker popover */}
-                      <Popover>
+                      <Popover open={openZodiacSide === side} onOpenChange={(o) => setOpenZodiacSide(o ? side : null)}>
                         <PopoverTrigger asChild>
                           <button
                             type="button"
@@ -347,7 +353,11 @@ const CompatibilityFlow = () => {
                               <button
                                 key={s}
                                 type="button"
-                                onClick={() => setZodiac(zodiac === s ? "" : s)}
+                                onClick={() => {
+                                  const next = zodiac === s ? "" : s;
+                                  setZodiac(next);
+                                  if (next) setOpenZodiacSide(null);
+                                }}
                                 className={`flex flex-col items-center gap-0.5 rounded-lg border px-1 py-2 transition ${zodiac === s ? "border-transparent bg-gradient-to-br from-gold to-rose-warm text-white shadow-glow scale-105" : "border-border bg-background hover:bg-muted text-foreground"}`}
                               >
                                 <span className="text-xl leading-none">{ZODIAC_EMOJI[s]}</span>
@@ -367,6 +377,7 @@ const CompatibilityFlow = () => {
                           )}
                         </PopoverContent>
                       </Popover>
+
 
 
                       {/* Traits with quick chips */}
