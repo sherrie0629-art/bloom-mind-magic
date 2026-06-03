@@ -11,7 +11,18 @@ const corsHeaders = {
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
-    const admin = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    // Require service-role key in either X-Cron-Secret or Authorization Bearer header.
+    // pg_cron / scheduled invocations include the service role key; anonymous callers cannot.
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const cronSecret = req.headers.get("X-Cron-Secret");
+    const authHeader = req.headers.get("Authorization");
+    const bearer = authHeader?.startsWith("Bearer ") ? authHeader.replace("Bearer ", "") : null;
+    if (cronSecret !== serviceRoleKey && bearer !== serviceRoleKey) {
+      return new Response(JSON.stringify({ ok: false, error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const admin = createClient(Deno.env.get("SUPABASE_URL")!, serviceRoleKey);
     const { error } = await admin.rpc("decay_memories");
     if (error) {
       console.error("decay_memories rpc error:", error);
