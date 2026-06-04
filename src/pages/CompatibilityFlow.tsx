@@ -84,25 +84,36 @@ const CompatibilityFlow = () => {
   const { canAssess, assessmentLimit, incrementAssessment } = useSubscription(user?.id);
   const { sharePoster, posterDataUrl, showPosterPreview, closePosterPreview, downloadPoster } = useSharePoster();
 
+  const DRAFT_KEY = "compat-draft-v1";
+  const draft = (() => {
+    try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || "{}"); } catch { return {}; }
+  })();
+
   const [step, setStep] = useState<"input" | "loading" | "result">("input");
   const [result, setResult] = useState<CompatibilityResult | null>(null);
   const [savedReportId, setSavedReportId] = useState<string | null>(null);
   const [loadingLineIdx, setLoadingLineIdx] = useState(0);
 
-  const [myName, setMyName] = useState("");
-  const [myMbti, setMyMbti] = useState("");
-  const [myZodiac, setMyZodiac] = useState("");
-  const [myTraits, setMyTraits] = useState("");
+  const [myName, setMyName] = useState<string>(draft.myName || "");
+  const [myMbti, setMyMbti] = useState<string>(draft.myMbti || "");
+  const [myZodiac, setMyZodiac] = useState<string>(draft.myZodiac || "");
+  const [myTraits, setMyTraits] = useState<string>(draft.myTraits || "");
 
-  const [partnerName, setPartnerName] = useState("");
-  const [partnerMbti, setPartnerMbti] = useState("");
-  const [partnerZodiac, setPartnerZodiac] = useState("");
-  const [partnerTraits, setPartnerTraits] = useState("");
+  const [partnerName, setPartnerName] = useState<string>(draft.partnerName || "");
+  const [partnerMbti, setPartnerMbti] = useState<string>(draft.partnerMbti || "");
+  const [partnerZodiac, setPartnerZodiac] = useState<string>(draft.partnerZodiac || "");
+  const [partnerTraits, setPartnerTraits] = useState<string>(draft.partnerTraits || "");
 
-  const [stage, setStage] = useState<string>("");
-  const [vibe, setVibe] = useState<string>("");
+  const [stage, setStage] = useState<string>(draft.stage || "");
+  const [vibe, setVibe] = useState<string>(draft.vibe || "");
   const [openMbtiSide, setOpenMbtiSide] = useState<"mine" | "them" | null>(null);
   const [openZodiacSide, setOpenZodiacSide] = useState<"mine" | "them" | null>(null);
+
+  useEffect(() => {
+    if (step !== "input") return;
+    const data = { myName, myMbti, myZodiac, myTraits, partnerName, partnerMbti, partnerZodiac, partnerTraits, stage, vibe };
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(data)); } catch {}
+  }, [step, myName, myMbti, myZodiac, myTraits, partnerName, partnerMbti, partnerZodiac, partnerTraits, stage, vibe]);
 
   const loadingLines = (t("assessmentFlow.compatibility.loadingLines", { returnObjects: true, defaultValue: [] }) as string[]) || [];
 
@@ -118,7 +129,11 @@ const CompatibilityFlow = () => {
 
 
   const handleSubmit = useCallback(async () => {
-    if (!user) { toast.error(t("assessmentFlow.compatibility.pleaseSignIn")); navigate("/auth"); return; }
+    if (!user) {
+      toast.error(t("assessmentFlow.compatibility.pleaseSignIn", { defaultValue: "请先登录后再开启缘分配对，已填信息会为你保留" }));
+      navigate("/auth?redirect=" + encodeURIComponent("/assessment/compatibility"));
+      return;
+    }
     if (!canAssess) { toast.error(t("assessmentFlow.compatibility.dailyLimitReached", { n: assessmentLimit })); return; }
     if (!myName.trim() || !partnerName.trim()) { toast.error(t("assessmentFlow.compatibility.needBothNames")); return; }
     if (!myMbti && !myZodiac && !myTraits.trim()) { toast.error(t("assessmentFlow.compatibility.needMyInfo")); return; }
@@ -152,6 +167,7 @@ const CompatibilityFlow = () => {
       } else if (inserted?.id) {
         setSavedReportId(inserted.id);
       }
+      try { localStorage.removeItem(DRAFT_KEY); } catch {}
     } catch (e: any) {
       if (isDailyLimitError(e)) toast.error(t("assessmentFlow.compatibility.dailyLimitReached", { n: 20 }));
       else toast.error(e.message || t("assessmentFlow.compatibility.analyzeFail"));

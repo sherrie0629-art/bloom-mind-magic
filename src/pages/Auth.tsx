@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, User, ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -10,6 +10,8 @@ import SEO from "@/components/SEO";
 
 const Auth = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
   const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
@@ -20,7 +22,7 @@ const Auth = () => {
   const handleGoogleLogin = async () => {
     try {
       const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
+        redirect_uri: window.location.origin + redirectTo,
       });
       if (result.error) {
         const msg = (result.error as any)?.message || String(result.error);
@@ -33,7 +35,7 @@ const Auth = () => {
       }
       if (result.redirected) return;
       toast.success(t("auth.welcomeBack"));
-      navigate("/");
+      navigate(redirectTo);
     } catch (err: any) {
       toast.error(err?.message || t("auth.googleSignInFailed"));
     }
@@ -47,7 +49,7 @@ const Auth = () => {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success(t("auth.welcomeBack"));
-        navigate("/");
+        navigate(redirectTo);
       } else {
         const { error } = await supabase.auth.signUp({
           email, password,

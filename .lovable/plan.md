@@ -1,34 +1,31 @@
-## 现象说明
+## 问题
 
-缘分配对结果本来应该出现在「我的测评报告」里，并且点击后进入配对详情页回访。列表页逻辑已经存在：`AssessmentReports.tsx` 会同时读取普通测评结果和 `compatibility_reports` 配对结果。
+在缘分配对页面填完表单点「确认」时：
+- 未登录会被跳转到 `/auth`，所有已填的信息（双方昵称、MBTI、星座、特质、关系阶段、近况）都丢了。
+- 登录回来后表单是空的，体验差。
 
-## 原因
+## 方案
 
-问题出在配对结果生成后的保存逻辑：`CompatibilityFlow.tsx` 插入 `compatibility_reports` 时带了一个数据库表里不存在的字段 `is_paid`。
+1. **本地持久化表单**：在 `CompatibilityFlow.tsx` 用 `localStorage` 保存草稿（key 如 `compat-draft`），字段包括 `myName / myMbti / myZodiac / myTraits / partnerName / partnerMbti / partnerZodiac / partnerTraits / stage / vibe`。
+   - 任一字段变化时 debounce 写入。
+   - 组件挂载时若 `step === "input"` 且本地有草稿则恢复。
+   - 成功生成结果后清空草稿。
 
-数据库实际字段只有：
+2. **登录后回到原页面**：跳 `/auth` 时带上 `redirect=/assessment/compatibility`，登录成功后路由回来；草稿自动从 localStorage 恢复，用户无需重填。
+   - 若 `/auth` 已支持 `redirect` 参数（先确认），直接复用；否则在 `/auth` 登录成功后读取 `searchParams.get("redirect")` 跳转。
 
-```text
-id, user_id, partner_info, result_data, created_at
-```
+3. **更友好的未登录提示**：把弹窗文案改成「请先登录后再开启缘分配对，已填信息会为你保留」，避免「你没有登录」的硬感。
 
-因此插入会失败，但当前代码没有处理保存错误，导致用户看到结果页正常展示，实际没有存入数据库，所以之后在「我的测评报告」里看不到，也无法从历史记录回访。
+## 技术细节
 
-## 修改计划
+- 草稿读写包成小 hook `useCompatibilityDraft()`，内部 `useEffect` 监听字段数组写入 localStorage（JSON.stringify），初始读时一次性 `setState`。
+- 跳转写法：`navigate("/auth?redirect=" + encodeURIComponent("/assessment/compatibility"))`。
+- 不动数据库、不动 RLS、不动业务逻辑，纯前端持久化 + 跳转参数。
 
-1. 修改 `src/pages/CompatibilityFlow.tsx`
-   - 删除保存时多余的 `is_paid: false` 字段。
-   - 增加保存失败的错误处理，避免以后静默丢失结果。
-   - 保存成功后继续记录 `savedReportId`，让详情、海报、深度报告解锁逻辑保持不变。
+## 影响范围
 
-2. 保持现有回访入口不变
-   - 「我的测评报告」会自动展示新保存的缘分配对结果。
-   - 点击配对报告后进入 `/compatibility-reports/:id` 查看完整结果。
+- `src/pages/CompatibilityFlow.tsx`：加草稿持久化、改跳转、改提示文案。
+- `src/pages/Auth.tsx`（或登录页对应文件）：登录成功后若有 `redirect` 参数则跳回。
+- i18n：新增/修改一条「请先登录」的中英文文案。
 
-## 修复后的回访方式
-
-修复后，用户重新做一次缘分配对，结果会保存到「我的测评报告」中；以后进入「我的测评报告」，点击对应的缘分配对卡片即可回访。
-
-## 已生成过但没保存的结果
-
-之前因为保存失败，数据库里没有记录，所以旧结果无法从历史中恢复；需要重新做一次配对，修复后新的结果会被保存。
+旧用户已填但因跳走丢失的内容无法找回；此后再发生即可自动保留。
