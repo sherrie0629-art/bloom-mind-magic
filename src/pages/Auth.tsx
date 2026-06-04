@@ -35,7 +35,7 @@ const Auth = () => {
       }
       if (result.redirected) return;
       toast.success(t("auth.welcomeBack"));
-      navigate("/");
+      navigate(redirectTo);
     } catch (err: any) {
       toast.error(err?.message || t("auth.googleSignInFailed"));
     }
@@ -49,7 +49,7 @@ const Auth = () => {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
         toast.success(t("auth.welcomeBack"));
-        navigate("/");
+        navigate(redirectTo);
       } else {
         const { error } = await supabase.auth.signUp({
           email, password,
