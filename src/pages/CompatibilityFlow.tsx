@@ -129,7 +129,11 @@ const CompatibilityFlow = () => {
 
 
   const handleSubmit = useCallback(async () => {
-    if (!user) { toast.error(t("assessmentFlow.compatibility.pleaseSignIn")); navigate("/auth"); return; }
+    if (!user) {
+      toast.error(t("assessmentFlow.compatibility.pleaseSignIn", { defaultValue: "请先登录后再开启缘分配对，已填信息会为你保留" }));
+      navigate("/auth?redirect=" + encodeURIComponent("/assessment/compatibility"));
+      return;
+    }
     if (!canAssess) { toast.error(t("assessmentFlow.compatibility.dailyLimitReached", { n: assessmentLimit })); return; }
     if (!myName.trim() || !partnerName.trim()) { toast.error(t("assessmentFlow.compatibility.needBothNames")); return; }
     if (!myMbti && !myZodiac && !myTraits.trim()) { toast.error(t("assessmentFlow.compatibility.needMyInfo")); return; }
