@@ -167,6 +167,7 @@ const CompatibilityFlow = () => {
       } else if (inserted?.id) {
         setSavedReportId(inserted.id);
       }
+      try { localStorage.removeItem(DRAFT_KEY); } catch {}
     } catch (e: any) {
       if (isDailyLimitError(e)) toast.error(t("assessmentFlow.compatibility.dailyLimitReached", { n: 20 }));
       else toast.error(e.message || t("assessmentFlow.compatibility.analyzeFail"));
