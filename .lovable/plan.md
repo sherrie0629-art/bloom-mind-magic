@@ -1,31 +1,31 @@
 ## 问题
+缘分配对结果保存在 `compatibility_reports.result_data` 时是完整的（包含 destiny card、tags、稀有度 rarity、trafficLight 红黄绿、雷达图 + radarOneLiner、dramaScene 名场面、strengths/conflicts、loveLanguage 全字段 actionForThem/phraseTheyWant、keywords、prophecy、cpName 等），但 `CompatibilityDetail.tsx`（即从"我的测评报告"进入回访时使用的页面）只渲染了其中一小部分：
+- ✅ 当前已展示：分数卡、五维度（条形）、strengths、conflicts、loveLanguage 的 mine/partner/tip
+- ❌ 缺失：rarity 徽章 + 渐变命运卡风格、cpName、tags、radarOneLiner、雷达图（现在退化成条形）、trafficLight 红黄绿、dramaScene 名场面、loveLanguage.actionForThem、loveLanguage.phraseTheyWant、keywords、prophecy
 
-在缘分配对页面填完表单点「确认」时：
-- 未登录会被跳转到 `/auth`，所有已填的信息（双方昵称、MBTI、星座、特质、关系阶段、近况）都丢了。
-- 登录回来后表单是空的，体验差。
+因此用户看到的"回访版"明显比首次结果页内容少，造成"不一致 / 不全面"的感受。
 
 ## 方案
+将 `CompatibilityDetail.tsx` 的结果展示对齐到 `CompatibilityFlow.tsx` 中 `step === "result"` 的完整版式，使用同一份 `result_data` 重渲染所有卡片。不改动数据库、edge function、保存逻辑。
 
-1. **本地持久化表单**：在 `CompatibilityFlow.tsx` 用 `localStorage` 保存草稿（key 如 `compat-draft`），字段包括 `myName / myMbti / myZodiac / myTraits / partnerName / partnerMbti / partnerZodiac / partnerTraits / stage / vibe`。
-   - 任一字段变化时 debounce 写入。
-   - 组件挂载时若 `step === "input"` 且本地有草稿则恢复。
-   - 成功生成结果后清空草稿。
+### 改动文件
+**`src/pages/CompatibilityDetail.tsx`**
+1. 引入 recharts 的 `Radar/RadarChart/PolarGrid/PolarAngleAxis/PolarRadiusAxis/ResponsiveContainer`，以及 `RARITY_THEME` / `deriveRarity` 逻辑（可在该文件内复制，避免对 `CompatibilityFlow` 做导出重构）。
+2. 按以下顺序渲染（与首次结果页一致）：
+   - **命运卡 Destiny Card**：渐变背景 + rarity 徽章 + emoji + cpName + title + overallScore + tags + summary
+   - **红黄绿 Traffic Light**：`d.trafficLight.green/yellow/red`
+   - **五维雷达图**：`d.dimensions` → RadarChart；下方显示 `d.radarOneLiner`
+   - **名场面 Drama Scene**：`d.dramaScene`
+   - **Strengths + Conflicts**（保留现有卡片，但合并为一张，与首页一致）
+   - **Love Language**：增加 `actionForThem`（绿色块）、`phraseTheyWant`（琥珀色块）
+   - **Keywords + Prophecy**：紫色渐变卡
+3. 保留头部返回按钮、分享海报按钮、`DeepReportUnlock` 入口、`formatDate` 与 `withPartner` 元信息（可放在命运卡下方一行）。
+4. i18n key 直接复用 `assessmentFlow.compatibility.*`（已存在）；`compatibilityDetail.*` 中现有 key 也继续用。无需新增翻译。
 
-2. **登录后回到原页面**：跳 `/auth` 时带上 `redirect=/assessment/compatibility`，登录成功后路由回来；草稿自动从 localStorage 恢复，用户无需重填。
-   - 若 `/auth` 已支持 `redirect` 参数（先确认），直接复用；否则在 `/auth` 登录成功后读取 `searchParams.get("redirect")` 跳转。
+### 不动的部分
+- `CompatibilityFlow.tsx` 保存逻辑、`result_data` 结构、edge function、RLS、路由。
+- `AssessmentReports.tsx` 和 `CompatibilityReports.tsx` 列表页。
 
-3. **更友好的未登录提示**：把弹窗文案改成「请先登录后再开启缘分配对，已填信息会为你保留」，避免「你没有登录」的硬感。
-
-## 技术细节
-
-- 草稿读写包成小 hook `useCompatibilityDraft()`，内部 `useEffect` 监听字段数组写入 localStorage（JSON.stringify），初始读时一次性 `setState`。
-- 跳转写法：`navigate("/auth?redirect=" + encodeURIComponent("/assessment/compatibility"))`。
-- 不动数据库、不动 RLS、不动业务逻辑，纯前端持久化 + 跳转参数。
-
-## 影响范围
-
-- `src/pages/CompatibilityFlow.tsx`：加草稿持久化、改跳转、改提示文案。
-- `src/pages/Auth.tsx`（或登录页对应文件）：登录成功后若有 `redirect` 参数则跳回。
-- i18n：新增/修改一条「请先登录」的中英文文案。
-
-旧用户已填但因跳走丢失的内容无法找回；此后再发生即可自动保留。
+### 验证
+- 进入 `/compatibility-reports/:id` 查看历史报告：应看到与首次完成时完全相同的 7 张卡内容。
+- 旧报告若某些字段缺失（如早期没有 `trafficLight` / `dramaScene` / `keywords` / `prophecy`），对应卡片做空值判断不渲染（与 Flow 页相同逻辑）。
