@@ -10,6 +10,12 @@ export interface LoreEntry {
 
 export interface EasterEgg {
   trigger: string;
+  /**
+   * Additional substrings (case-insensitive) that should also trigger this egg.
+   * Used to support Chinese synonyms and natural-language variants so the
+   * Chat client can recognise that the user genuinely said the keyword.
+   */
+  aliases?: string[];
   response: string;
 }
 
