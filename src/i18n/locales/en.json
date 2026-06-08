@@ -547,6 +547,8 @@
     "empty": "No fragments collected yet",
     "emptyHint": "Chat deeper with characters to unlock more ✨",
     "loading": "Loading...",
+    "loreHint": "Story fragments unlock automatically as your bond level with each character grows ✨",
+    "truthHint": "💡 Truth shards unlock when you say a hidden trigger phrase in chat. Each character has a few secret keywords — try bringing up topics they care about most.",
     "truthGallery": {
       "subtitle": "Truth Gallery · Collect 3 crystal shards from each character",
       "progress": "{{cur}} / {{total}}",
