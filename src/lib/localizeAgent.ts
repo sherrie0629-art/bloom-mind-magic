@@ -19,6 +19,7 @@ export function localizeAgent(agent: Agent, t: TFunction): Agent {
 
   const easterEggs = agent.easterEggs.map((egg) => ({
     trigger: egg.trigger,
+    aliases: egg.aliases,
     response: t(`${base}.eggs.${safeTrigger(egg.trigger)}`, { defaultValue: egg.response }),
   }));
 
