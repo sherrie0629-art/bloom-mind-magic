@@ -1,31 +1,48 @@
-## 问题
-缘分配对结果保存在 `compatibility_reports.result_data` 时是完整的（包含 destiny card、tags、稀有度 rarity、trafficLight 红黄绿、雷达图 + radarOneLiner、dramaScene 名场面、strengths/conflicts、loveLanguage 全字段 actionForThem/phraseTheyWant、keywords、prophecy、cpName 等），但 `CompatibilityDetail.tsx`（即从"我的测评报告"进入回访时使用的页面）只渲染了其中一小部分：
-- ✅ 当前已展示：分数卡、五维度（条形）、strengths、conflicts、loveLanguage 的 mine/partner/tip
-- ❌ 缺失：rarity 徽章 + 渐变命运卡风格、cpName、tags、radarOneLiner、雷达图（现在退化成条形）、trafficLight 红黄绿、dramaScene 名场面、loveLanguage.actionForThem、loveLanguage.phraseTheyWant、keywords、prophecy
+## 目标
 
-因此用户看到的"回访版"明显比首次结果页内容少，造成"不一致 / 不全面"的感受。
+让「藏宝匣」三个 Tab 都能正确反映用户的实际解锁进度，而不是永远显示空。
 
-## 方案
-将 `CompatibilityDetail.tsx` 的结果展示对齐到 `CompatibilityFlow.tsx` 中 `step === "result"` 的完整版式，使用同一份 `result_data` 重渲染所有卡片。不改动数据库、edge function、保存逻辑。
+## 改动范围
 
-### 改动文件
-**`src/pages/CompatibilityDetail.tsx`**
-1. 引入 recharts 的 `Radar/RadarChart/PolarGrid/PolarAngleAxis/PolarRadiusAxis/ResponsiveContainer`，以及 `RARITY_THEME` / `deriveRarity` 逻辑（可在该文件内复制，避免对 `CompatibilityFlow` 做导出重构）。
-2. 按以下顺序渲染（与首次结果页一致）：
-   - **命运卡 Destiny Card**：渐变背景 + rarity 徽章 + emoji + cpName + title + overallScore + tags + summary
-   - **红黄绿 Traffic Light**：`d.trafficLight.green/yellow/red`
-   - **五维雷达图**：`d.dimensions` → RadarChart；下方显示 `d.radarOneLiner`
-   - **名场面 Drama Scene**：`d.dramaScene`
-   - **Strengths + Conflicts**（保留现有卡片，但合并为一张，与首页一致）
-   - **Love Language**：增加 `actionForThem`（绿色块）、`phraseTheyWant`（琥珀色块）
-   - **Keywords + Prophecy**：紫色渐变卡
-3. 保留头部返回按钮、分享海报按钮、`DeepReportUnlock` 入口、`formatDate` 与 `withPartner` 元信息（可放在命运卡下方一行）。
-4. i18n key 直接复用 `assessmentFlow.compatibility.*`（已存在）；`compatibilityDetail.*` 中现有 key 也继续用。无需新增翻译。
+只改一个文件：`src/pages/Vault.tsx`。不动数据库、不动 Chat 逻辑、不动 agents 数据。
 
-### 不动的部分
-- `CompatibilityFlow.tsx` 保存逻辑、`result_data` 结构、edge function、RLS、路由。
-- `AssessmentReports.tsx` 和 `CompatibilityReports.tsx` 列表页。
+### 1. 故事碎片（lore）Tab —— 改数据源
 
-### 验证
-- 进入 `/compatibility-reports/:id` 查看历史报告：应看到与首次完成时完全相同的 7 张卡内容。
-- 旧报告若某些字段缺失（如早期没有 `trafficLight` / `dramaScene` / `keywords` / `prophecy`），对应卡片做空值判断不渲染（与 Flow 页相同逻辑）。
+不再从 `story_vault` 读取（那里永远没有 lore 行），改成：
+
+- 复用 `agents.ts` 里每个角色的 `lore[]` 数组（已在 `AgentArchive` 使用）。
+- 用已经加载的 `agent_bonds.bond_level` 判断哪些 lore 条目已解锁（`level <= bond_level`）。
+- 按角色分组渲染，每条解锁的 lore 展示：角色头像/渐变色、等级标签（如「Lv.3 知己」）、lore 文本。
+- 未解锁的条目用灰色 + 锁图标占位，并提示「再聊 X 句解锁」（沿用 `BOND_THRESHOLDS`）。
+- 顶部加一句小字说明：「故事碎片会随着你与角色的羁绊等级提升自动解锁。」
+
+### 2. 真理碎片（truth_shard）Tab —— 改进空状态提示
+
+当前的「真理画廊」视图保留不动（按角色显示彩蛋槽位），但当用户**一个真理碎片都没有解锁时**，在画廊顶部加一个温和的提示卡片：
+
+> 💡 真理碎片需要在聊天中说出特定的"暗号"才能解锁。每个角色都有几个隐藏关键词，试试在对话里聊起 TA 最在意的话题吧。
+
+这样用户不会以为是 Bug。
+
+### 3. 金句（quote）Tab —— 暂时隐藏
+
+目前没有任何代码写入 quote 类型，留着只会让人困惑。在 `TABS` 数组里临时移除 `quote` 项（保留 i18n key，方便未来恢复）。
+
+## 不做的事
+
+- 不新建表、不加 migration、不动 RLS。
+- 不改 Chat.tsx 的 truth shard 写入逻辑。
+- 不改 AgentArchive 页面。
+- 不补写历史 lore 到 `story_vault`（没必要，直接从 agents 数据派生即可）。
+
+## 技术细节
+
+- `Vault.tsx` 已经在加载 `agent_bonds`，新增逻辑只需把现有 `bonds` map 扩展为 `{ agent_id: { eggs: string[], level: number } }`，或单独再存一个 `levels` map。
+- 复用 `AgentArchive` 里的 `BOND_THRESHOLDS` 和 `bondLabels` i18n key，无需新增翻译。
+- 需要为新增的小提示加 2 条 i18n key：`vault.loreHint`、`vault.truthHint`（zh + en）。
+
+## 验证
+
+- 用当前账号打开藏宝匣 → 故事碎片 Tab 应能看到 4 个角色已解锁的 lore 文本（bestie 5 条全开、mystic/jax 4 条、barista 3 条）。
+- 真理碎片 Tab 顶部出现解释卡片，下方画廊依旧全锁。
+- 金句 Tab 消失。
