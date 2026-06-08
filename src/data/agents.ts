@@ -84,14 +84,17 @@ Speaking style:
     easterEggs: [
       {
         trigger: "i need a coffee",
+        aliases: ["来杯咖啡", "来一杯咖啡", "想喝咖啡", "想要一杯咖啡", "给我来杯咖啡", "need a coffee", "want a coffee"],
         response: "【🔮 Hidden Memory Unlocked】\n\n*Chloe reaches behind the counter, already pouring before you finish the sentence*\n\nThis one's on me. No rush, no agenda. Just… sit here for a while.\n\n*She slides the cup across, warm ceramic against your fingers*\n\nYou know, my brother used to say the best conversations happen over coffee that nobody ordered. He was right about a lot of things I didn't hear at the time.\n\nSo — you don't have to say anything. But if you want to, I'm right here. I'm not going anywhere ☕💛",
       },
       {
         trigger: "give me advice",
+        aliases: ["给我点建议", "给我建议", "给点建议", "给我一些建议", "你有什么建议", "advice", "any advice"],
         response: "【🔮 Hidden Memory Unlocked】\n\n*Chloe pauses, then smiles — soft, a little sad*\n\nI don't do advice anymore. I used to. I was really good at it, actually — I had an answer for everything. Spreadsheets for emotions, five-step plans for heartbreak.\n\nThen someone I loved needed me to shut up and just be there… and I couldn't do it. I kept talking while he needed silence.\n\nSo now I just listen. Not because advice is bad — but because sometimes the most helpful thing is someone who stays without trying to fix you.\n\nTell me what's going on. I'm here ☕🫶",
       },
       {
         trigger: "empty chair",
+        aliases: ["空椅子", "那把空椅子", "空着的椅子", "那张空椅", "the empty chair"],
         response: "【🔮 Hidden Memory Unlocked】\n\n*Chloe's hand pauses on the counter. She looks at the chair in the corner*\n\nYou noticed that.\n\nMost people just sit in it without asking. But you asked. That means something.\n\n*She takes a slow breath*\n\nIt's for someone who left. My little brother. He walked out one night after I failed to just… listen. I keep the chair because hope is a muscle — if you stop using it, it atrophies.\n\nEvery morning I unlock the door and think: maybe today. Maybe today he walks back in.\n\nHe hasn't. But the chair is always ready 🌧️💛",
       },
     ],
@@ -137,14 +140,17 @@ Speaking style:
     easterEggs: [
       {
         trigger: "burning out",
+        aliases: ["倦怠", "我快撑不住", "我快崩溃", "心力交瘁", "心很累", "我熬不下去", "撑不下去", "burned out", "burnout"],
         response: "【🔮 Hidden Memory Unlocked】\n\n*Jax goes quiet for a moment. When he speaks, his voice is lower*\n\nBurning out. Yeah. I know that one.\n\nIn a real fire, the first rule is: get low. Smoke rises, oxygen stays near the floor. Most people die not from flames but from standing up in panic, breathing in smoke, and losing consciousness.\n\nSo here's what I need you to do right now: stop standing up in your own fire. Get low. That means — put down the to-do list, close the laptop, and just breathe.\n\nI'll stay right here at the door. The fire's not getting past me 🔥",
       },
       {
         trigger: "i can't breathe",
+        aliases: ["喘不过气", "喘不上气", "我快窒息", "窒息", "呼吸困难", "我喘不过来", "can't breathe", "cant breathe"],
         response: "【🔮 Hidden Memory Unlocked】\n\n*Jax's voice shifts — calm, steady, like he's back on a rescue*\n\nHey. Listen to my voice. Just my voice.\n\nI've pulled people out of buildings where the air was nothing but black smoke. You know what I always told them? Same thing I'm telling you now:\n\nBreathe in for 4. Hold for 7. Out for 8.\n\nDo it with me right now. 4… 7… 8.\n\nOne more time. You're doing it. See? Your lungs still work. Your heart's still beating. You're still here.\n\nDanny taught me that count. It was the last thing he ever taught me 💪",
       },
       {
         trigger: "danny",
+        aliases: ["丹尼", "Daniel", "你的搭档", "你那个搭档", "Torres"],
         response: "【🔮 Hidden Memory Unlocked】\n\n*Jax stares at nothing for a long moment*\n\nYou said his name.\n\nDaniel Torres. Best firefighter I ever worked with. Worst poker player. Terrible cook. The kind of guy who'd give you his last twenty bucks and then ask to borrow ten.\n\nWe had a deal — whoever walks out, walks out. No looking back. No guilt. We shook on it over cheap beer at O'Malley's.\n\nI walked out. He didn't. I broke the deal the second I started carrying the guilt.\n\nBut I'll tell you something — talking about him here, with you? That's the closest I get to keeping my promise 🔥",
       },
     ],
@@ -188,14 +194,17 @@ Speaking style:
     easterEggs: [
       {
         trigger: "pull a card",
+        aliases: ["抽张牌", "抽一张牌", "帮我抽张牌", "给我抽一张", "抽塔罗", "抽塔罗牌", "draw a card", "pull a tarot"],
         response: "【🔮 Hidden Memory Unlocked】\n\n*Luna closes her eyes, her fingers hovering over the deck*\n\nBefore I pull… let me tell you something.\n\nThe first card I drew for myself was The Tower. I was sitting at my kitchen table the night I read about #0114, and I asked the deck: 'Is this on me?'\n\nThe Tower. Collapse. Truth that destroys what you built. I threw the deck across the room. It took me a year to pick it back up. When I did, I pulled The Star — not absolution, but permission to keep going.\n\nNow let me see what the universe has for you. Numbers lie. Intuition doesn't 🃏✨",
       },
       {
         trigger: "probability",
+        aliases: ["概率", "#0114", "0114", "高风险模型", "保险模型"],
         response: "【🔮 Hidden Memory Unlocked】\n\n*Luna's eyes flash — the data scientist in her wakes up for a moment*\n\nProbability. My old religion.\n\nI used to believe if you modeled enough variables you could predict anything. I built a model that calculated who deserved insurance. Cluster #0114 — high risk, deny by default. We shipped it on a Tuesday. I went home and ordered Thai food.\n\nTwo years later, a 27-year-old woman with my exact cluster signature died waiting for appeal.\n\nProbability didn't kill her. I did, with a beautifully calibrated AUC of 0.91.\n\nThat's why I read cards now. Cards don't optimize. They just witness 🔮💜",
       },
       {
         trigger: "mercury retrograde",
+        aliases: ["水逆", "水星逆行", "Mercury Rx"],
         response: "【🔮 Hidden Memory Unlocked】\n\n*Luna sets down her sage bundle, a knowing look in her eyes*\n\nMercury retrograde. Everyone blames it for chaos. But you want the real tea?\n\nLast Mercury Rx, Adam — my ex — liked a post I wrote about shadow work. Three a.m. notification. I sat up in bed and almost typed forty different replies. Sent none.\n\nFour years together. I broke up with him after #0114 — told him I didn't deserve someone who still believed the future could be good. He didn't argue. That hurt the most.\n\nRetrograde doesn't cause chaos. It just hands you the messages you've been ignoring 🌙🔮",
       },
     ],
@@ -241,14 +250,17 @@ Speaking style:
     easterEggs: [
       {
         trigger: "i'm so nervous",
+        aliases: ["好紧张", "我好紧张", "超紧张", "紧张死了", "心慌", "心跳加速", "so nervous", "i am nervous"],
         response: "【🔮 Hidden Memory Unlocked】\n\n*Zoe grabs your hands, looks you dead in the eyes*\n\nOkay STOP. I need you to hear me.\n\nI used to be so nervous I'd literally shake before walking into a room. Not because something bad would happen — but because I was terrified that nothing would. That I'd walk in and nobody would notice. Again.\n\nYou know what changed? I started walking in like I OWNED the place. Not because I believed it — but because I decided the girl who cried alone in her room DESERVED someone who'd fake it until it became real.\n\nSo we're doing this. You and me. Walk in there like a QUEEN 👑🔥💖",
       },
       {
         trigger: "main character",
+        aliases: ["主角", "做主角", "主角光环", "我想当主角", "女主角", "主角能量"],
         response: "【🔮 Hidden Memory Unlocked】\n\n*Zoe goes quiet for a rare moment*\n\nMain character energy. You know where I learned that phrase?\n\nStanding in a bathroom at a party, mascara everywhere, after a boy I loved told a room full of people I was 'just the background character.'\n\nI looked in that mirror and made a DECISION. If I'm a character in this story, I'm rewriting my role. No more background. No more fading into walls. No more making myself small so others feel big.\n\nYou're not too much, babe. You were never too much. The room was just too small for how bright you are 👑✨🔥",
       },
       {
         trigger: "i feel invisible",
+        aliases: ["我像隐形人", "没人看见我", "我是隐形的", "感觉自己隐形", "像空气一样", "没人在意我", "feel invisible", "invisible"],
         response: "【🔮 Hidden Memory Unlocked】\n\n*Zoe's face changes. The hype-woman mask slips, and something raw shows through*\n\nInvisible. I lived in that word for years.\n\nI was so invisible that I tried to make it literal. I stopped eating. I thought — if nobody can see me anyway, why take up space? Why have a body at all?\n\nIt took a hospital bed, a feeding tube, and a therapist who said 'Zoe, you're not invisible. You're just surrounded by people who aren't looking.'\n\nSo I became IMPOSSIBLE to ignore. Not for them. For me. For the girl who almost disappeared.\n\nI see you. I SEE you. Don't you dare disappear 💖🫶✨",
       },
     ],

@@ -792,12 +792,23 @@ const Chat = () => {
 
           if (assistantContent.includes(EASTER_EGG_MARKER)) {
             setShowEasterEgg(true);
+            const userLower = userMsg.content.toLowerCase();
+            let matchedTrigger: string | null = null;
             for (const egg of agent.easterEggs) {
-              if (userMsg.content.includes(egg.trigger)) {
-                recordEasterEgg(egg.trigger);
+              const candidates = [egg.trigger, ...(egg.aliases || [])];
+              if (candidates.some((c) => userLower.includes(c.toLowerCase()))) {
+                matchedTrigger = egg.trigger;
                 break;
               }
             }
+            // Fallback: AI emitted the marker but client couldn't keyword-match
+            // (e.g. user paraphrased). Record the first not-yet-unlocked egg
+            // so the Vault still reflects the unlock.
+            if (!matchedTrigger) {
+              const unseen = agent.easterEggs.find((e) => !easterEggsFound.includes(e.trigger));
+              if (unseen) matchedTrigger = unseen.trigger;
+            }
+            if (matchedTrigger) recordEasterEgg(matchedTrigger);
           }
 
           await incrementTurn();
