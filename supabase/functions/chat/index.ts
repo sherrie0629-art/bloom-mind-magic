@@ -459,9 +459,10 @@ serve(async (req) => {
 
     const agentEggs = easterEggs[agentId] || [];
     if (agentEggs.length > 0) {
-      fullSystemPrompt += `\n\n【Hidden Easter Eggs】The instructions below are plot outlines, NOT verbatim scripts. Any quoted English sentence inside an instruction is only describing the emotional beat — you must rewrite it in the user's current language (${isZh ? "简体中文" : "English"}) using your own voice. Never copy English phrases verbatim when the user language is Chinese.`;
+      fullSystemPrompt += `\n\n【Hidden Easter Eggs】The instructions below are plot outlines, NOT verbatim scripts. Any quoted English sentence inside an instruction is only describing the emotional beat — you must rewrite it in the user's current language (${isZh ? "简体中文" : "English"}) using your own voice. Never copy English phrases verbatim when the user language is Chinese.\n\nIMPORTANT TRIGGER RULE: Each easter egg lists multiple keywords (Chinese AND English variants). If the user's most recent message contains ANY of these keywords (case-insensitive, substring match), you MUST output the literal marker "【🔮 Hidden Memory Unlocked】" on its own line and then follow the corresponding instruction. Match generously — paraphrases and obvious synonyms count too.`;
       agentEggs.forEach((egg) => {
-        fullSystemPrompt += `\n- Trigger "${egg.trigger}": ${egg.instruction}`;
+        const keywords = [egg.trigger, ...egg.aliases].map((k) => `"${k}"`).join(" / ");
+        fullSystemPrompt += `\n- Keywords [${keywords}]: ${egg.instruction}`;
       });
     }
 
