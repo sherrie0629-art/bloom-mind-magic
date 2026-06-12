@@ -217,9 +217,9 @@ const Index = () => {
                       key={agent.id}
                       whileHover={{ y: -2 }}
                       onClick={() => navigate(`/chat?agent=${agent.id}`)}
-                      className="group relative text-left rounded-3xl border border-[#c9a84c]/15 bg-[#1a1a1a] p-3 md:p-4 hover:border-[#c9a84c]/45 hover:bg-[#c9a84c]/[0.04] transition-all"
+                      className="group relative text-left rounded-2xl md:rounded-3xl border border-[#c9a84c]/15 bg-[#1a1a1a] p-2.5 md:p-4 hover:border-[#c9a84c]/45 hover:bg-[#c9a84c]/[0.04] transition-all"
                     >
-                      <div className="relative mb-3 aspect-square overflow-hidden rounded-2xl border border-[#c9a84c]/10">
+                      <div className="relative mb-2.5 md:mb-3 aspect-square overflow-hidden rounded-xl md:rounded-2xl border border-[#c9a84c]/10">
                         <img
                           src={agent.image}
                           alt={agent.name}
@@ -231,7 +231,7 @@ const Index = () => {
                       <div className="flex items-end justify-between gap-2">
                         <div>
                           <h4
-                            className="text-lg text-[#c9a84c] leading-tight"
+                            className="text-base md:text-lg text-[#c9a84c] leading-tight"
                             style={{ fontFamily: serif }}
                           >
                             {agent.name}
