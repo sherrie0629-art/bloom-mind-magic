@@ -62,7 +62,7 @@ const Index = () => {
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              className="md:col-span-8 md:row-span-2 relative overflow-hidden rounded-3xl border border-[#c9a84c]/15 bg-[#1a1a1a] p-8 md:p-10 min-h-[260px] md:min-h-[280px] flex flex-col justify-between"
+              className="md:col-span-8 md:row-span-2 relative overflow-hidden rounded-2xl md:rounded-3xl border border-[#c9a84c]/15 bg-[#1a1a1a] p-5 md:p-10 min-h-[200px] md:min-h-[280px] flex flex-col justify-between"
             >
               <div
                 className="pointer-events-none absolute -top-32 -right-32 h-[420px] w-[420px] rounded-full opacity-50"
@@ -73,15 +73,15 @@ const Index = () => {
               />
               <div className="relative z-10">
                 <h1
-                  className="text-[#c9a84c] text-4xl md:text-6xl leading-[1.05] mb-4"
+                  className="text-[#c9a84c] text-3xl md:text-6xl leading-[1.05] mb-3 md:mb-4"
                   style={{ fontFamily: serif }}
                 >
                   Island AI
-                  <span className="block md:inline md:ml-3 text-3xl md:text-5xl italic opacity-90">
+                  <span className="block md:inline md:ml-3 text-2xl md:text-5xl italic opacity-90">
                     · {t("home.appName")}
                   </span>
                 </h1>
-                <p className="text-base md:text-lg text-[#f0d78c]/70 italic max-w-md leading-relaxed">
+                <p className="text-sm md:text-lg text-[#f0d78c]/70 italic max-w-md leading-relaxed">
                   {t("home.tagline")}
                 </p>
               </div>
