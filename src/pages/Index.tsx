@@ -124,11 +124,11 @@ const Index = () => {
               transition={{ delay: 0.1 }}
               whileHover={{ y: -2 }}
               onClick={() => navigate("/assessment/compatibility")}
-              className="md:col-span-4 group text-left rounded-3xl border border-[#c9a84c]/15 bg-gradient-to-br from-[#1a1a1a] to-[#141414] p-6 hover:border-[#c9a84c]/45 transition-colors"
+              className="md:col-span-4 group text-left rounded-2xl md:rounded-3xl border border-[#c9a84c]/15 bg-gradient-to-br from-[#1a1a1a] to-[#141414] p-4 md:p-6 hover:border-[#c9a84c]/45 transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
                 <h3
-                  className="text-2xl text-[#c9a84c]"
+                  className="text-xl md:text-2xl text-[#c9a84c]"
                   style={{ fontFamily: serif }}
                 >
                   {t("home.chemistry")}
