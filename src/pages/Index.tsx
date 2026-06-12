@@ -99,11 +99,11 @@ const Index = () => {
               transition={{ delay: 0.05 }}
               whileHover={{ y: -2 }}
               onClick={() => navigate("/daily-tarot")}
-              className="md:col-span-4 group text-left rounded-3xl border border-[#c9a84c]/15 bg-[#1a1a1a] p-6 hover:border-[#c9a84c]/45 transition-colors"
+              className="md:col-span-4 group text-left rounded-2xl md:rounded-3xl border border-[#c9a84c]/15 bg-[#1a1a1a] p-4 md:p-6 hover:border-[#c9a84c]/45 transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
                 <h3
-                  className="text-2xl text-[#c9a84c]"
+                  className="text-xl md:text-2xl text-[#c9a84c]"
                   style={{ fontFamily: serif }}
                 >
                   {t("home.dailyTarot")}
