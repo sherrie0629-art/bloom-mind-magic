@@ -195,9 +195,9 @@ const Index = () => {
               transition={{ delay: 0.2 }}
               className="md:col-span-6"
             >
-              <div className="mb-4 flex items-center justify-between px-1">
+              <div className="mb-3 md:mb-4 flex items-center justify-between px-1">
                 <h2
-                  className="text-2xl md:text-3xl text-[#f0d78c]"
+                  className="text-xl md:text-3xl text-[#f0d78c]"
                   style={{ fontFamily: serif }}
                 >
                   {t("home.yourCircle")}
