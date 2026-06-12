@@ -147,11 +147,11 @@ const Index = () => {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="md:col-span-6 rounded-3xl border border-[#c9a84c]/15 bg-[#1a1a1a] p-6 md:p-7 flex flex-col"
+              className="md:col-span-6 rounded-2xl md:rounded-3xl border border-[#c9a84c]/15 bg-[#1a1a1a] p-4 md:p-7 flex flex-col"
             >
-              <div className="mb-5 flex items-center justify-between">
+              <div className="mb-4 md:mb-5 flex items-center justify-between">
                 <h2
-                  className="text-2xl md:text-3xl text-[#f0d78c]"
+                  className="text-xl md:text-3xl text-[#f0d78c]"
                   style={{ fontFamily: serif }}
                 >
                   {t("home.selfDiscovery")}
