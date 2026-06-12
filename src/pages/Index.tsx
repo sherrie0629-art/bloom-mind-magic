@@ -224,7 +224,7 @@ const Index = () => {
                           src={agent.image}
                           alt={agent.name}
                           loading="lazy"
-                          className="h-full w-full object-cover grayscale opacity-70 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500"
+                          className="h-full w-full object-cover transition-all duration-500"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d0d]/70 via-transparent to-transparent" />
                       </div>
