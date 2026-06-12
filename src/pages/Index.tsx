@@ -169,13 +169,13 @@ const Index = () => {
                     key={item.id}
                     whileHover={{ y: -2 }}
                     onClick={() => navigate(item.path)}
-                    className="group text-left rounded-2xl border border-[#c9a84c]/10 bg-[#0d0d0d] p-4 md:p-5 hover:bg-[#c9a84c]/[0.06] hover:border-[#c9a84c]/30 transition-colors"
+                    className="group text-left rounded-xl md:rounded-2xl border border-[#c9a84c]/10 bg-[#0d0d0d] p-3 md:p-5 hover:bg-[#c9a84c]/[0.06] hover:border-[#c9a84c]/30 transition-colors"
                   >
                     <span className="block text-[10px] font-bold tracking-widest text-[#c9a84c] opacity-40 group-hover:opacity-100 transition-opacity">
                       0{i + 1}
                     </span>
                     <h4
-                      className="mt-2 text-lg text-[#f0d78c]"
+                      className="mt-1.5 md:mt-2 text-base md:text-lg text-[#f0d78c]"
                       style={{ fontFamily: serif }}
                     >
                       {t(`home.tests.${item.id}.label`)}
