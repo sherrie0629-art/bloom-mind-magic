@@ -257,15 +257,15 @@ const Index = () => {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
-              className="md:col-span-12 rounded-3xl border border-[#c9a84c]/15 border-l-4 border-l-[#c9a84c] bg-gradient-to-r from-[#1a1a1a] to-[#0d0d0d] p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
+              className="md:col-span-12 rounded-2xl md:rounded-3xl border border-[#c9a84c]/15 border-l-4 border-l-[#c9a84c] bg-gradient-to-r from-[#1a1a1a] to-[#0d0d0d] p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
             >
-              <div className="flex items-start md:items-center gap-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#c9a84c]/30 text-[#c9a84c]">
+              <div className="flex items-start md:items-center gap-3 md:gap-4">
+                <span className="flex h-9 w-9 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-full border border-[#c9a84c]/30 text-[#c9a84c]">
                   <Lock className="h-4 w-4" />
                 </span>
                 <div>
                   <p
-                    className="text-base md:text-lg text-[#f0d78c]"
+                    className="text-sm md:text-lg text-[#f0d78c]"
                     style={{ fontFamily: serif }}
                   >
                     {t("home.secretsHint")}
