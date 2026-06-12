@@ -56,8 +56,8 @@ const Index = () => {
         className="min-h-screen bg-[#0d0d0d] text-[#f0d78c] pb-24 md:pb-12"
         style={{ fontFamily: sans }}
       >
-        <div className="mx-auto max-w-6xl p-5 md:p-10">
-          <div className="grid grid-cols-1 md:grid-cols-12 md:grid-rows-[auto_auto_auto] gap-4">
+        <div className="mx-auto max-w-6xl p-4 md:p-10">
+          <div className="grid grid-cols-1 md:grid-cols-12 md:grid-rows-[auto_auto_auto] gap-3 md:gap-4">
             {/* 品牌 Hero */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
