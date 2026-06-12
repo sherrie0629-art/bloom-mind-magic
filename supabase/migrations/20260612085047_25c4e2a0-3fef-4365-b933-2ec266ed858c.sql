@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Users can insert own usage row" ON public.usage_tracking;
