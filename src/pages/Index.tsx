@@ -56,13 +56,13 @@ const Index = () => {
         className="min-h-screen bg-[#0d0d0d] text-[#f0d78c] pb-24 md:pb-12"
         style={{ fontFamily: sans }}
       >
-        <div className="mx-auto max-w-6xl p-5 md:p-10">
-          <div className="grid grid-cols-1 md:grid-cols-12 md:grid-rows-[auto_auto_auto] gap-4">
+        <div className="mx-auto max-w-6xl p-4 md:p-10">
+          <div className="grid grid-cols-1 md:grid-cols-12 md:grid-rows-[auto_auto_auto] gap-3 md:gap-4">
             {/* 品牌 Hero */}
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              className="md:col-span-8 md:row-span-2 relative overflow-hidden rounded-3xl border border-[#c9a84c]/15 bg-[#1a1a1a] p-8 md:p-10 min-h-[260px] md:min-h-[280px] flex flex-col justify-between"
+              className="md:col-span-8 md:row-span-2 relative overflow-hidden rounded-2xl md:rounded-3xl border border-[#c9a84c]/15 bg-[#1a1a1a] p-5 md:p-10 min-h-[200px] md:min-h-[280px] flex flex-col justify-between"
             >
               <div
                 className="pointer-events-none absolute -top-32 -right-32 h-[420px] w-[420px] rounded-full opacity-50"
@@ -73,15 +73,15 @@ const Index = () => {
               />
               <div className="relative z-10">
                 <h1
-                  className="text-[#c9a84c] text-4xl md:text-6xl leading-[1.05] mb-4"
+                  className="text-[#c9a84c] text-3xl md:text-6xl leading-[1.05] mb-3 md:mb-4"
                   style={{ fontFamily: serif }}
                 >
                   Island AI
-                  <span className="block md:inline md:ml-3 text-3xl md:text-5xl italic opacity-90">
+                  <span className="block md:inline md:ml-3 text-2xl md:text-5xl italic opacity-90">
                     · {t("home.appName")}
                   </span>
                 </h1>
-                <p className="text-base md:text-lg text-[#f0d78c]/70 italic max-w-md leading-relaxed">
+                <p className="text-sm md:text-lg text-[#f0d78c]/70 italic max-w-md leading-relaxed">
                   {t("home.tagline")}
                 </p>
               </div>
@@ -99,11 +99,11 @@ const Index = () => {
               transition={{ delay: 0.05 }}
               whileHover={{ y: -2 }}
               onClick={() => navigate("/daily-tarot")}
-              className="md:col-span-4 group text-left rounded-3xl border border-[#c9a84c]/15 bg-[#1a1a1a] p-6 hover:border-[#c9a84c]/45 transition-colors"
+              className="md:col-span-4 group text-left rounded-2xl md:rounded-3xl border border-[#c9a84c]/15 bg-[#1a1a1a] p-4 md:p-6 hover:border-[#c9a84c]/45 transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
                 <h3
-                  className="text-2xl text-[#c9a84c]"
+                  className="text-xl md:text-2xl text-[#c9a84c]"
                   style={{ fontFamily: serif }}
                 >
                   {t("home.dailyTarot")}
@@ -124,11 +124,11 @@ const Index = () => {
               transition={{ delay: 0.1 }}
               whileHover={{ y: -2 }}
               onClick={() => navigate("/assessment/compatibility")}
-              className="md:col-span-4 group text-left rounded-3xl border border-[#c9a84c]/15 bg-gradient-to-br from-[#1a1a1a] to-[#141414] p-6 hover:border-[#c9a84c]/45 transition-colors"
+              className="md:col-span-4 group text-left rounded-2xl md:rounded-3xl border border-[#c9a84c]/15 bg-gradient-to-br from-[#1a1a1a] to-[#141414] p-4 md:p-6 hover:border-[#c9a84c]/45 transition-colors"
             >
               <div className="flex items-start justify-between gap-3">
                 <h3
-                  className="text-2xl text-[#c9a84c]"
+                  className="text-xl md:text-2xl text-[#c9a84c]"
                   style={{ fontFamily: serif }}
                 >
                   {t("home.chemistry")}
@@ -147,11 +147,11 @@ const Index = () => {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="md:col-span-6 rounded-3xl border border-[#c9a84c]/15 bg-[#1a1a1a] p-6 md:p-7 flex flex-col"
+              className="md:col-span-6 rounded-2xl md:rounded-3xl border border-[#c9a84c]/15 bg-[#1a1a1a] p-4 md:p-7 flex flex-col"
             >
-              <div className="mb-5 flex items-center justify-between">
+              <div className="mb-4 md:mb-5 flex items-center justify-between">
                 <h2
-                  className="text-2xl md:text-3xl text-[#f0d78c]"
+                  className="text-xl md:text-3xl text-[#f0d78c]"
                   style={{ fontFamily: serif }}
                 >
                   {t("home.selfDiscovery")}
@@ -169,13 +169,13 @@ const Index = () => {
                     key={item.id}
                     whileHover={{ y: -2 }}
                     onClick={() => navigate(item.path)}
-                    className="group text-left rounded-2xl border border-[#c9a84c]/10 bg-[#0d0d0d] p-4 md:p-5 hover:bg-[#c9a84c]/[0.06] hover:border-[#c9a84c]/30 transition-colors"
+                    className="group text-left rounded-xl md:rounded-2xl border border-[#c9a84c]/10 bg-[#0d0d0d] p-3 md:p-5 hover:bg-[#c9a84c]/[0.06] hover:border-[#c9a84c]/30 transition-colors"
                   >
                     <span className="block text-[10px] font-bold tracking-widest text-[#c9a84c] opacity-40 group-hover:opacity-100 transition-opacity">
                       0{i + 1}
                     </span>
                     <h4
-                      className="mt-2 text-lg text-[#f0d78c]"
+                      className="mt-1.5 md:mt-2 text-base md:text-lg text-[#f0d78c]"
                       style={{ fontFamily: serif }}
                     >
                       {t(`home.tests.${item.id}.label`)}
@@ -195,9 +195,9 @@ const Index = () => {
               transition={{ delay: 0.2 }}
               className="md:col-span-6"
             >
-              <div className="mb-4 flex items-center justify-between px-1">
+              <div className="mb-3 md:mb-4 flex items-center justify-between px-1">
                 <h2
-                  className="text-2xl md:text-3xl text-[#f0d78c]"
+                  className="text-xl md:text-3xl text-[#f0d78c]"
                   style={{ fontFamily: serif }}
                 >
                   {t("home.yourCircle")}
@@ -217,9 +217,9 @@ const Index = () => {
                       key={agent.id}
                       whileHover={{ y: -2 }}
                       onClick={() => navigate(`/chat?agent=${agent.id}`)}
-                      className="group relative text-left rounded-3xl border border-[#c9a84c]/15 bg-[#1a1a1a] p-3 md:p-4 hover:border-[#c9a84c]/45 hover:bg-[#c9a84c]/[0.04] transition-all"
+                      className="group relative text-left rounded-2xl md:rounded-3xl border border-[#c9a84c]/15 bg-[#1a1a1a] p-2.5 md:p-4 hover:border-[#c9a84c]/45 hover:bg-[#c9a84c]/[0.04] transition-all"
                     >
-                      <div className="relative mb-3 aspect-square overflow-hidden rounded-2xl border border-[#c9a84c]/10">
+                      <div className="relative mb-2.5 md:mb-3 aspect-square overflow-hidden rounded-xl md:rounded-2xl border border-[#c9a84c]/10">
                         <img
                           src={agent.image}
                           alt={agent.name}
@@ -231,7 +231,7 @@ const Index = () => {
                       <div className="flex items-end justify-between gap-2">
                         <div>
                           <h4
-                            className="text-lg text-[#c9a84c] leading-tight"
+                            className="text-base md:text-lg text-[#c9a84c] leading-tight"
                             style={{ fontFamily: serif }}
                           >
                             {agent.name}
@@ -257,15 +257,15 @@ const Index = () => {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
-              className="md:col-span-12 rounded-3xl border border-[#c9a84c]/15 border-l-4 border-l-[#c9a84c] bg-gradient-to-r from-[#1a1a1a] to-[#0d0d0d] p-5 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
+              className="md:col-span-12 rounded-2xl md:rounded-3xl border border-[#c9a84c]/15 border-l-4 border-l-[#c9a84c] bg-gradient-to-r from-[#1a1a1a] to-[#0d0d0d] p-4 md:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
             >
-              <div className="flex items-start md:items-center gap-4">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#c9a84c]/30 text-[#c9a84c]">
+              <div className="flex items-start md:items-center gap-3 md:gap-4">
+                <span className="flex h-9 w-9 md:h-10 md:w-10 shrink-0 items-center justify-center rounded-full border border-[#c9a84c]/30 text-[#c9a84c]">
                   <Lock className="h-4 w-4" />
                 </span>
                 <div>
                   <p
-                    className="text-base md:text-lg text-[#f0d78c]"
+                    className="text-sm md:text-lg text-[#f0d78c]"
                     style={{ fontFamily: serif }}
                   >
                     {t("home.secretsHint")}
