@@ -71,7 +71,7 @@ export default {
       },
       fontFamily: {
         display: ['DM Serif Display', 'serif'],
-        body: ['Inter', 'sans-serif'],
+        body: ['Fira Sans', 'Inter', 'sans-serif'],
       },
       borderRadius: {
         lg: "var(--radius)",

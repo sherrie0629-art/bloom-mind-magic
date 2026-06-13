@@ -607,7 +607,7 @@ const CompatibilityFlow = () => {
 
             {/* Card 4 — Drama Scene */}
             {result.dramaScene && (
-              <div className="rounded-2xl bg-gradient-to-br from-rose-50 to-amber-50 dark:from-rose-950/30 dark:to-amber-950/30 p-5 shadow-card border border-rose-200/50">
+              <div className="rounded-2xl bg-gradient-to-br from-rose-500/10 to-primary/10 p-5 shadow-card border border-primary/20">
                 <h4 className="font-display text-sm font-semibold text-foreground mb-2">{t("assessmentFlow.compatibility.dramaTitle")}</h4>
                 <p className="text-sm text-foreground leading-relaxed italic">{result.dramaScene}</p>
               </div>

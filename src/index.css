@@ -6,65 +6,66 @@
 
 @layer base {
   :root {
-    --background: 40 30% 97%;
-    --foreground: 220 25% 15%;
+    /* 夜空鎏金 · Black & Gold */
+    --background: 0 0% 5%;          /* #0d0d0d */
+    --foreground: 42 70% 75%;       /* #f0d78c */
 
-    --card: 40 25% 95%;
-    --card-foreground: 220 25% 15%;
+    --card: 0 0% 10%;               /* #1a1a1a */
+    --card-foreground: 42 70% 75%;
 
-    --popover: 40 30% 97%;
-    --popover-foreground: 220 25% 15%;
+    --popover: 0 0% 8%;
+    --popover-foreground: 42 70% 75%;
 
-    --primary: 220 45% 25%;
-    --primary-foreground: 40 30% 97%;
+    --primary: 42 53% 54%;          /* #c9a84c */
+    --primary-foreground: 0 0% 5%;
 
-    --secondary: 35 60% 55%;
-    --secondary-foreground: 220 25% 15%;
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 42 70% 75%;
 
-    --muted: 35 20% 90%;
-    --muted-foreground: 220 10% 50%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 42 25% 60%;
 
-    --accent: 35 70% 60%;
-    --accent-foreground: 220 25% 15%;
+    --accent: 42 53% 54%;
+    --accent-foreground: 0 0% 5%;
 
     --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 35 20% 88%;
-    --input: 35 20% 88%;
-    --ring: 220 45% 25%;
+    --border: 42 40% 35%;
+    --input: 0 0% 16%;
+    --ring: 42 53% 54%;
 
     --radius: 1rem;
 
     /* Custom tokens */
-    --gold: 38 75% 55%;
-    --gold-light: 40 80% 75%;
+    --gold: 42 53% 54%;
+    --gold-light: 42 70% 75%;
     --indigo: 225 50% 30%;
     --indigo-light: 225 40% 50%;
     --teal: 175 40% 45%;
     --rose-warm: 350 50% 60%;
     --lavender: 260 35% 65%;
 
-    --gradient-mystic: linear-gradient(135deg, hsl(225 50% 30%), hsl(260 35% 50%), hsl(350 50% 60%));
-    --gradient-golden: linear-gradient(135deg, hsl(38 75% 55%), hsl(25 85% 60%));
-    --gradient-calm: linear-gradient(180deg, hsl(40 30% 97%), hsl(35 20% 92%));
-    --gradient-card: linear-gradient(145deg, hsl(40 25% 96%), hsl(35 20% 93%));
+    --gradient-mystic: linear-gradient(135deg, hsl(0 0% 10%), hsl(0 0% 5%));
+    --gradient-golden: linear-gradient(135deg, hsl(42 53% 54%), hsl(42 70% 75%));
+    --gradient-calm: linear-gradient(180deg, hsl(0 0% 5%), hsl(0 0% 8%));
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 10%), hsl(0 0% 8%));
 
-    --shadow-soft: 0 4px 20px -4px hsl(220 25% 15% / 0.08);
-    --shadow-glow: 0 0 30px -5px hsl(38 75% 55% / 0.25);
-    --shadow-card: 0 2px 12px -2px hsl(220 25% 15% / 0.06);
+    --shadow-soft: 0 4px 20px -4px hsl(0 0% 0% / 0.5);
+    --shadow-glow: 0 0 30px -5px hsl(42 53% 54% / 0.35);
+    --shadow-card: 0 2px 12px -2px hsl(0 0% 0% / 0.45);
 
     --font-display: 'DM Serif Display', serif;
-    --font-body: 'Inter', sans-serif;
+    --font-body: 'Fira Sans', 'Inter', sans-serif;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 0% 8%;
+    --sidebar-foreground: 42 70% 75%;
+    --sidebar-primary: 42 53% 54%;
+    --sidebar-primary-foreground: 0 0% 5%;
+    --sidebar-accent: 0 0% 14%;
+    --sidebar-accent-foreground: 42 70% 75%;
+    --sidebar-border: 0 0% 18%;
+    --sidebar-ring: 42 53% 54%;
   }
 }
 
@@ -119,25 +120,25 @@
     font-family: var(--font-body);
   }
 
-  /* Agent chat themes */
+  /* Agent chat themes — dark base with each agent's accent */
   .chat-theme-barista {
-    --chat-bg: linear-gradient(180deg, hsl(30 25% 96%), hsl(25 20% 93%));
-    --chat-header-bg: hsl(30 30% 40% / 0.08);
-    --chat-accent: hsl(30 50% 55%);
+    --chat-bg: linear-gradient(180deg, hsl(0 0% 8%), hsl(30 15% 10%));
+    --chat-header-bg: hsl(30 50% 55% / 0.10);
+    --chat-accent: hsl(30 60% 60%);
   }
   .chat-theme-coach {
-    --chat-bg: linear-gradient(180deg, hsl(140 20% 96%), hsl(150 18% 93%));
-    --chat-header-bg: hsl(140 30% 45% / 0.08);
-    --chat-accent: hsl(140 35% 50%);
+    --chat-bg: linear-gradient(180deg, hsl(0 0% 8%), hsl(140 15% 10%));
+    --chat-header-bg: hsl(140 40% 55% / 0.10);
+    --chat-accent: hsl(140 45% 60%);
   }
   .chat-theme-mentor {
-    --chat-bg: linear-gradient(180deg, hsl(200 20% 96%), hsl(190 18% 93%));
-    --chat-header-bg: hsl(200 30% 40% / 0.08);
-    --chat-accent: hsl(200 35% 50%);
+    --chat-bg: linear-gradient(180deg, hsl(0 0% 8%), hsl(200 15% 10%));
+    --chat-header-bg: hsl(200 40% 55% / 0.10);
+    --chat-accent: hsl(200 50% 65%);
   }
   .chat-theme-bestie {
-    --chat-bg: linear-gradient(180deg, hsl(40 30% 97%), hsl(35 25% 93%));
-    --chat-header-bg: hsl(40 40% 50% / 0.08);
-    --chat-accent: hsl(40 60% 55%);
+    --chat-bg: linear-gradient(180deg, hsl(0 0% 8%), hsl(42 15% 10%));
+    --chat-header-bg: hsl(42 53% 54% / 0.10);
+    --chat-accent: hsl(42 70% 65%);
   }
 }
