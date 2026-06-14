@@ -657,7 +657,9 @@
     "headerSub": "你的 AI 疗愈空间",
     "energy": "能量",
     "bondLevel": "羁绊等级",
-    "storyFragments": "故事碎片"
+    "storyFragments": "故事碎片",
+    "icebreakerTitle": "不知道说什么？试试这样开口",
+    "icebreakerHint": "点一下，直接发送给 {{name}}"
   },
   "branchSelector": {
     "yourInnerVoice": "你的内在声音…"
