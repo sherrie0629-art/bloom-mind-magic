@@ -52,14 +52,14 @@ const DesktopLayout = ({ children, maxWidth = "2xl" }: DesktopLayoutProps) => {
                 onClick={() => navigate(item.path)}
                 className={`relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-secondary/10 text-secondary"
+                    ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                 }`}
               >
                 {isActive && (
                   <motion.div
                     layoutId="desktop-nav-indicator"
-                    className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-full bg-secondary"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-full bg-primary"
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   />
                 )}
