@@ -18,6 +18,8 @@ import EasterEggEffect from "@/components/EasterEggEffect";
 import BranchSelector from "@/components/BranchSelector";
 import ChatParticles from "@/components/ChatParticles";
 import AgentProfileDrawer from "@/components/AgentProfileDrawer";
+import MessageVoiceButton from "@/components/MessageVoiceButton";
+import { useTTS } from "@/contexts/TTSContext";
 import { useAchievements } from "@/hooks/useAchievements";
 import { agents as RAW_AGENTS, BOND_LABELS } from "@/data/agents";
 import { localizeAgent, getAgentWelcome, getAgentQuickReplies } from "@/lib/localizeAgent";
