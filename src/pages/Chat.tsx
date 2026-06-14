@@ -952,8 +952,11 @@ const Chat = () => {
           <button onClick={() => navigate(-1)} className="text-muted-foreground shrink-0">
             <ArrowLeft className="h-5 w-5" />
           </button>
-          <button onClick={() => setProfileOpen(true)} className="shrink-0 active:scale-95 transition-transform">
-            <img src={agent.image} alt={agent.name} className="h-9 w-9 rounded-xl object-cover" />
+          <button onClick={() => setProfileOpen(true)} className="shrink-0 active:scale-95 transition-transform relative">
+            {isVoiceActive && (
+              <span className="pointer-events-none absolute -inset-1 rounded-2xl ring-2 ring-secondary/60 animate-pulse" aria-hidden />
+            )}
+            <img src={agent.image} alt={agent.name} className="h-9 w-9 rounded-xl object-cover relative" />
           </button>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between">
