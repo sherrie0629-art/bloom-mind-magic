@@ -42,7 +42,7 @@ const Settings = () => {
 
           <section className="rounded-2xl bg-card shadow-card p-5">
             <div className="flex items-center gap-2 mb-1">
-              <Globe className="h-4 w-4 text-secondary" />
+              <Globe className="h-4 w-4 text-primary" />
               <h2 className="text-sm font-semibold text-foreground">{t("settings.language")}</h2>
             </div>
             <p className="text-xs text-muted-foreground mb-4">{t("settings.languageDesc")}</p>
@@ -56,7 +56,7 @@ const Settings = () => {
                     onClick={() => handleSelect(opt.value)}
                     className={`relative flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition-colors ${
                       active
-                        ? "border-secondary bg-secondary/10 text-secondary"
+                        ? "border-primary bg-primary/10 text-primary"
                         : "border-border bg-background text-foreground hover:bg-muted/50"
                     }`}
                   >
