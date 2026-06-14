@@ -657,7 +657,9 @@
     "headerSub": "Your AI Healing Space",
     "energy": "Energy",
     "bondLevel": "Bond Level",
-    "storyFragments": "Story Fragments"
+    "storyFragments": "Story Fragments",
+    "icebreakerTitle": "Not sure where to start? Try one of these",
+    "icebreakerHint": "Tap to send to {{name}}"
   },
   "branchSelector": {
     "yourInnerVoice": "Your inner voice…"
