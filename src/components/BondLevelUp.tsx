@@ -13,10 +13,15 @@ const BondLevelUp = ({ show, level, agentName, loreText, onClose }: BondLevelUpP
   const { t } = useTranslation();
   const labels = [
     t("home.bondLabels.stranger"),
-    t("home.bondLabels.acquaintance"),
+    t("home.bondLabels.familiarFace"),
     t("home.bondLabels.trusted"),
-    t("home.bondLabels.close"),
-    t("home.bondLabels.soulbound"),
+    t("home.bondLabels.listener"),
+    t("home.bondLabels.confidant"),
+    t("home.bondLabels.resonant"),
+    t("home.bondLabels.heartKeeper"),
+    t("home.bondLabels.soulCompanion"),
+    t("home.bondLabels.fateEntwined"),
+    t("home.bondLabels.soulSymbiote"),
   ];
   const label = labels[level - 1] || "";
 

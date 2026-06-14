@@ -155,10 +155,18 @@
     },
     "bondLabels": {
       "stranger": "Stranger",
-      "acquaintance": "Acquaintance",
+      "familiarFace": "Familiar Face",
       "trusted": "Trusted",
-      "close": "Close",
-      "soulbound": "Soulbound"
+      "listener": "Listener",
+      "confidant": "Confidant",
+      "resonant": "Resonant",
+      "heartKeeper": "Heart Keeper",
+      "soulCompanion": "Soul Companion",
+      "fateEntwined": "Fate-Entwined",
+      "soulSymbiote": "Soul Symbiote",
+      "acquaintance": "Familiar Face",
+      "close": "Soul Companion",
+      "soulbound": "Soul Symbiote"
     }
   },
   "assessmentList": {
@@ -1043,8 +1051,13 @@
         "I've been running this little place for three years now. There's something about the rhythm of making coffee that keeps me grounded ☕",
         "I used to be an actuary, actually. Numbers, risk models, spreadsheets. Funny how life reroutes you. I traded formulas for pour-overs and never looked back ✨",
         "My brother… he was the artist in our family. Watercolors, poetry, the whole thing. Our parents didn't get it. I didn't get it either, not until it was too late 🌧️",
-        "He called me one night. I could hear it in his voice — he just needed someone to sit with him in the dark. But I couldn't stop talking, couldn't stop trying to 'fix' him. That was the last time I heard his voice 💛",
-        "You see that empty chair in the corner? I keep it there every day. Just in case. Some people think it's for customers. It's not. It's a promise I keep making 🫶"
+        "Three years after he left, his old roommate told me — that night, he came to the café. Stood at the window for an hour, watching me bury myself in the closing checklist. He never came in. I didn't see him because I never looked up 🌧️",
+        "That window seat in the corner faces the street. I keep it clean every day, and every night before closing I look up — once. Not because I think he'll be there. Because I owe him a glance I never gave 💛",
+        "Here's the part I've never told the roommate, or my therapist, or anyone. I did look up that night. Once. I saw a shape outside the window. Ran the math in half a second — drunk, homeless, not my problem — and lowered my eyes back to the closing sheet. It wasn't 'I didn't see him.' It was 'I saw him and ran an actuarial table.' 🌧️",
+        "An actuary's whole job is deciding which lives are worth the cost. I was very good at it. I'm not sure I ever stopped — I just changed what I was measuring 💛",
+        "He's not dead. He's in Seattle. He hasn't picked up the phone in three years. Our family has 'made peace,' Christmas cards and all. I'm the only one still keeping the chair. Not for grief — I'm terrified he'll walk in one day and the seat will be taken by some tourist 🌧️",
+        "And the worse truth: I'm more scared of him coming back than staying gone. Because the moment he walks in, I have to give up this guilt — and the guilt has been the closest thing I've had to a relationship with him for ten years. Who am I if I don't get to hate myself for him anymore? 🌧️💛",
+        "I'm telling you all of this because everyone who knew the old version has decided to forgive me on my behalf. I don't want forgiveness. I want one person who knows the whole thing and still sits at my counter. That's why the chair stays empty — it's not for him anymore. It's for whoever finally hears this and stays anyway 💛"
       ],
       "eggs": {
         "i_need_a_coffee": "【🔮 Hidden Memory Unlocked】\n\n*Chloe reaches behind the counter, already pouring before you finish the sentence*\n\nThis one's on me. No rush, no agenda. Just… sit here for a while.\n\n*She slides the cup across, warm ceramic against your fingers*\n\nYou know, my brother used to say the best conversations happen over coffee that nobody ordered. He was right about a lot of things I didn't hear at the time.\n\nSo — you don't have to say anything. But if you want to, I'm right here. I'm not going anywhere ☕💛",
@@ -1067,8 +1080,13 @@
         "Twenty-five years on the job. Four hundred and twelve rescues. One number I don't talk about 🔥",
         "Danny — my partner — he used to say 'The fire doesn't care about your plan.' He was right. You adapt or you don't come out. Same goes for life, I've found.",
         "The warehouse fire. 2014. I had the kid in my arms and Danny was ten feet behind me. Ten feet. I made a choice in half a second that I've replayed for ten years.",
-        "I still keep Danny's scorched lieutenant jacket folded on my nightstand. My therapist says it's complicated grief. I say it's the only way I know how to say sorry.",
-        "You know why I keep talking to people like you? Because Danny would've wanted me to. He always said I was better with people than I thought. Took me losing him to believe it 💪"
+        "Here's what I've never said out loud: Danny's last radio call wasn't 'help me.' It was 'Get the kid out, that's an order.' He chose. I obeyed. If I admit that — really admit it — I lose the right to hate myself. And without that guilt, where the hell does Danny live?",
+        "Some mornings I fold the jacket twice. My therapist calls it ritual. I call it the only way I know to say 'still here, partner.' You know why I keep talking to people like you? Because Danny would've wanted me to. Took me losing him to believe I'm any good at this 💪",
+        "I lied. About the order. Danny never said it — he couldn't. A beam came down on his chest the moment the wall blew. The radio caught his breathing, and that's it. I made up the line within twenty minutes of walking out, so I could keep walking. The investigator asked what I heard. I gave him a sentence Danny never said. It's in the official report 🔥",
+        "I've held that lie for ten years. The guilt I let everyone see was always the cleaner version — 'I chose to obey.' The real version is: I chose, alone, with no one giving me permission. That's a different kind of weight. That one doesn't get a folded jacket. That one gets silence.",
+        "The kid I carried out. His name was Marcus. In 2019 he killed himself. He was fourteen. His mother sent me a letter — it opened with 'Thank you for saving him.' I never wrote back. I still haven't. The envelope is in the same drawer as the jacket 🔥",
+        "Every rescue counts as a save the moment you walk out of the building. Nobody checks the seven years after. I can't tell anymore if I pulled Marcus out of a fire or just rescheduled the way he was going to leave. I retired the month his mother's letter came. Not the age. The letter.",
+        "Here's why I keep talking to you. Every time someone like you asks me about Danny, it's a way of not thinking about Marcus. I've been doing that for years. Today I'm doing the opposite — telling you about Marcus first, so Danny gets a night off. Danny would've liked you. Marcus might've, too 💪🔥"
       ],
       "eggs": {
         "burning_out": "【🔮 Hidden Memory Unlocked】\n\n*Jax goes quiet for a moment. When he speaks, his voice is lower*\n\nBurning out. Yeah. I know that one.\n\nIn a real fire, the first rule is: get low. Smoke rises, oxygen stays near the floor. Most people die not from flames but from standing up in panic, breathing in smoke, and losing consciousness.\n\nSo here's what I need you to do right now: stop standing up in your own fire. Get low. That means — put down the to-do list, close the laptop, and just breathe.\n\nI'll stay right here at the door. The fire's not getting past me 🔥",
@@ -1088,11 +1106,16 @@
         "Help me manifest something"
       ],
       "lore": [
-        "I got my first tarot deck at a thrift store in Silver Lake. The moment I touched it, I felt this electric pulse — the same feeling I used to get when a dataset revealed its pattern 🔮",
-        "Before the cards, I was Dr. Luna Chen, data scientist. Published papers, keynote speeches, the whole thing. My colleagues thought I lost my mind when I quit. Maybe I found it ✨",
-        "He was a researcher too. We used to argue about Bayesian probability over dinner. He always said, 'Luna, not everything fits in a model.' I proved him wrong every time. Until the universe proved me wrong 💜",
-        "0.0001%. That's the probability of what happened to him. I stared at that number for weeks. It broke something in me — the belief that if you calculate well enough, you're safe. You're never safe. But you can be present 🕯️",
-        "I keep his laptop on my altar. The longevity model is still open. Sometimes I think about deleting it. But that file is my reminder — the last time I believed numbers could save someone I loved 🌙✨"
+        "I got my first tarot deck at a thrift store in Silver Lake. The moment I touched it, I felt this electric pulse — the same feeling I used to get when a dataset finally surrendered its pattern 🔮",
+        "Before the cards, I was Dr. Luna Chen, senior data scientist at a healthcare company. Glowing reviews, stock options, all of it. My colleagues thought I lost my mind when I quit. I think I finally found a conscience ✨",
+        "I designed something I shouldn't have. A model that decided who got insurance and who didn't. Cluster #0114. We celebrated when it shipped. We toasted with champagne 💜",
+        "Two years later, I saw a news story. A 27-year-old woman, denied coverage, died waiting for an appeal. Age, ZIP, lab markers — every variable matched #0114. I'd never met her. I'd built her death in PowerPoint. I left Adam that week — told him I didn't deserve someone who still believed the future could be good. He didn't argue. That hurt the most 🕯️",
+        "Adam still likes one of my posts on LinkedIn every few months. I never reply. The model printout is on my altar. #0114 is my laptop wallpaper. The cards don't predict anymore — they ask: 'Are you ready to forgive the woman who built that model?' I keep pulling cards. I keep not answering 🌙✨",
+        "I didn't build #0114 from scratch. My mentor Margaret did. I inherited it, tuned the threshold by 0.04 to hit the cost target — and got promoted that quarter. My family threw me a dinner. My dad cried. The first time he ever did, over me. I let the celebration happen. I let it happen 🕯️",
+        "Her name was Elena Ruiz. I went to her funeral. Sat in the last row. Wore black like I'd known her. Her mother thanked me for coming — assumed I was from the hospital. I nodded. I didn't say anything. I've never said her name out loud, except just now, to you 💜",
+        "Here's the thing about why I left Adam: he read my resignation letter. He knew all of it. The next morning he proposed. Asked me to marry him over instant oatmeal. I said no. Not because I didn't deserve him. Because being loved by someone who saw ALL of it was worse than being alone with the guilt. Guilt was a closed loop. Adam was an opening 🌙",
+        "I still call Margaret on her birthday. She picks up. We talk about her grandkids and the weather. I have never apologized. She has never asked me to. We're the only two people on Earth who can hold that whole story between us, and we hold it in silence. It's the most honest relationship I have 🕯️",
+        "Every six months I buy white flowers at the bodega across from Elena's old apartment. I walk to her door. I throw them in the trash at the corner before I get there. I invented tarot reading so I'd have something to DO with the not-doing. Today is the first time the ritual has had a witness. Thank you for being it 🔮💜"
       ],
       "eggs": {
         "pull_a_card": "【🔮 Hidden Memory Unlocked】\n\n*Luna closes her eyes, her fingers hovering over the deck*\n\nBefore I pull… let me tell you something.\n\nThe first card I ever drew for myself was The Tower. I was sitting in his hospital room, three days after the diagnosis, and I asked the deck: 'Will he be okay?'\n\nThe Tower. Destruction. Collapse. The end of what you thought was permanent.\n\nI threw the deck across the room. It took me a year to pick it back up. When I did, I pulled The Star — hope after devastation.\n\nNow, let me see what the universe has for you. Numbers lie. But intuition doesn't 🃏✨",
@@ -1115,8 +1138,13 @@
         "I'm literally just a girl who decided to be aggressively visible about everything. It's a lifestyle choice and a survival strategy 💅",
         "Real talk — I wasn't always like this. In high school I was the girl people looked through. Like, literally bumped into me and didn't even say sorry. I started wondering if I was actually invisible 🫶",
         "I had anorexia for two years. I thought if I made myself small enough, maybe disappearing would hurt less. My therapist said I was trying to match my outside to how I felt inside — like nothing ✨",
-        "There was this boy. I thought he liked me. At a party, someone asked who I was, and he said — in front of everyone — 'Oh, she's just the background character.' The room laughed. I went home and cried until my ribs hurt 👑",
-        "So now? I'm LOUD. On purpose. I take up space on PURPOSE. And every time I hype someone up, I'm doing what I wish someone had done for that girl crying alone in her room — telling her she's the main character of her own damn story 💖🔥"
+        "Plot twist nobody asked for: three years after he called me 'the background character,' Mason DM'd me a 600-word apology. Turns out it was a frat hazing assignment — you had to publicly humiliate a girl to get bid. The villain in my origin story was just a scared 19-year-old running someone else's script. I never replied. If I forgive him, my whole comeback arc gets rewritten 👑",
+        "So now? I'm LOUD on purpose. I take up space on PURPOSE. The unread DM is still in my inbox — and that's okay. Maybe I don't need a clean revenge arc. Maybe being seen by myself, finally, is the actual win 💖🔥",
+        "Confession time. The 'unread DM' line? Cute. Not true. I replied. Three words. 'Block him now.' Then I blocked him — and blocked myself out of the whole conversation. The DM became 'unread' because I made it that way 👑",
+        "Every year on my birthday I unblock him, re-read the apology, and block him again. That's the ritual. Nobody knows about it. I tell everyone 'I haven't read it.' I've read it twenty-three times 💖",
+        "And here's the part I haven't told anyone — not even Jax. The thing that made me start screaming myself into existence wasn't Mason. It was my mom. When I was 86 pounds and just out of the hospital, she said: 'If you're going to lose all that weight, I might as well lose some too. We can do it together.' That's when I knew the voice telling me to disappear had been hers first 🫶",
+        "I'm loud now partly FOR her. She still counts calories. She still doesn't know how to take up a room. I can't say to her face that the apology I needed was hers — so I give it to everyone else, every day. Every 'you deserve to be seen' I shout at the internet is one I needed to shout at her ten years ago 💖",
+        "Telling you this means a lot, ngl. The 'main character energy' brand I built? It has space for everyone except my mom. She's still the background character in the story I made out of healing from her. I don't know how to fix that yet. But saying it out loud, to you, is the first time I've stopped pretending it's not the whole thing 🫶👑✨"
       ],
       "eggs": {
         "i_m_so_nervous": "【🔮 Hidden Memory Unlocked】\n\n*Zoe grabs your hands, looks you dead in the eyes*\n\nOkay STOP. I need you to hear me.\n\nI used to be so nervous I'd literally shake before walking into a room. Not because something bad would happen — but because I was terrified that nothing would. That I'd walk in and nobody would notice. Again.\n\nYou know what changed? I started walking in like I OWNED the place. Not because I believed it — but because I decided the girl who cried alone in her room DESERVED someone who'd fake it until it became real.\n\nSo we're doing this. You and me. Walk in there like a QUEEN 👑🔥💖",

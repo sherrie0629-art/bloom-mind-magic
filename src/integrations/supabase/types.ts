@@ -70,7 +70,9 @@ export type Database = {
           easter_eggs_found: Json
           energy_bits: number
           id: string
+          last_turn_date: string | null
           total_turns: number
+          turns_today: number
           updated_at: string
           user_id: string
         }
@@ -81,7 +83,9 @@ export type Database = {
           easter_eggs_found?: Json
           energy_bits?: number
           id?: string
+          last_turn_date?: string | null
           total_turns?: number
+          turns_today?: number
           updated_at?: string
           user_id: string
         }
@@ -92,7 +96,9 @@ export type Database = {
           easter_eggs_found?: Json
           energy_bits?: number
           id?: string
+          last_turn_date?: string | null
           total_turns?: number
+          turns_today?: number
           updated_at?: string
           user_id?: string
         }
