@@ -124,6 +124,8 @@ const Chat = () => {
     useBond(user?.id, agentId);
   const { canChat, chatCount, chatLimit, plan, freeTrialExpired, incrementChat } = useSubscription(user?.id, user?.created_at);
   const { newlyUnlocked, checkAchievements, dismissAchievement } = useAchievements(user?.id);
+  const { activeAgentId: ttsActiveAgentId, playingId: ttsPlayingId } = useTTS();
+  const isVoiceActive = ttsActiveAgentId === agentId && !!ttsPlayingId;
 
   // Load energy from bond
   useEffect(() => {
