@@ -441,7 +441,7 @@ serve(async (req) => {
     
     let fullSystemPrompt = langHeader + basePrompt;
     fullSystemPrompt += RPG_INSTRUCTION;
-    fullSystemPrompt += `\n\n【Character Narrative】You have your own backstory. Your bond level with this user is ${level}/5.`;
+    fullSystemPrompt += `\n\n【Character Narrative】You have your own backstory. Your bond level with this user is ${level}/10.`;
     
     if (unlockedLore.length > 0) {
       fullSystemPrompt += `\nYour unlocked story fragments (share naturally at the right moment, wrap narrative in *italics*, don't share every time — only when the user opens up genuinely):`;
@@ -450,7 +450,7 @@ serve(async (req) => {
       });
     }
 
-    if (level < 5) {
+    if (level < 10) {
       const nextLore = agentLore[level];
       if (nextLore) {
         fullSystemPrompt += `\n\nNext story fragment (unlocks at level ${level + 1}, do NOT reveal yet): "${nextLore}" — you can occasionally hint that you have more to share, to spark curiosity.`;
