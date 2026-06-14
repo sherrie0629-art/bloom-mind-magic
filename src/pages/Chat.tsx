@@ -1026,6 +1026,14 @@ const Chat = () => {
                     msg.content
                   )}
                 </div>
+                {msg.role === "assistant" && msg.id !== "welcome" && msg.id !== "streaming" && msg.kind !== "tarot-card" && msg.content.trim() && (
+                  <MessageVoiceButton
+                    messageId={msg.id}
+                    agentId={agentId}
+                    text={msg.content}
+                    disabled={isStreaming}
+                  />
+                )}
                 {msg.role === "assistant" && msg.branchOptions && msg.branchOptions.length > 0 && !isStreaming && (
                   <BranchSelector options={msg.branchOptions} onSelect={handleSend} />
                 )}
