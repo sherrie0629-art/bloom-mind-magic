@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Send, Mic, Zap, Plus, Home, BookOpen, Sparkles, User } from "lucide-react";
+import { ArrowLeft, Send, Mic, Zap, Plus, Home, BookOpen, Sparkles, User, Coffee, Flame, Moon, MessageCircleHeart } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocale } from "@/hooks/useLocale";
 import { useQuoteCard } from "@/hooks/useQuoteCard";
