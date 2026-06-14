@@ -155,10 +155,18 @@
     },
     "bondLabels": {
       "stranger": "Stranger",
-      "acquaintance": "Acquaintance",
+      "familiarFace": "Familiar Face",
       "trusted": "Trusted",
-      "close": "Close",
-      "soulbound": "Soulbound"
+      "listener": "Listener",
+      "confidant": "Confidant",
+      "resonant": "Resonant",
+      "heartKeeper": "Heart Keeper",
+      "soulCompanion": "Soul Companion",
+      "fateEntwined": "Fate-Entwined",
+      "soulSymbiote": "Soul Symbiote",
+      "acquaintance": "Familiar Face",
+      "close": "Soul Companion",
+      "soulbound": "Soul Symbiote"
     }
   },
   "assessmentList": {

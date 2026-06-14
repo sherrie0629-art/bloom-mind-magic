@@ -155,10 +155,18 @@
     },
     "bondLabels": {
       "stranger": "陌生人",
-      "acquaintance": "熟人",
-      "trusted": "可信任",
-      "close": "亲密",
-      "soulbound": "灵魂相系"
+      "familiarFace": "熟面孔",
+      "trusted": "信任的人",
+      "listener": "倾听者",
+      "confidant": "知己",
+      "resonant": "共鸣者",
+      "heartKeeper": "守心人",
+      "soulCompanion": "灵魂同行",
+      "fateEntwined": "命运交织",
+      "soulSymbiote": "心灵共生",
+      "acquaintance": "熟面孔",
+      "close": "灵魂同行",
+      "soulbound": "心灵共生"
     }
   },
   "assessmentList": {
