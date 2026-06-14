@@ -1075,22 +1075,46 @@ const Chat = () => {
               </span>
             </motion.div>
           )}
-          {messages.length === 1 && messages[0].id === "welcome" && !isStreaming && (
+          {messages.length === 1 && messages[0].id === "welcome" && !isStreaming && (quickReplies[agentId] || []).length > 0 && (
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="flex flex-wrap gap-2 pl-1"
+              transition={{ delay: 0.35, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="mt-2"
             >
-              {(quickReplies[agentId] || []).map((text) => (
-                <button
-                  key={text}
-                  onClick={() => handleSend(text)}
-                  className="rounded-2xl border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-primary transition-colors hover:bg-primary/10 active:scale-95"
-                >
-                  {text}
-                </button>
-              ))}
+              <div className="mb-2 flex items-center gap-2 pl-1">
+                <Sparkles className="h-3.5 w-3.5 text-secondary" />
+                <span className="text-[11px] font-medium tracking-wide text-muted-foreground">
+                  {t("chat.icebreakerTitle")}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                {(quickReplies[agentId] || []).map((text, i) => {
+                  const AgentIcon = (
+                    { barista: Coffee, jax: Flame, mystic: Moon, bestie: MessageCircleHeart } as Record<string, typeof Coffee>
+                  )[agentId] || Sparkles;
+                  return (
+                    <motion.button
+                      key={text}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.45 + i * 0.06, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => handleSend(text)}
+                      className="group flex items-start gap-3 rounded-2xl border border-primary/15 bg-primary/[0.04] px-3.5 py-3 text-left text-sm text-foreground/85 shadow-sm transition-colors hover:border-primary/35 hover:bg-primary/[0.08]"
+                    >
+                      <span className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                        <AgentIcon className="h-3.5 w-3.5" />
+                      </span>
+                      <span className="leading-snug">{text}</span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+              <p className="mt-2 pl-1 text-[10px] text-muted-foreground/70">
+                {t("chat.icebreakerHint", { name: agent.name })}
+              </p>
             </motion.div>
           )}
         </AnimatePresence>
