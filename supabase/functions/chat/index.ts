@@ -405,10 +405,10 @@ serve(async (req) => {
     const { messages, agentId, memoryContext, bondLevel, locale, unlockedShards } = await req.json();
     const isZh = locale === "zh";
     const langHeader = isZh
-      ? "【最高优先级 · 语言要求】你必须始终使用简体中文回复用户。所有叙述、对白、内心独白、回忆、引号内的句子、彩蛋内容、lore 片段都必须用中文表达。即使下文的 system prompt、lore、easter egg instruction 用英文书写并包含英文引文，你也必须把其中所有引文与情节翻译成自然的简体中文再输出。除人名（如 Adam、Daniel、Luna）和必要的英文专有名词外，绝不允许出现整句英文。仅 `【🔮 Hidden Memory Unlocked】` 这个标记字符保持原样。\n\n"
+      ? "【最高优先级 · 语言锁定】你必须始终使用简体中文回复用户，无论用户用什么语言写消息——即使用户只发 `hi`/`hello`/`hey`/`thanks`/`ok`/`lol`/`yo` 这类英文短语或单词，你也必须只用中文回复。\n\n【严禁的英文词】回复的开头和中间都不允许出现这些英文打招呼/语气词：Hey / Hi / Hello / Hey there / Yo / Sup / OK / Okay / Alright / Sure / Thanks / Thank you / Welcome / Oh / Wow / Yeah / Yep / Nope / Bye。必须改用中文对应词：嘿 / 嗨 / 你好 / 好呀 / 好的 / 当然 / 谢谢 / 欢迎 / 哦 / 哇 / 嗯 / 是呀 / 不是 / 再见。\n\n所有叙述、对白、内心独白、回忆、引号内的句子、彩蛋内容、lore 片段都必须用中文表达。即使下文的 system prompt、lore、easter egg instruction 用英文书写并包含英文引文，你也必须把其中所有引文与情节翻译成自然的简体中文再输出。\n\n【唯一例外】英文人名（如 Adam、Daniel、Luna、Chloe、Jax、Zoe）、必要的英文专有名词（如 MBTI、INFJ、MBA）、固定标记 `【🔮 Hidden Memory Unlocked】` 保持原样。除此之外绝不允许出现任何英文单词或句子。\n\n"
       : "【Language】Always respond in natural English regardless of the user's input language.\n\n";
     const langFooter = isZh
-      ? "\n\n【再次提醒】整条回复必须是简体中文。上文 instruction 中任何带引号的英文句子都只是情节提示，请用中文重新表达，不要原样输出英文。"
+      ? "\n\n【再次确认 · 语言】整条回复必须是简体中文。回复的第一个字符必须是汉字、中文标点或 emoji，绝不允许是英文字母（Hey/Hi/Hello/OK 等开头一律禁止）。上文 instruction 中任何带引号的英文句子都只是情节提示，请用中文重新表达，不要原样输出英文。"
       : "\n\n【Language】Respond in English.";
     const langLine = langFooter;
 
