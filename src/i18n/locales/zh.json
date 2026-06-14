@@ -41,7 +41,14 @@
     "languageDesc": "选择应用的显示语言。",
     "chinese": "中文",
     "english": "English",
-    "saved": "语言已更新"
+    "saved": "语言已更新",
+    "voice": {
+      "title": "角色语音",
+      "desc": "点击 AI 消息旁的小喇叭，用角色专属声线朗读这句话。",
+      "enable": "启用消息语音播放",
+      "speed": "播放速度",
+      "volume": "音量"
+    }
   },
   "auth": {
     "signIn": "登录",

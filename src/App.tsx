@@ -6,6 +6,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { TTSProvider } from "@/contexts/TTSContext";
 import Index from "./pages/Index.tsx";
 import SiteFooter from "./components/SiteFooter.tsx";
 import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner.tsx";
@@ -87,6 +88,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <TTSProvider>
           <LocaleSync />
           <PaymentTestModeBanner />
           <Suspense fallback={null}>
@@ -123,6 +125,7 @@ const App = () => (
             </Routes>
           </Suspense>
           <SiteFooter />
+          </TTSProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

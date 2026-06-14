@@ -41,7 +41,14 @@
     "languageDesc": "Choose the display language for the app.",
     "chinese": "中文",
     "english": "English",
-    "saved": "Language updated"
+    "saved": "Language updated",
+    "voice": {
+      "title": "Character Voice",
+      "desc": "Tap the speaker icon next to an AI reply to hear it in the character's own voice.",
+      "enable": "Enable message voice playback",
+      "speed": "Playback speed",
+      "volume": "Volume"
+    }
   },
   "auth": {
     "signIn": "Sign In",
