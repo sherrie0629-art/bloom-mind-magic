@@ -2,16 +2,36 @@
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-// Voice mapping per agent (id -> voice config)
-const VOICE_MAP: Record<string, { voiceId: string; stability: number; similarityBoost: number; style: number; speed: number }> = {
+type VoiceConfig = {
+  voiceId: string;
+  stability: number;
+  similarityBoost: number;
+  style: number;
+  speed: number;
+};
+
+// Per-agent voice mapping, split by language so 中文 uses 中文母语/友好音色，避免"外国人说中文"的生硬感
+const VOICE_MAP: Record<string, { en: VoiceConfig; zh: VoiceConfig }> = {
   // Chloe — quiet warm barista
-  barista: { voiceId: "cgSgspJ2msm6clMCkdW9", stability: 0.65, similarityBoost: 0.75, style: 0.35, speed: 0.95 },
+  barista: {
+    en: { voiceId: "cgSgspJ2msm6clMCkdW9", stability: 0.65, similarityBoost: 0.75, style: 0.35, speed: 0.95 },
+    zh: { voiceId: "4VZIsMPtgggwNg7OXbPY", stability: 0.55, similarityBoost: 0.8, style: 0.4, speed: 0.95 },
+  },
   // Jax — gruff retired firefighter (male, deep)
-  jax: { voiceId: "nPczCjzI2devNBz1zQrb", stability: 0.7, similarityBoost: 0.8, style: 0.35, speed: 1.0 },
+  jax: {
+    en: { voiceId: "nPczCjzI2devNBz1zQrb", stability: 0.7, similarityBoost: 0.8, style: 0.35, speed: 1.0 },
+    zh: { voiceId: "XA2bIQ92TabjGbpO2xRr", stability: 0.65, similarityBoost: 0.8, style: 0.3, speed: 0.98 },
+  },
   // Luna — mystical mathematician
-  mystic: { voiceId: "XrExE9yKIg1WjnnlVkGX", stability: 0.65, similarityBoost: 0.75, style: 0.55, speed: 0.92 },
-  // Zoe — hype-woman bestie
-  bestie: { voiceId: "EXAVITQu4vr4xnSDxMaL", stability: 0.35, similarityBoost: 0.8, style: 0.65, speed: 1.05 },
+  mystic: {
+    en: { voiceId: "XrExE9yKIg1WjnnlVkGX", stability: 0.65, similarityBoost: 0.75, style: 0.55, speed: 0.92 },
+    zh: { voiceId: "B8gJV1IhpuegLxdpXFOE", stability: 0.6, similarityBoost: 0.78, style: 0.5, speed: 0.92 },
+  },
+  // Zoe — hype-woman bestie — 更阳光、更高昂、更跳脱
+  bestie: {
+    en: { voiceId: "EXAVITQu4vr4xnSDxMaL", stability: 0.28, similarityBoost: 0.75, style: 0.8, speed: 1.08 },
+    zh: { voiceId: "aMSt68OGf4xUZAnLpTU8", stability: 0.3, similarityBoost: 0.75, style: 0.75, speed: 1.08 },
+  },
 };
 
 const MAX_CHARS = 800;
@@ -19,19 +39,58 @@ const MAX_CHARS = 800;
 // Strip markdown + game/easter-egg markers so TTS reads clean prose
 function cleanForSpeech(text: string): string {
   return text
-    // remove easter-egg / shard markers
     .replace(/【[^】]*】/g, " ")
-    // remove stage directions in *...*
     .replace(/\*[^*]+\*/g, " ")
-    // remove game markers like [ATMOSPHERE: xxx] [ENERGY:+2] [BRANCH] {...} etc.
     .replace(/\[[A-Z_]+:[^\]]*\]/g, " ")
     .replace(/\{[^}]*\}/g, " ")
-    // remove markdown emphasis / code / headings
     .replace(/[*_~`#>]/g, "")
-    // collapse whitespace
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, MAX_CHARS);
+}
+
+// 检测文本主要语言：中文字符占非空白字符 >= 20% 视为中文
+function detectLang(text: string): "zh" | "en" {
+  const stripped = text.replace(/\s+/g, "");
+  if (!stripped) return "en";
+  const zhCount = (stripped.match(/[\u4e00-\u9fa5]/g) || []).length;
+  return zhCount / stripped.length >= 0.2 ? "zh" : "en";
+}
+
+function pickModel(lang: "zh" | "en"): string {
+  // 中文优先用 v3（韵律 + 情绪更自然），若账号未开通会自动 fallback
+  return lang === "zh" ? "eleven_v3" : "eleven_multilingual_v2";
+}
+
+async function callElevenLabs(
+  apiKey: string,
+  voice: VoiceConfig,
+  text: string,
+  modelId: string,
+  finalSpeed: number,
+) {
+  return fetch(
+    `https://api.elevenlabs.io/v1/text-to-speech/${voice.voiceId}?output_format=mp3_44100_128`,
+    {
+      method: "POST",
+      headers: {
+        "xi-api-key": apiKey,
+        "Content-Type": "application/json",
+        Accept: "audio/mpeg",
+      },
+      body: JSON.stringify({
+        text,
+        model_id: modelId,
+        voice_settings: {
+          stability: voice.stability,
+          similarity_boost: voice.similarityBoost,
+          style: voice.style,
+          use_speaker_boost: true,
+          speed: Math.max(0.7, Math.min(1.2, finalSpeed)),
+        },
+      }),
+    },
+  );
 }
 
 Deno.serve(async (req) => {
@@ -40,7 +99,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Require authenticated user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
@@ -74,7 +132,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const voice = VOICE_MAP[agentId] ?? VOICE_MAP.barista;
+    const agentVoices = VOICE_MAP[agentId] ?? VOICE_MAP.barista;
     const text = cleanForSpeech(rawText);
     if (!text) {
       return new Response(JSON.stringify({ error: "Empty text after cleaning" }), {
@@ -82,6 +140,10 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const lang = detectLang(text);
+    const voice = agentVoices[lang];
+    const modelId = pickModel(lang);
 
     const apiKey = Deno.env.get("ELEVENLABS_API_KEY");
     if (!apiKey) {
@@ -96,28 +158,16 @@ Deno.serve(async (req) => {
       ? Number((voice.speed * userSpeed).toFixed(2))
       : voice.speed;
 
-    const elResp = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${voice.voiceId}?output_format=mp3_44100_128`,
-      {
-        method: "POST",
-        headers: {
-          "xi-api-key": apiKey,
-          "Content-Type": "application/json",
-          Accept: "audio/mpeg",
-        },
-        body: JSON.stringify({
-          text,
-          model_id: "eleven_multilingual_v2",
-          voice_settings: {
-            stability: voice.stability,
-            similarity_boost: voice.similarityBoost,
-            style: voice.style,
-            use_speaker_boost: true,
-            speed: Math.max(0.7, Math.min(1.2, finalSpeed)),
-          },
-        }),
-      },
-    );
+    let elResp = await callElevenLabs(apiKey, voice, text, modelId, finalSpeed);
+
+    // 若 v3 不可用（账号未开通 / 模型不存在 / voice 不兼容），自动回落
+    if (!elResp.ok && lang === "zh" && modelId === "eleven_v3") {
+      const errText = await elResp.clone().text().catch(() => "");
+      console.warn("[tts-speak] eleven_v3 failed, falling back to multilingual_v2:", elResp.status, errText.slice(0, 200));
+      if (elResp.status === 400 || elResp.status === 403 || elResp.status === 404 || elResp.status === 422) {
+        elResp = await callElevenLabs(apiKey, voice, text, "eleven_multilingual_v2", finalSpeed);
+      }
+    }
 
     if (!elResp.ok) {
       const errText = await elResp.text();
@@ -132,7 +182,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Stream MP3 back to client
     return new Response(elResp.body, {
       status: 200,
       headers: {
