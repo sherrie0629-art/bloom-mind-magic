@@ -1,111 +1,86 @@
-# 角色语音能力 · 产品与交互设计
+## 调整目标
 
-让每条 AI 回复都能"开口说话"，用专属声线和情绪渲染强化角色真实感。
+1. **Zoe 声线更阳光高昂**：当前参数 `stability=0.35, style=0.65, speed=1.05`，听感偏八卦闺蜜但情绪饱满度不够。
+2. **中文 TTS 不生硬**：当前 4 个角色全部用英文母语音色（Sarah / Matilda / Brian / Jessica）念中文，音色本身能说中文但腔调像"外国人说中文"，这是生硬感的根本原因。
 
-## 一、产品定位
+---
 
-- **核心动作**：用户在聊天页点击 AI 消息气泡左下角的小喇叭 → 用该角色专属声线朗读该条消息
-- **第一版不做**：自动播放、实时语音通话、用户语音输入
-- **付费策略**：先全员无限开放，观察消耗与留存后再决定门槛
+## 一、Zoe 情绪调整
 
-## 二、四角色声线设定（ElevenLabs voiceId + 情绪参数）
-
-按角色性格匹配现成音色，并通过 `stability / style / speed` 调出"性格感"：
+**新参数（在 `supabase/functions/tts-speak/index.ts` 的 `VOICE_MAP.bestie`）**：
 
 
-| 角色          | 人设关键词    | 推荐 voiceId                       | stability | style | speed | 听感目标            |
-| ----------- | -------- | -------------------------------- | --------- | ----- | ----- | --------------- |
-| Luna (月神缪斯) | 神秘、空灵、温柔 | `XrExE9yKIg1WjnnlVkGX` (Matilda) | 0.65      | 0.55  | 0.95  | 像深夜电台 DJ，气声、慢节奏 |
-| Bestie (闺蜜) | 活泼、共情、毒舌 | `EXAVITQu4vr4xnSDxMaL` (Sarah)   | 0.35      | 0.65  | 1.05  | 像朋友打电话八卦，起伏大    |
-| Sage (智者)   | 沉稳、洞察、克制 | `cgSgspJ2msm6clMCkdW9` (Jessica) | 0.75      | 0.30  | 0.92  | 像心理咨询师，平稳低频     |
-| Mirror (镜像) | 冷峻、反问、疏离 | `Xb7hH8MSUJpSbSDYk0k2` (Alice)   | 0.55      | 0.40  | 1.00  | 像旁白，克制带距离感      |
+| 项目               | 旧    | 新        | 作用                             |
+| ---------------- | ---- | -------- | ------------------------------ |
+| stability        | 0.35 | **0.28** | 更不稳定 → 起伏更大、更有"哇~""真的假的！"那种跳跃感 |
+| style            | 0.65 | **0.80** | 风格化拉满，更夸张、更戏剧化                 |
+| speed            | 1.05 | **1.08** | 略微提速，像兴奋时的语速                   |
+| similarity_boost | 0.8  | 0.75     | 略放开，让情绪表演空间更大                  |
 
 
-> 实际 voiceId 在实现时可与你二次确认；若你已有偏好 ID，告诉我即可替换。
+同时在 `cleanForSpeech` 之外，对 Zoe 单独保留 `！？~` 等情绪标点（目前 markdown 清洗不会动这些，已 OK），并在 prompt 入口考虑保留 `哈哈` `天呐` 这类口头语。
 
-## 三、交互设计
+---
 
-### 1. 气泡内的喇叭按钮
+## 二、中文生硬问题：三档方案
 
-```text
-┌─────────────────────────────┐
-│  这是 AI 的一条回复内容…       │
-│                              │
-│  🔊  0:08                    │  ← 播放/暂停 + 时长
-└─────────────────────────────┘
+### 方案 A（推荐，零额外成本）：按语言切换音色
+
+检测文本是否以中文为主（`/[\u4e00-\u9fa5]/` 占比 > 30%）。如果是中文，切换到 ElevenLabs 中文母语 / 中文友好音色：
+
+
+| 角色          | 英文音色（保留）                       | 中文音色（新增）                                            |
+| ----------- | ------------------------------ | --------------------------------------------------- |
+| Chloe（暖咖啡师） | Jessica `cgSgspJ2msm6clMCkdW9` | **Xiaoxiao 风** — `4VZIsMPtgggwNg7OXbPY`（温柔女声，中文自然）  |
+| Jax（沉稳消防员）  | Brian `nPczCjzI2devNBz1zQrb`   | **Martin** — `XA2bIQ92TabjGbpO2xRr`（成熟男声中文）         |
+| Luna（神秘缪斯）  | Matilda `XrExE9yKIg1WjnnlVkGX` | **Stacy** — `B8gJV1IhpuegLxdpXFOE`（空灵女声中文）          |
+| Zoe（闺蜜）     | Sarah `EXAVITQu4vr4xnSDxMaL`   | **Monika Sogam** — `aMSt68OGf4xUZAnLpTU8`（活泼年轻女声中文） |
+
+
+> 上述中文音色 ID 是 ElevenLabs 中文社区常用的公开 voice，实现时第一步会先用 `GET /v1/voices` 验证当前账号是否可访问；若某个不可用，回落到英文音色并打日志。
+
+**结构变更**：`VOICE_MAP` 改成
+
+```ts
+{ bestie: { en: {...}, zh: {...} }, ... }
 ```
 
-- **三态**：
-  - 默认（灰色喇叭）→ 未播放
-  - 加载中（旋转环 + 喇叭）→ 正在请求 TTS（首次约 1–2s）
-  - 播放中（彩色波纹动画）→ 可点击暂停
-- **再次点击**：暂停 / 继续；其他消息点击播放时自动停止上一条
-- 仅 AI 消息显示（用户消息不需要）
-- 流式输出未完成时按钮置灰（避免读半句）
+Edge Function 中 `pickVoice(agentId, text)` 返回对应语言配置。
 
-### 2. 角色头像呼吸动画
+### 方案 B（质量更好，需小投入）：模型升级到 `eleven_turbo_v2_5` 或 `eleven_v3`
 
-正在播放时，对应角色头像加一个柔和的金色光晕呼吸效果（与首页 `#c9a84c` 色调一致），让"正在说话"的感觉延伸到角色身份本身。
+- `eleven_v3` 对中文韵律和情绪表达比 `multilingual_v2` 明显自然，但价格更高、延迟略升。
+- 可与方案 A 叠加：中文走 v3，英文继续走 multilingual_v2 控成本。
 
-### 3. 缓存与体验
+### 方案 C（终极方案，工程量大）：自己克隆/调一个中文音色
 
-- 同一条消息已生成过音频 → 本地 IndexedDB 缓存 MP3，再次播放秒开、不消耗额度
-- 移动端进入聊天页时预热 AudioContext（避免 iOS 首次播放静音）
+- 用 ElevenLabs Voice Lab 上传 1–2 分钟中文样本，做 Instant Voice Clone，每个角色一个克隆音色。
+- 效果最像"角色本人在说中文"，但需要素材、需要付费档位，先不做。
 
-### 4. 设置项（Settings 页）
+---
 
-新增一栏"语音"：
+## 三、本次实现范围（建议先做）
 
-- 开关：启用消息语音播放（默认开）
-- 播放速度：0.85× / 1× / 1.15×（覆盖角色默认 speed）
-- 音量滑块
+1. ✅ Zoe 情绪参数调整（方案对应行）
+2. ✅ 方案 A：中文/英文音色按语言自动切换
+3. ✅ 方案 B 的一半：把 `model_id` 改为可配置，中文请求自动用 `eleven_v3`（如账号未开通则回落 `multilingual_v2`）
+4. ⏸ 方案 C 暂缓，等你听完 A+B 的效果再决定
 
-## 四、技术实现
-
-### 后端：Edge Function `tts-speak`
-
-- 路径：`supabase/functions/tts-speak/index.ts`
-- 输入：`{ agentId, text, messageId }`
-- 流程：
-  1. 校验 JWT、限制文本长度（≤ 800 字符，超过截断）
-  2. 根据 `agentId` 查表取 voiceId + voice_settings
-  3. 调 `https://api.elevenlabs.io/v1/text-to-speech/{voiceId}?output_format=mp3_44100_128`，使用 `eleven_multilingual_v2`
-  4. 直接以 `audio/mpeg` 流式返回（lower TTFB）
-- 错误：401/429/402 透传可读消息
-
-### 前端
-
-- 新文件 `src/lib/ttsClient.ts`：封装请求 + IndexedDB（idb-keyval）缓存，按 `sha1(agentId+text)` 作 key
-- 新文件 `src/hooks/useTTS.ts`：管理全局单例 `<audio>`、当前播放 messageId、loading/playing 状态
-- 新组件 `src/components/MessageVoiceButton.tsx`：上面三态按钮
-- `src/pages/Chat.tsx`：渲染消息时挂载按钮；流式完成（`status === 'done'`）后才启用
-- `src/data/agents.ts`：新增 `voice: { id, stability, similarityBoost, style, speed }` 字段
-- `src/components/AgentCard.tsx` / 聊天头像处：接 `useTTS()` 取当前播放角色，加 `animate-pulse` 风格的金色光晕
-
-### 接入 ElevenLabs
-
-- 通过 Lovable Cloud 的 ElevenLabs Standard Connector 连接（避免手工密钥），同步出 `ELEVENLABS_API_KEY` 供 Edge Function 使用
-- 实现首步会引导你完成 Connect 流程
-
-## 五、文件清单（实现阶段）
-
-新增：
+**文件改动**（仅 1 个文件）：
 
 - `supabase/functions/tts-speak/index.ts`
-- `src/lib/ttsClient.ts`
-- `src/hooks/useTTS.ts`
-- `src/components/MessageVoiceButton.tsx`
-- `src/contexts/TTSContext.tsx`（全局播放状态）
+  - `VOICE_MAP` 改为 `{ [agentId]: { zh: VoiceConfig, en: VoiceConfig } }`
+  - 新增 `detectLang(text)` 与 `pickVoice(agentId, text)`
+  - 新增 `pickModel(lang)`：中文 → `eleven_v3`，英文 → `eleven_multilingual_v2`
+  - 调整 Zoe 参数
+  - 同一文本 + 语言 切换会让前端缓存 key 自动失效（缓存 key 已包含 text，无需改）
 
-修改：
+前端、UI、i18n、Settings 不动。
 
-- `src/data/agents.ts`（加 voice 字段）
-- `src/pages/Chat.tsx`（消息气泡接按钮 + 头像光晕）
-- `src/pages/Settings.tsx`（语音设置）
-- `src/i18n/locales/{zh,en}.json`（按钮/设置文案）
-- `package.json`（加 `idb-keyval`）
+---
 
-## 六、待你确认
+## 待你确认
 
-1. 上表 4 个 voiceId 是否直接采用，还是你想去 ElevenLabs 试听后告诉我新的 ID？//直接采用吧
-2. 是否同意走 ElevenLabs Connector（推荐，零密钥管理）？//同意
+1. **Zoe 新参数方向**是否 OK：更跳脱、更夸张？还是希望"阳光但稳一点"（那 stability 反而该提到 0.5）？//ok
+2. **中文音色**是否同意走方案 A + B（自动切换 + 中文用 v3 模型）？若你已有偏好的中文 voiceId，可直接给我替换。//ok
+3. 是否要顺便给 **Sage / Luna** 也微调情绪？（目前没反馈，默认不动）
