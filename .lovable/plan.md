@@ -1,16 +1,10 @@
-## 修复选中态导航在深色背景下不可见的问题
+## 问题
+设置页"中文"是当前选中项，但选中态样式用的是 `border-secondary bg-secondary/10 text-secondary`。在新黑金主题下 `--secondary` 接近黑色（`0 0% 14%`），叠在深色卡片上几乎不可见，看起来像"无法选择"，实际上只是看不到而已。
 
-### 原因
-新黑金主题下 `--secondary: 0 0% 14%`（接近黑），但导航选中态仍写死用 `text-secondary` / `bg-secondary`，于是几乎隐形。应改用主题金色 `primary`（`#c9a84c`）。
+## 修改
 
-### 改动
+**`src/pages/Settings.tsx`**（语言选择按钮 + 图标）
+- 选中态：`border-secondary bg-secondary/10 text-secondary` → `border-primary bg-primary/10 text-primary`
+- Globe 图标：`text-secondary` → `text-primary`
 
-**`src/components/BottomNav.tsx`**
-- 选中态图标和文字：`text-secondary` → `text-primary`
-- 顶部小指示条 `bg-gradient-golden` 保持不变（已可见）
-
-**`src/components/DesktopLayout.tsx`**
-- 选中态按钮：`bg-secondary/10 text-secondary` → `bg-primary/10 text-primary`
-- 左侧竖条指示：`bg-secondary` → `bg-primary`
-
-仅改 2 个文件、共 ~4 行样式类，不动布局与逻辑。
+与之前 BottomNav / DesktopLayout 的修复保持一致，统一改为金色 `primary`。仅样式类改动，不动逻辑。
