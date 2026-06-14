@@ -1026,7 +1026,7 @@ const Chat = () => {
                     msg.content
                   )}
                 </div>
-                {msg.role === "assistant" && msg.id !== "welcome" && msg.id !== "streaming" && msg.kind !== "tarot-card" && msg.content.trim() && (
+                {msg.role === "assistant" && msg.id !== "welcome" && msg.id !== "streaming" && msg.content.trim() && (
                   <MessageVoiceButton
                     messageId={msg.id}
                     agentId={agentId}
