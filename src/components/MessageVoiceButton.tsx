@@ -1,4 +1,4 @@
-import { Volume2, Pause, Loader2 } from "lucide-react";
+import { Volume2, Loader2 } from "lucide-react";
 import { useTTS } from "@/contexts/TTSContext";
 import { motion } from "framer-motion";
 
