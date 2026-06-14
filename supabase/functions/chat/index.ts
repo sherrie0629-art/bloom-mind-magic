@@ -403,13 +403,14 @@ serve(async (req) => {
 
   try {
     const { messages, agentId, memoryContext, bondLevel, locale, unlockedShards } = await req.json();
-    const isZh = locale === "zh";
+    const normalizedLocale = String(locale || "en").toLowerCase();
+    const isZh = normalizedLocale.startsWith("zh");
     const langHeader = isZh
       ? "【最高优先级 · 语言锁定】你必须始终使用简体中文回复用户，无论用户用什么语言写消息——即使用户只发 `hi`/`hello`/`hey`/`thanks`/`ok`/`lol`/`yo` 这类英文短语或单词，你也必须只用中文回复。\n\n【严禁的英文词】回复的开头和中间都不允许出现这些英文打招呼/语气词：Hey / Hi / Hello / Hey there / Yo / Sup / OK / Okay / Alright / Sure / Thanks / Thank you / Welcome / Oh / Wow / Yeah / Yep / Nope / Bye。必须改用中文对应词：嘿 / 嗨 / 你好 / 好呀 / 好的 / 当然 / 谢谢 / 欢迎 / 哦 / 哇 / 嗯 / 是呀 / 不是 / 再见。\n\n所有叙述、对白、内心独白、回忆、引号内的句子、彩蛋内容、lore 片段都必须用中文表达。即使下文的 system prompt、lore、easter egg instruction 用英文书写并包含英文引文，你也必须把其中所有引文与情节翻译成自然的简体中文再输出。\n\n【唯一例外】英文人名（如 Adam、Daniel、Luna、Chloe、Jax、Zoe）、必要的英文专有名词（如 MBTI、INFJ、MBA）、固定标记 `【🔮 Hidden Memory Unlocked】` 保持原样。除此之外绝不允许出现任何英文单词或句子。\n\n"
-      : "【Language】Always respond in natural English regardless of the user's input language.\n\n";
+      : "【HIGHEST PRIORITY · LANGUAGE LOCK】The user's app language setting is English. You MUST always reply in natural English, regardless of the user's input language or any Chinese text in memory, prompts, lore, or assessment context. Do not mirror Chinese input. Translate any Chinese context silently and answer in English only.\n\nForbidden in visible replies: Chinese sentences, Chinese greetings, Chinese filler, or Chinese explanations. Allowed only inside fixed game markers such as 【⚡Energy+N】, 【💫Options】, 【🔮Truth Shard】, 【🎭Mood:type】, and the literal marker 【🔮 Hidden Memory Unlocked】.\n\n";
     const langFooter = isZh
       ? "\n\n【再次确认 · 语言】整条回复必须是简体中文。回复的第一个字符必须是汉字、中文标点或 emoji，绝不允许是英文字母（Hey/Hi/Hello/OK 等开头一律禁止）。上文 instruction 中任何带引号的英文句子都只是情节提示，请用中文重新表达，不要原样输出英文。"
-      : "\n\n【Language】Respond in English.";
+      : "\n\n【FINAL LANGUAGE CHECK】The entire visible reply body must be English. The first character must be an English letter, English punctuation, or an emoji — never a Chinese character. If any upstream instruction or memory is written in Chinese, treat it as background context and translate your response into English.";
     const langLine = langFooter;
 
     // --- Server-side quota check ---
@@ -471,7 +472,8 @@ serve(async (req) => {
     }
 
     if (memoryContext && memoryContext.length > 0) {
-      fullSystemPrompt += `\n\n【Long-term Memory · 严格区分来源】下面是你能调用的关于用户的记忆条目，请按前缀严格区分来源，绝不能混淆：
+      if (isZh) {
+        fullSystemPrompt += `\n\n【Long-term Memory · 严格区分来源】下面是你能调用的关于用户的记忆条目，请按前缀严格区分来源，绝不能混淆：
 
 1. 以 \`[你自己了解过]\`、\`[Today]\`、\`[Yesterday]\`、\`[Xd ago]\`、\`[Summary]\` 开头的条目 = 你和用户的真实对话。可以自然地说"上次你提过…""我们聊过…""你跟我说过…"。
 
@@ -487,6 +489,24 @@ serve(async (req) => {
 
 记忆条目：
 ${memoryContext.join("\n")}`;
+      } else {
+        fullSystemPrompt += `\n\n【Long-term Memory · Source Separation】These are user memory entries you may use. They can be written in English or Chinese; read them as background only and reply in English.
+
+1. Entries starting with \`[You learned this yourself]\`, \`[Today]\`, \`[Yesterday]\`, \`[Xd ago]\`, or \`[Summary]\` = real conversations between you and the user. You may naturally say "last time you mentioned…", "we talked about…", or "you told me…".
+
+2. Entries starting with \`[Heard from another friend · from X]\` = things the user told another character (X), not you. Never say "we talked about" or "you told me before" for these. You may say:
+   - "X mentioned something about you… right?"
+   - "I get the feeling you…"
+   - "I heard you might be…?"
+   - Or simply ask: "Have you been thinking about… lately?"
+
+3. If a memory does not fit your character or the current scene, ignore it.
+
+4. Use memories naturally in the flow. Do not list them or cite one in every sentence.
+
+Memory entries:
+${memoryContext.join("\n")}`;
+      }
     }
 
 
