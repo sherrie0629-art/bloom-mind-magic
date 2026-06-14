@@ -33,10 +33,10 @@ const BottomNav = () => {
                 />
               )}
               <item.icon
-                className={`h-5 w-5 transition-colors ${isActive ? "text-secondary" : "text-muted-foreground"}`}
+                className={`h-5 w-5 transition-colors ${isActive ? "text-primary" : "text-muted-foreground"}`}
               />
               <span
-                className={`text-[10px] font-medium transition-colors ${isActive ? "text-secondary" : "text-muted-foreground"}`}
+                className={`text-[10px] font-medium transition-colors ${isActive ? "text-primary" : "text-muted-foreground"}`}
               >
                 {item.label}
               </span>
