@@ -223,12 +223,19 @@ serve(async (req) => {
     }
 
     // --- Gather user context ---
-    const [profileRes, bondsRes, factsRes] = await Promise.all([
-      admin.from("profiles").select("display_name, mbti_type, zodiac_sign, locale").eq("user_id", userId).maybeSingle(),
+    const [profileRes, bondsRes, factsRes, assessRes] = await Promise.all([
+      admin.from("profiles").select("display_name, locale").eq("user_id", userId).maybeSingle(),
       admin.from("agent_bonds").select("agent_id, bond_level, total_turns").eq("user_id", userId),
       admin.from("user_profile_facts").select("category, key, value").eq("user_id", userId).gte("confidence", 0.6).limit(20),
+      admin.from("assessment_results").select("assessment_type, result_data, created_at").eq("user_id", userId).order("created_at", { ascending: false }),
     ]);
     const profile: any = profileRes.data || {};
+    const assessMap: Record<string, any> = {};
+    for (const r of (assessRes.data as any[] || [])) {
+      if (!assessMap[r.assessment_type]) assessMap[r.assessment_type] = r.result_data;
+    }
+    const mbti = assessMap["mbti"]?.type || assessMap["mbti"]?.mbti || null;
+    const zodiac = assessMap["zodiac"]?.sign || assessMap["zodiac"]?.zodiac || null;
     const bondsMap: Record<string, { bond_level: number; total_turns: number }> = {};
     for (const b of (bondsRes.data as any[] || [])) {
       bondsMap[b.agent_id] = { bond_level: b.bond_level || 1, total_turns: b.total_turns || 0 };
