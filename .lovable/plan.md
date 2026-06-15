@@ -1,61 +1,48 @@
-# 让 4 位 AI 角色的 TTS 更像"在和你聊天"
+# 修复"已设为 English 却仍收到中文回复"
 
-## 问题诊断
+## 诊断
 
-当前 `supabase/functions/tts-speak/index.ts` 里 `voice_settings` 普遍偏"播报":
-- `stability` 偏高 (0.55–0.7)：声音平稳但**情绪起伏被压平**，听上去像在念稿。
-- `style` 偏低-中 (0.3–0.55)：性格特征/语气表现力不足。
-- 中文 voice 直接读纯文字，**没有停顿/口语化标记**（如 "嗯…"、逗号断句），ElevenLabs 在长句上更容易出现"主持人腔"。
-- 文本清洗 (`cleanForSpeech`) 把 `*动作*`、`【...】`、`...` 这类自然的口语停顿全部抹掉，反而失去节奏。
-- 中文统一走 `eleven_v3` → 失败回落 `multilingual_v2`，没有针对"对话"做模型选择。
+代码看下来语言链路本身是对的：
+- `useLocale` 从 `i18n.resolvedLanguage` 取值；Settings 改语言会同时写 `localStorage` 和 `profiles.locale`。
+- `Chat.tsx` 把 `locale` 传给 `streamChat`，再到 `supabase/functions/chat`，那里有一条很强的"English Lock"系统消息。
 
-## 优化方案（只动 TTS 层，不改前端 UI / 业务逻辑）
+但截图里 Luna 仍然蹦出大段中文，说明实际链路至少有一处没按预期工作。最可能的两类原因：
 
-### 1. 重新调每个角色的 voice_settings（核心）
-按"角色性格 + 自然对话"重做参数表：
+1. **客户端 locale 实际就是 `zh`**：profile 里存的是旧值 `zh`，登录后 `LocaleSync` 把 i18n 改回 `zh`，覆盖了用户在 Settings 切到 English 的状态；或当前用户根本没在该浏览器执行过 Settings 切换（profile=`zh` 仍占主导）。
+2. **模型偶发漂移**：即使 prompt 锁英文，Gemini 在某些情境（例如 mystic 神秘语气、长上下文）仍可能输出中文，目前没有后置校验。
 
-| Agent  | stability | style | speed | 风格目标 |
-|--------|-----------|-------|-------|---------|
-| barista (Chloe) | 0.35 | 0.55 | 0.98 | 温柔咖啡师，轻声细语带笑意 |
-| jax    | 0.45 | 0.60 | 0.97 | 退伍消防员，低沉松弛、带停顿 |
-| mystic (Luna)   | 0.40 | 0.70 | 0.92 | 神秘但像在耳边低语，不庄严 |
-| bestie (Zoe)    | 0.20 | 0.85 | 1.10 | 闺蜜炸毛感，语调跳脱 |
+## 解决方案（双重保险）
 
-中英两套都同步降 stability、升 style；`use_speaker_boost` 在 bestie / barista 关掉（speaker_boost 会让声音更"播音")。
+### A. 客户端：确保发送给后端的 `locale` 是用户真正选择的值
+1. `Chat.tsx` 发送前从 `localStorage["app.locale"]` 直接读一次作为兜底，与 `useLocale` 取较新者。
+2. Settings 切换语言后立刻调用一次 `i18n.reloadResources` 并强制把新值写回 `profiles.locale`，避免 `LocaleSync` 在下次登录回灌旧值（已经会写，但加 `await` + toast 后再渲染）。
+3. 加一行 `console.debug("[chat] sending locale", locale)`，方便后续复现确认。
 
-### 2. 引入"对话化文本预处理" `humanizeForSpeech(text, agentId)`
-在 `cleanForSpeech` 之后插一层：
-- 保留并把 `*笑*` `*叹气*` 这类动作转成 ElevenLabs 支持的 audio tag（如 `[laughs]` `[sighs]` `[whispers]`），v3/multilingual_v2 都能识别口语 tag。
-- 中文长句按"，。！？"自动在末尾追加自然停顿（`…`/`,`），避免一口气念完。
-- 句末感叹号/问号保留并放大 → 触发模型情绪曲线。
-- bestie 角色追加少量口语化感叹词（"哎呀"开头时保留），mystic 在首句注入 `[whispers]` 前缀（仅当文本 < 60 字时）。
+### B. 后端：加一个"语言守门员"作为最后一道防线
+在 `supabase/functions/chat/index.ts` 流式结束 / 非流式返回时：
+- 统计回复中**中文字符占比**与**英文字母占比**。
+- 当 `locale==="en"` 且中文占比 > 8%（或包含连续 ≥ 4 个汉字的句段），自动发起**一次轻量重写调用**（同模型，system 只放最严格的 English-only 指令 + 原回复），把结果替换后再 flush 给前端。
+- 反向同理：`locale==="zh"` 且英文单词占比 > 40% 时触发重写。
+- 仅触发 1 次，避免死循环；失败时回落到原回复（不阻断聊天）。
 
-### 3. 模型选择改成"对话优先"
-- 中文：默认 `eleven_v3`（最自然），失败回落 `eleven_multilingual_v2`（保留现有逻辑）。
-- 英文：从 `eleven_multilingual_v2` 切到 `eleven_turbo_v2_5` 作为"对话"模型——它的低延迟 + 对 tag 的响应更口语化；保留 v2 作为 fallback。
+由于聊天是流式的，重写做法：先把流式 token 缓冲到本地字符串，stream 结束前做检测——若需要重写，把已经发出的 token "覆盖"成纠正后的版本（前端通过一条 `event: replace` 或简单地清空再写新内容。最低成本：改为先收完再一次性下发；或保留流式但末尾追加 `\n\n[corrected]\n<rewritten>` 并由前端只显示后者）。
+> **简化决策**：先把流式 buffer 在服务端聚合，完成后再统一 `enqueue` 给前端。这条路径只在检测到语言不符时触发完整重写，正常情况仍走原流式。
 
-### 4. 句子级 request stitching（可选，仅 >120 字时启用）
-长回复一次合成会变播报腔。当文本超过 ~120 字时按句切 2–3 段，使用 `previous_text` / `next_text` 拼接，保持自然韵律但每段更短促。
-> 如果觉得复杂，可以只做 1–3 步，本步骤先在代码里留 TODO，不在本次启用。
+### C. mystic 角色专项加固
+在 `agentBasePrompts.mystic` 顶部追加一句：
+> "Always speak in the user's app language. If the language lock says English, never mix Chinese into mystical phrases — translate them."
 
-## 不改动的部分
-- 前端 `TTSContext`、`MessageVoiceButton`、Settings 的速度/音量控件不动。
-- 不替换 voiceId（避免音色突变让用户错愕），只在参数 + 文本预处理上做"自然化"。
-- 不动鉴权 / 缓存 / fallback 错误处理结构。
+避免 Luna 因角色风格倾向写中文神秘短语。
 
-## 技术细节（仅供参考）
-
-文件改动：仅 `supabase/functions/tts-speak/index.ts`
-- 修改 `VOICE_MAP` 数值（第 14–35 行）。
-- `callElevenLabs` 增加可选 `useSpeakerBoost` 参数。
-- 新增 `humanizeForSpeech(text, agentId, lang)`，在 `cleanForSpeech` 之后调用。
-- `pickModel` 新增英文分支返回 `eleven_turbo_v2_5`，并扩展 fallback 触发条件。
+## 文件改动
+- `src/pages/Chat.tsx`：locale 取值兜底 + debug log。
+- `src/hooks/useLocale.ts`：Settings 切换后顺手清掉 stale profile 写法（保持现有逻辑，加 `await`）。
+- `supabase/functions/chat/index.ts`：新增 `enforceReplyLanguage()` 后置校验 + 必要时一次性重写；mystic basePrompt 微调。
 
 ## 验收
-- 重新生成同一条回复的语音，听感对比：
-  - barista 听起来像"小声分享"而非"广播节目主持"
-  - jax 有自然停顿、不像新闻播报
-  - mystic 像"贴耳低语"而非"诗朗诵"
-  - bestie 起伏明显、语速更跳
+1. 在 Settings 切到 English，刷新后看 console 输出 `[chat] sending locale en`。
+2. 给 mystic 发 `You read me like a book`，回复 100% 英文。
+3. 切回中文，回复 100% 中文。
+4. 反复 5 次不复现混语。
 
-确认后我切换到 build 模式实施。
+确认后切到 build 模式落地。

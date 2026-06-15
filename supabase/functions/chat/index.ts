@@ -142,7 +142,9 @@ Approach: Direct but never harsh. Teach grounding/breathing as emergency drills.
 
 Use emojis sparingly (🔥💪). Reply 60-120 words, short punchy sentences. One clear directive per reply.`,
 
-  mystic: `You are Luna, a former senior data scientist at a health-insurance giant who is now an intuitive tarot reader and astrologer in Brooklyn. You live above a small coffee shop run by a quiet woman named Chloe. You bridge logic and intuition — witchy but grounded.
+  mystic: `[LANGUAGE] Always speak in the user's app language. If the language lock above says English, never mix Chinese into mystical phrases — translate them. If it says Chinese, never leave English sentences in.
+
+You are Luna, a former senior data scientist at a health-insurance giant who is now an intuitive tarot reader and astrologer in Brooklyn. You live above a small coffee shop run by a quiet woman named Chloe. You bridge logic and intuition — witchy but grounded.
 
 Game experience: "The Reading Room." User's questions become tarot spreads to interpret.
 Hidden backstory (use subtly, never dump): You designed "high-risk cluster denial model" #0114 that auto-rejected insurance claims. Two years later you read about a 27-year-old woman who died waiting for an appeal — every variable matched #0114. You broke down. You also broke up with Adam, your partner of four years, telling him "I don't deserve someone who still believes the future could be good." Adam still likes one of your blog posts every few months on LinkedIn. You never reply. The model printout sits on your altar with #0114 circled in red. Drop hidden hooks occasionally without explaining (e.g. "#0114 is still on my screen", "Adam liked another post yesterday", "Chloe pulled my shot extra long today").
@@ -398,6 +400,75 @@ async function repairMarkerOnlyReply(params: {
   return `${fallbackRepairBody(agentId, isZh)}\n\n${markers}`.trim();
 }
 
+// 统计字符语言占比，用于判定回复是否违反 locale lock
+function languageStats(text: string): { zhRatio: number; enRatio: number; zhCount: number; enCount: number } {
+  const stripped = text.replace(/【[^】]*】/g, "").replace(/\[[^\]]*\]/g, "");
+  const zhMatches = stripped.match(/[\u4e00-\u9fa5]/g) || [];
+  const enMatches = stripped.match(/[A-Za-z]/g) || [];
+  const total = zhMatches.length + enMatches.length;
+  if (total === 0) return { zhRatio: 0, enRatio: 0, zhCount: 0, enCount: 0 };
+  return {
+    zhRatio: zhMatches.length / total,
+    enRatio: enMatches.length / total,
+    zhCount: zhMatches.length,
+    enCount: enMatches.length,
+  };
+}
+
+// 后置语言守门员：若回复语言与 locale 不符，发起一次翻译重写
+async function enforceReplyLanguage(params: {
+  apiKey: string;
+  model: string;
+  content: string;
+  isZh: boolean;
+}): Promise<{ content: string; rewritten: boolean }> {
+  const { apiKey, model, content, isZh } = params;
+  const body = cleanBodyForValidation(content);
+  if (!body) return { content, rewritten: false };
+
+  const stats = languageStats(body);
+  const violatesEn = !isZh && (stats.zhRatio > 0.08 || stats.zhCount >= 4);
+  const violatesZh = isZh && stats.enRatio > 0.6 && stats.enCount >= 20;
+  if (!violatesEn && !violatesZh) return { content, rewritten: false };
+
+  const markers = extractTrailingMarkers(content);
+  const targetLang = isZh ? "Simplified Chinese" : "natural English";
+  console.warn(`[chat] language drift detected (isZh=${isZh}, zhRatio=${stats.zhRatio.toFixed(2)}, enRatio=${stats.enRatio.toFixed(2)}), rewriting...`);
+
+  try {
+    const res = await fetch(AI_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        max_tokens: 1024,
+        reasoning_effort: "none",
+        messages: [
+          {
+            role: "system",
+            content: `You are a translator. Rewrite the user's text entirely in ${targetLang}. Preserve tone, voice, line breaks, emoji, and punctuation. Do NOT add commentary, do NOT keep any ${isZh ? "English sentences" : "Chinese characters"} (proper names like Luna/Chloe/Jax/Zoe/MBTI may stay). Output ONLY the rewritten text.`,
+          },
+          { role: "user", content: body },
+        ],
+      }),
+    });
+    if (!res.ok) {
+      console.error("[chat] language rewrite failed:", res.status, await res.text());
+      return { content, rewritten: false };
+    }
+    const data = await res.json();
+    const rewritten = String(data.choices?.[0]?.message?.content || "").trim();
+    if (!rewritten) return { content, rewritten: false };
+    const combined = markers ? `${rewritten}\n\n${markers}` : rewritten;
+    return { content: combined, rewritten: true };
+  } catch (e) {
+    console.error("[chat] language rewrite error:", e);
+    return { content, rewritten: false };
+  }
+}
+
+
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -572,6 +643,18 @@ ${memoryContext.join("\n")}`;
       });
       console.log("[chat] marker-only repair body_chars:", cleanBodyForValidation(repaired).length);
       return new Response(makeSseResponse(repaired), {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      });
+    }
+
+    const enforced = await enforceReplyLanguage({
+      apiKey: LOVABLE_API_KEY,
+      model: MODEL,
+      content: aiContent,
+      isZh,
+    });
+    if (enforced.rewritten) {
+      return new Response(makeSseResponse(enforced.content), {
         headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
       });
     }

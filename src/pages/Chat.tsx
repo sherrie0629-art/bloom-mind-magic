@@ -75,7 +75,15 @@ const Chat = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
-  const { locale } = useLocale();
+  const { locale: hookLocale } = useLocale();
+  // 兜底：localStorage 是用户在 Settings 主动写入的最权威源，避免 i18n 状态尚未同步
+  const locale = (() => {
+    try {
+      const stored = localStorage.getItem("app.locale");
+      if (stored === "en" || stored === "zh") return stored;
+    } catch {}
+    return hookLocale;
+  })();
   const { user, session, promptLogin } = useAuth();
   const agentId = searchParams.get("agent") || "barista";
   const rawAgent = RAW_AGENTS.find((a) => a.id === agentId) || RAW_AGENTS[0];
@@ -560,6 +568,7 @@ const Chat = () => {
       };
 
       try {
+        console.debug("[chat] sending locale", locale);
         await streamChat({
           messages: apiMessages,
           agentId,
