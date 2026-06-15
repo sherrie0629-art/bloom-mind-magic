@@ -288,6 +288,46 @@ const Vault = () => {
             </button>
           ))}
         </div>
+
+        {/* Soul Mirror entry */}
+        <div className="px-4 mb-3">
+          <motion.button
+            onClick={() => setMirrorOpen(true)}
+            disabled={!hasMirror && !mirrorUnlockedByTurns}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`w-full text-left rounded-2xl border p-4 transition-all ${
+              hasMirror || mirrorUnlockedByTurns
+                ? "border-secondary/40 bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 hover:from-indigo-500/15 hover:via-purple-500/15 hover:to-pink-500/15 active:scale-[0.99]"
+                : "border-border bg-card/60 opacity-70"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="shrink-0 flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-purple-500 shadow-glow">
+                <Scan className="h-5 w-5 text-white" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-foreground">{t("soulMirror.vaultTitle")}</h3>
+                  {hasMirror && (
+                    <span className="rounded-full bg-secondary/15 text-secondary text-[10px] px-2 py-0.5 font-medium">
+                      {mirrors.length}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-1">
+                  {hasMirror
+                    ? t("soulMirror.openLatest")
+                    : mirrorUnlockedByTurns
+                      ? t("soulMirror.vaultEntry")
+                      : t("soulMirror.vaultEmptyHint")}
+                </p>
+              </div>
+              {(hasMirror || mirrorUnlockedByTurns) && <Sparkles className="h-4 w-4 text-secondary shrink-0" />}
+            </div>
+          </motion.button>
+        </div>
+
         <div className="px-4 space-y-3">
           <AnimatePresence mode="wait">
             {loading ? (
@@ -305,6 +345,13 @@ const Vault = () => {
             )}
           </AnimatePresence>
         </div>
+
+        <SoulMirrorDialog
+          open={mirrorOpen}
+          userId={user?.id}
+          onClose={() => setMirrorOpen(false)}
+          existingMirror={hasMirror ? mirrors[0] : null}
+        />
         <BottomNav />
       </div>
     </DesktopLayout>
