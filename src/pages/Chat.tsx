@@ -128,6 +128,7 @@ const Chat = () => {
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { generateQuoteCard } = useQuoteCard();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [soulMirrorOpen, setSoulMirrorOpen] = useState(false);
 
   const { bondLevel, totalTurns, easterEggsFound, pendingLevelUp, incrementTurn, recordEasterEgg, dismissLevelUp } =
     useBond(user?.id, agentId);
