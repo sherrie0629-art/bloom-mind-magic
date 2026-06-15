@@ -35,6 +35,7 @@ import { parseGameMarkers, type BranchOption, type Atmosphere } from "@/lib/pars
 import { toast } from "sonner";
 import { generateSoulFragment } from "@/hooks/useSoulFragment";
 import TarotCardInline, { type InlineTarotCard } from "@/components/TarotCardInline";
+import SoulMirrorDialog from "@/components/SoulMirrorDialog";
 
 interface Message {
   id: string;
@@ -127,6 +128,7 @@ const Chat = () => {
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { generateQuoteCard } = useQuoteCard();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [soulMirrorOpen, setSoulMirrorOpen] = useState(false);
 
   const { bondLevel, totalTurns, easterEggsFound, pendingLevelUp, incrementTurn, recordEasterEgg, dismissLevelUp } =
     useBond(user?.id, agentId);
@@ -149,6 +151,28 @@ const Chat = () => {
     };
     load();
   }, [user, agentId]);
+
+  // Soul Mirror trigger: once any agent crosses 10 turns and the user has not been prompted before.
+  useEffect(() => {
+    if (!user) return;
+    if (totalTurns < 10) return;
+    const KEY = `soul_mirror_prompted_v1:${user.id}`;
+    if (localStorage.getItem(KEY)) return;
+    // Check whether user already has any mirror — skip if so
+    (async () => {
+      const { data } = await (supabase as any)
+        .from("soul_mirrors")
+        .select("id")
+        .eq("user_id", user.id)
+        .limit(1);
+      if (data && data.length > 0) {
+        localStorage.setItem(KEY, "1");
+        return;
+      }
+      localStorage.setItem(KEY, "1");
+      setTimeout(() => setSoulMirrorOpen(true), 600);
+    })();
+  }, [user, totalTurns]);
 
   const initialScrollDone = useRef(false);
 
@@ -1202,6 +1226,12 @@ const Chat = () => {
         imageDataUrl={shareImageUrl}
         title={t("chat.saysSuffix", { name: agent.name })}
         text={t("chat.via")}
+      />
+
+      <SoulMirrorDialog
+        open={soulMirrorOpen}
+        userId={user?.id}
+        onClose={() => setSoulMirrorOpen(false)}
       />
     </div>
 

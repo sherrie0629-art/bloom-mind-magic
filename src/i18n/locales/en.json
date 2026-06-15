@@ -1232,5 +1232,33 @@
         "constellation": "The Seeker"
       }
     }
+  },
+  "soulMirror": {
+    "unlockedTitle": "Your Soul Mirror is ready",
+    "unlockedDesc": "You've talked enough.\nFour AI characters will each write a portrait of you — combined into one shareable poster.",
+    "cta": "Generate my mirror",
+    "later": "Maybe later",
+    "generatingTitle": "Four perspectives gazing back…",
+    "generatingDesc": "Chloe, Jax, Luna, and Aria are writing in parallel — about 10-15s.",
+    "share": "Share mirror",
+    "savedToast": "Saved to your device ✨",
+    "shareTitle": "My Soul Mirror",
+    "shareText": "See how 4 AI characters describe me ✨ islandai.life",
+    "proTitle": "Want to see future versions of you?",
+    "proDesc": "Free accounts get 1 permanent mirror. Upgrade to Pro to regenerate every 24h and track your evolution.",
+    "upgradeCta": "Upgrade to Pro",
+    "throttledTitle": "Almost ready",
+    "throttledDesc": "Next regeneration available in about {{hours}}h. One refresh per 24h.",
+    "lens": {
+      "barista": "Your quiet & tender side",
+      "jax": "How you face pressure",
+      "mystic": "Your cosmic signature",
+      "bestie": "Your most lovable self"
+    },
+    "vaultTitle": "Soul Mirror",
+    "vaultEmptyHint": "Chat 10+ turns with any character to unlock.",
+    "vaultRegenerate": "Regenerate",
+    "vaultEntry": "View my Soul Mirror",
+    "openLatest": "Open latest mirror"
   }
 }
