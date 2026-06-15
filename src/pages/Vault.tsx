@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, BookOpen, Gem, Lock, Sparkles, Unlock, Mirror } from "lucide-react";
+import { ArrowLeft, BookOpen, Gem, Lock, Sparkles, Unlock, Scan } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
