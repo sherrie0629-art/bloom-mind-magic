@@ -8,58 +8,85 @@ type VoiceConfig = {
   similarityBoost: number;
   style: number;
   speed: number;
+  speakerBoost?: boolean;
 };
 
-// Per-agent voice mapping, split by language so 中文 uses 中文母语/友好音色，避免"外国人说中文"的生硬感
+// Per-agent voice mapping — 调低 stability、调高 style，让声音更接近"真人在聊天"
+// 关闭 speaker_boost 的角色会更松弛、不像广播
 const VOICE_MAP: Record<string, { en: VoiceConfig; zh: VoiceConfig }> = {
-  // Chloe — quiet warm barista
+  // Chloe — 温柔咖啡师，轻声细语带笑意
   barista: {
-    en: { voiceId: "cgSgspJ2msm6clMCkdW9", stability: 0.65, similarityBoost: 0.75, style: 0.35, speed: 0.95 },
-    zh: { voiceId: "4VZIsMPtgggwNg7OXbPY", stability: 0.55, similarityBoost: 0.8, style: 0.4, speed: 0.95 },
+    en: { voiceId: "cgSgspJ2msm6clMCkdW9", stability: 0.35, similarityBoost: 0.75, style: 0.55, speed: 0.98, speakerBoost: false },
+    zh: { voiceId: "4VZIsMPtgggwNg7OXbPY", stability: 0.32, similarityBoost: 0.78, style: 0.6,  speed: 0.98, speakerBoost: false },
   },
-  // Jax — gruff retired firefighter (male, deep)
+  // Jax — 退伍消防员，低沉松弛、带停顿
   jax: {
-    en: { voiceId: "nPczCjzI2devNBz1zQrb", stability: 0.7, similarityBoost: 0.8, style: 0.35, speed: 1.0 },
-    zh: { voiceId: "XA2bIQ92TabjGbpO2xRr", stability: 0.65, similarityBoost: 0.8, style: 0.3, speed: 0.98 },
+    en: { voiceId: "nPczCjzI2devNBz1zQrb", stability: 0.45, similarityBoost: 0.8,  style: 0.6,  speed: 0.97, speakerBoost: true },
+    zh: { voiceId: "XA2bIQ92TabjGbpO2xRr", stability: 0.45, similarityBoost: 0.8,  style: 0.55, speed: 0.97, speakerBoost: true },
   },
-  // Luna — mystical mathematician
+  // Luna — 神秘但像耳边低语，不庄严
   mystic: {
-    en: { voiceId: "XrExE9yKIg1WjnnlVkGX", stability: 0.65, similarityBoost: 0.75, style: 0.55, speed: 0.92 },
-    zh: { voiceId: "B8gJV1IhpuegLxdpXFOE", stability: 0.6, similarityBoost: 0.78, style: 0.5, speed: 0.92 },
+    en: { voiceId: "XrExE9yKIg1WjnnlVkGX", stability: 0.4,  similarityBoost: 0.75, style: 0.7,  speed: 0.92, speakerBoost: true },
+    zh: { voiceId: "B8gJV1IhpuegLxdpXFOE", stability: 0.4,  similarityBoost: 0.78, style: 0.7,  speed: 0.92, speakerBoost: true },
   },
-  // Zoe — hype-woman bestie — 更阳光、更高昂、更跳脱
+  // Zoe — 闺蜜炸毛感，跳脱起伏大
   bestie: {
-    en: { voiceId: "EXAVITQu4vr4xnSDxMaL", stability: 0.28, similarityBoost: 0.75, style: 0.8, speed: 1.08 },
-    zh: { voiceId: "aMSt68OGf4xUZAnLpTU8", stability: 0.3, similarityBoost: 0.75, style: 0.75, speed: 1.08 },
+    en: { voiceId: "EXAVITQu4vr4xnSDxMaL", stability: 0.2,  similarityBoost: 0.75, style: 0.85, speed: 1.1,  speakerBoost: false },
+    zh: { voiceId: "aMSt68OGf4xUZAnLpTU8", stability: 0.22, similarityBoost: 0.75, style: 0.85, speed: 1.1,  speakerBoost: false },
   },
 };
 
 const MAX_CHARS = 800;
 
-// Strip markdown + game/easter-egg markers so TTS reads clean prose
+// Strip markdown + game/easter-egg markers, but capture *action* hints so we can convert to audio tags
 function cleanForSpeech(text: string): string {
   return text
     .replace(/【[^】]*】/g, " ")
-    .replace(/\*[^*]+\*/g, " ")
     .replace(/\[[A-Z_]+:[^\]]*\]/g, " ")
     .replace(/\{[^}]*\}/g, " ")
-    .replace(/[*_~`#>]/g, "")
+    .replace(/[_~`#>]/g, "")
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, MAX_CHARS);
 }
 
-// 检测文本主要语言：中文字符占非空白字符 >= 20% 视为中文
-function detectLang(text: string): "zh" | "en" {
-  const stripped = text.replace(/\s+/g, "");
-  if (!stripped) return "en";
-  const zhCount = (stripped.match(/[\u4e00-\u9fa5]/g) || []).length;
-  return zhCount / stripped.length >= 0.2 ? "zh" : "en";
+// 把 *动作* / 中文常见动作词转成 ElevenLabs 支持的 audio tag，让语气更像真人
+const ACTION_TAG_MAP: Array<[RegExp, string]> = [
+  [/\*\s*(笑|轻笑|偷笑|笑了笑|haha|laugh[s]?)\s*\*/gi, " [laughs] "],
+  [/\*\s*(叹气|叹了口气|sigh[s]?)\s*\*/gi, " [sighs] "],
+  [/\*\s*(低语|轻声|whisper[s]?)\s*\*/gi, " [whispers] "],
+  [/\*\s*(停顿|沉默|pause)\s*\*/gi, " … "],
+  [/\*[^*]+\*/g, " "], // 其余动作描述直接丢掉
+];
+
+function humanizeForSpeech(text: string, agentId: string, lang: "zh" | "en"): string {
+  let out = text;
+  for (const [re, rep] of ACTION_TAG_MAP) out = out.replace(re, rep);
+
+  // 中文：在长句中给"。！？"后面追加微停顿，避免一口气念完
+  if (lang === "zh") {
+    out = out.replace(/([。！？])(?!$)/g, "$1 … ");
+    // 逗号后偶尔加换气
+    if (out.length > 60) out = out.replace(/，/g, "， ");
+  } else {
+    // 英文：句末后塞个停顿
+    out = out.replace(/([.!?])\s+(?=[A-Z"'\u201C])/g, "$1 … ");
+  }
+
+  // 角色定制
+  if (agentId === "mystic" && out.length < 80 && !/\[whispers\]/.test(out)) {
+    out = "[whispers] " + out;
+  }
+  if (agentId === "bestie" && /^(哎|哇|天啊|omg|wow)/i.test(out) && !/\[laughs\]/.test(out)) {
+    out = out + " [laughs]";
+  }
+
+  return out.replace(/\s{2,}/g, " ").trim();
 }
 
 function pickModel(lang: "zh" | "en"): string {
-  // 中文优先用 v3（韵律 + 情绪更自然），若账号未开通会自动 fallback
-  return lang === "zh" ? "eleven_v3" : "eleven_multilingual_v2";
+  // 中文 v3 韵律最自然；英文 turbo_v2_5 对 audio tag 响应更口语化
+  return lang === "zh" ? "eleven_v3" : "eleven_turbo_v2_5";
 }
 
 async function callElevenLabs(
@@ -85,7 +112,7 @@ async function callElevenLabs(
           stability: voice.stability,
           similarity_boost: voice.similarityBoost,
           style: voice.style,
-          use_speaker_boost: true,
+          use_speaker_boost: voice.speakerBoost ?? true,
           speed: Math.max(0.7, Math.min(1.2, finalSpeed)),
         },
       }),
@@ -144,6 +171,7 @@ Deno.serve(async (req) => {
     const lang = detectLang(text);
     const voice = agentVoices[lang];
     const modelId = pickModel(lang);
+    const speakText = humanizeForSpeech(text, agentId, lang);
 
     const apiKey = Deno.env.get("ELEVENLABS_API_KEY");
     if (!apiKey) {
@@ -158,14 +186,14 @@ Deno.serve(async (req) => {
       ? Number((voice.speed * userSpeed).toFixed(2))
       : voice.speed;
 
-    let elResp = await callElevenLabs(apiKey, voice, text, modelId, finalSpeed);
+    let elResp = await callElevenLabs(apiKey, voice, speakText, modelId, finalSpeed);
 
-    // 若 v3 不可用（账号未开通 / 模型不存在 / voice 不兼容），自动回落
-    if (!elResp.ok && lang === "zh" && modelId === "eleven_v3") {
+    // v3 / turbo_v2_5 不可用时回落 multilingual_v2（账号未开通 / voice 不兼容 / 模型缺失）
+    if (!elResp.ok && (modelId === "eleven_v3" || modelId === "eleven_turbo_v2_5")) {
       const errText = await elResp.clone().text().catch(() => "");
-      console.warn("[tts-speak] eleven_v3 failed, falling back to multilingual_v2:", elResp.status, errText.slice(0, 200));
-      if (elResp.status === 400 || elResp.status === 403 || elResp.status === 404 || elResp.status === 422) {
-        elResp = await callElevenLabs(apiKey, voice, text, "eleven_multilingual_v2", finalSpeed);
+      console.warn(`[tts-speak] ${modelId} failed, falling back to multilingual_v2:`, elResp.status, errText.slice(0, 200));
+      if ([400, 403, 404, 422].includes(elResp.status)) {
+        elResp = await callElevenLabs(apiKey, voice, speakText, "eleven_multilingual_v2", finalSpeed);
       }
     }
 
@@ -175,11 +203,11 @@ Deno.serve(async (req) => {
       const errText = await elResp.clone().text().catch(() => "");
       console.warn("[tts-speak] 402 paid_plan_required, falling back to premade voice:", errText.slice(0, 200));
       const premadeVoice: VoiceConfig = { ...agentVoices.en, voiceId: agentVoices.en.voiceId };
-      elResp = await callElevenLabs(apiKey, premadeVoice, text, "eleven_multilingual_v2", finalSpeed);
+      elResp = await callElevenLabs(apiKey, premadeVoice, speakText, "eleven_multilingual_v2", finalSpeed);
       // 若英文 voice 也是 library（402），再回落到 Sarah（明确 premade）
       if (!elResp.ok && elResp.status === 402) {
-        const safe: VoiceConfig = { voiceId: "EXAVITQu4vr4xnSDxMaL", stability: 0.4, similarityBoost: 0.75, style: 0.4, speed: finalSpeed };
-        elResp = await callElevenLabs(apiKey, safe, text, "eleven_multilingual_v2", finalSpeed);
+        const safe: VoiceConfig = { voiceId: "EXAVITQu4vr4xnSDxMaL", stability: 0.3, similarityBoost: 0.75, style: 0.6, speed: finalSpeed, speakerBoost: false };
+        elResp = await callElevenLabs(apiKey, safe, speakText, "eleven_multilingual_v2", finalSpeed);
       }
     }
 
