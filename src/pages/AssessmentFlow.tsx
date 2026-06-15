@@ -114,7 +114,7 @@ const AssessmentFlow = () => {
   }, [started, locale]);
 
   const handleStart = async () => {
-    if (!user) { toast.error(t("auth.signInFirst", "请先登录 🌙")); navigate("/auth"); return; }
+    // Allow anonymous users to take the quiz; saving + deep report are gated later.
     if (!canAssess) { toast.error(t("assessmentFlow.common.limitReached", { n: assessmentLimit })); return; }
     await incrementAssessment();
     setStarted(true);
