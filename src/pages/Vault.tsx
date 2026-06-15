@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, BookOpen, Gem, Lock, Sparkles, Unlock } from "lucide-react";
+import { ArrowLeft, BookOpen, Gem, Lock, Sparkles, Unlock, Mirror } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
@@ -10,6 +10,8 @@ import { localizeAgent } from "@/lib/localizeAgent";
 import BottomNav from "@/components/BottomNav";
 import DesktopLayout from "@/components/DesktopLayout";
 import SEO from "@/components/SEO";
+import SoulMirrorDialog from "@/components/SoulMirrorDialog";
+import { useSoulMirror } from "@/hooks/useSoulMirror";
 
 interface BondRow { agent_id: string; bond_level: number | null; total_turns: number | null; easter_eggs_found: string[] | null; }
 interface BondInfo { level: number; turns: number; eggs: string[]; }
