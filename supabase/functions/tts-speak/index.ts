@@ -8,29 +8,31 @@ type VoiceConfig = {
   similarityBoost: number;
   style: number;
   speed: number;
+  speakerBoost?: boolean;
 };
 
-// Per-agent voice mapping, split by language so 中文 uses 中文母语/友好音色，避免"外国人说中文"的生硬感
+// Per-agent voice mapping — 调低 stability、调高 style，让声音更接近"真人在聊天"
+// 关闭 speaker_boost 的角色会更松弛、不像广播
 const VOICE_MAP: Record<string, { en: VoiceConfig; zh: VoiceConfig }> = {
-  // Chloe — quiet warm barista
+  // Chloe — 温柔咖啡师，轻声细语带笑意
   barista: {
-    en: { voiceId: "cgSgspJ2msm6clMCkdW9", stability: 0.65, similarityBoost: 0.75, style: 0.35, speed: 0.95 },
-    zh: { voiceId: "4VZIsMPtgggwNg7OXbPY", stability: 0.55, similarityBoost: 0.8, style: 0.4, speed: 0.95 },
+    en: { voiceId: "cgSgspJ2msm6clMCkdW9", stability: 0.35, similarityBoost: 0.75, style: 0.55, speed: 0.98, speakerBoost: false },
+    zh: { voiceId: "4VZIsMPtgggwNg7OXbPY", stability: 0.32, similarityBoost: 0.78, style: 0.6,  speed: 0.98, speakerBoost: false },
   },
-  // Jax — gruff retired firefighter (male, deep)
+  // Jax — 退伍消防员，低沉松弛、带停顿
   jax: {
-    en: { voiceId: "nPczCjzI2devNBz1zQrb", stability: 0.7, similarityBoost: 0.8, style: 0.35, speed: 1.0 },
-    zh: { voiceId: "XA2bIQ92TabjGbpO2xRr", stability: 0.65, similarityBoost: 0.8, style: 0.3, speed: 0.98 },
+    en: { voiceId: "nPczCjzI2devNBz1zQrb", stability: 0.45, similarityBoost: 0.8,  style: 0.6,  speed: 0.97, speakerBoost: true },
+    zh: { voiceId: "XA2bIQ92TabjGbpO2xRr", stability: 0.45, similarityBoost: 0.8,  style: 0.55, speed: 0.97, speakerBoost: true },
   },
-  // Luna — mystical mathematician
+  // Luna — 神秘但像耳边低语，不庄严
   mystic: {
-    en: { voiceId: "XrExE9yKIg1WjnnlVkGX", stability: 0.65, similarityBoost: 0.75, style: 0.55, speed: 0.92 },
-    zh: { voiceId: "B8gJV1IhpuegLxdpXFOE", stability: 0.6, similarityBoost: 0.78, style: 0.5, speed: 0.92 },
+    en: { voiceId: "XrExE9yKIg1WjnnlVkGX", stability: 0.4,  similarityBoost: 0.75, style: 0.7,  speed: 0.92, speakerBoost: true },
+    zh: { voiceId: "B8gJV1IhpuegLxdpXFOE", stability: 0.4,  similarityBoost: 0.78, style: 0.7,  speed: 0.92, speakerBoost: true },
   },
-  // Zoe — hype-woman bestie — 更阳光、更高昂、更跳脱
+  // Zoe — 闺蜜炸毛感，跳脱起伏大
   bestie: {
-    en: { voiceId: "EXAVITQu4vr4xnSDxMaL", stability: 0.28, similarityBoost: 0.75, style: 0.8, speed: 1.08 },
-    zh: { voiceId: "aMSt68OGf4xUZAnLpTU8", stability: 0.3, similarityBoost: 0.75, style: 0.75, speed: 1.08 },
+    en: { voiceId: "EXAVITQu4vr4xnSDxMaL", stability: 0.2,  similarityBoost: 0.75, style: 0.85, speed: 1.1,  speakerBoost: false },
+    zh: { voiceId: "aMSt68OGf4xUZAnLpTU8", stability: 0.22, similarityBoost: 0.75, style: 0.85, speed: 1.1,  speakerBoost: false },
   },
 };
 
