@@ -38,30 +38,55 @@ const VOICE_MAP: Record<string, { en: VoiceConfig; zh: VoiceConfig }> = {
 
 const MAX_CHARS = 800;
 
-// Strip markdown + game/easter-egg markers so TTS reads clean prose
+// Strip markdown + game/easter-egg markers, but capture *action* hints so we can convert to audio tags
 function cleanForSpeech(text: string): string {
   return text
     .replace(/【[^】]*】/g, " ")
-    .replace(/\*[^*]+\*/g, " ")
     .replace(/\[[A-Z_]+:[^\]]*\]/g, " ")
     .replace(/\{[^}]*\}/g, " ")
-    .replace(/[*_~`#>]/g, "")
+    .replace(/[_~`#>]/g, "")
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, MAX_CHARS);
 }
 
-// 检测文本主要语言：中文字符占非空白字符 >= 20% 视为中文
-function detectLang(text: string): "zh" | "en" {
-  const stripped = text.replace(/\s+/g, "");
-  if (!stripped) return "en";
-  const zhCount = (stripped.match(/[\u4e00-\u9fa5]/g) || []).length;
-  return zhCount / stripped.length >= 0.2 ? "zh" : "en";
+// 把 *动作* / 中文常见动作词转成 ElevenLabs 支持的 audio tag，让语气更像真人
+const ACTION_TAG_MAP: Array<[RegExp, string]> = [
+  [/\*\s*(笑|轻笑|偷笑|笑了笑|haha|laugh[s]?)\s*\*/gi, " [laughs] "],
+  [/\*\s*(叹气|叹了口气|sigh[s]?)\s*\*/gi, " [sighs] "],
+  [/\*\s*(低语|轻声|whisper[s]?)\s*\*/gi, " [whispers] "],
+  [/\*\s*(停顿|沉默|pause)\s*\*/gi, " … "],
+  [/\*[^*]+\*/g, " "], // 其余动作描述直接丢掉
+];
+
+function humanizeForSpeech(text: string, agentId: string, lang: "zh" | "en"): string {
+  let out = text;
+  for (const [re, rep] of ACTION_TAG_MAP) out = out.replace(re, rep);
+
+  // 中文：在长句中给"。！？"后面追加微停顿，避免一口气念完
+  if (lang === "zh") {
+    out = out.replace(/([。！？])(?!$)/g, "$1 … ");
+    // 逗号后偶尔加换气
+    if (out.length > 60) out = out.replace(/，/g, "， ");
+  } else {
+    // 英文：句末后塞个停顿
+    out = out.replace(/([.!?])\s+(?=[A-Z"'\u201C])/g, "$1 … ");
+  }
+
+  // 角色定制
+  if (agentId === "mystic" && out.length < 80 && !/\[whispers\]/.test(out)) {
+    out = "[whispers] " + out;
+  }
+  if (agentId === "bestie" && /^(哎|哇|天啊|omg|wow)/i.test(out) && !/\[laughs\]/.test(out)) {
+    out = out + " [laughs]";
+  }
+
+  return out.replace(/\s{2,}/g, " ").trim();
 }
 
 function pickModel(lang: "zh" | "en"): string {
-  // 中文优先用 v3（韵律 + 情绪更自然），若账号未开通会自动 fallback
-  return lang === "zh" ? "eleven_v3" : "eleven_multilingual_v2";
+  // 中文 v3 韵律最自然；英文 turbo_v2_5 对 audio tag 响应更口语化
+  return lang === "zh" ? "eleven_v3" : "eleven_turbo_v2_5";
 }
 
 async function callElevenLabs(
@@ -87,7 +112,7 @@ async function callElevenLabs(
           stability: voice.stability,
           similarity_boost: voice.similarityBoost,
           style: voice.style,
-          use_speaker_boost: true,
+          use_speaker_boost: voice.speakerBoost ?? true,
           speed: Math.max(0.7, Math.min(1.2, finalSpeed)),
         },
       }),
