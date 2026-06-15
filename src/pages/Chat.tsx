@@ -35,6 +35,7 @@ import { parseGameMarkers, type BranchOption, type Atmosphere } from "@/lib/pars
 import { toast } from "sonner";
 import { generateSoulFragment } from "@/hooks/useSoulFragment";
 import TarotCardInline, { type InlineTarotCard } from "@/components/TarotCardInline";
+import SoulMirrorDialog from "@/components/SoulMirrorDialog";
 
 interface Message {
   id: string;
