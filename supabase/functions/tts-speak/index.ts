@@ -50,6 +50,13 @@ function cleanForSpeech(text: string): string {
     .slice(0, MAX_CHARS);
 }
 
+function detectLang(text: string): "zh" | "en" {
+  const stripped = text.replace(/\s+/g, "");
+  if (!stripped) return "en";
+  const zhCount = (stripped.match(/[\u4e00-\u9fa5]/g) || []).length;
+  return zhCount / stripped.length >= 0.2 ? "zh" : "en";
+}
+
 // 把 *动作* / 中文常见动作词转成 ElevenLabs 支持的 audio tag，让语气更像真人
 const ACTION_TAG_MAP: Array<[RegExp, string]> = [
   [/\*\s*(笑|轻笑|偷笑|笑了笑|haha|laugh[s]?)\s*\*/gi, " [laughs] "],
