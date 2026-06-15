@@ -233,9 +233,9 @@ const AssessmentFlow = () => {
               </div>
             ) : null}
           </motion.div>
-          {savedReportId && (
+          {(savedReportId || !user) && (
             <div className="mb-4">
-              <DeepReportUnlock source="assessment" reportId={savedReportId} typeLabel={`${result.mbtiType} — ${result.title}`} />
+              <DeepReportUnlock source="assessment" reportId={savedReportId || ""} typeLabel={`${result.mbtiType} — ${result.title}`} />
             </div>
           )}
           <div className="flex gap-3">
