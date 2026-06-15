@@ -52,7 +52,7 @@ export default function SoulMirrorDialog({ open, userId, onClose, existingMirror
 
   const handleGenerate = useCallback(async () => {
     setPhase("generating");
-    const res = await generate();
+    const res: any = await generate();
     if (!res.ok) {
       if (res.reason === "requires_pro") {
         setPhase("pro_required");
