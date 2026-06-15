@@ -270,8 +270,8 @@ serve(async (req) => {
         const messages = buildPrompt(agent, {
           locale,
           nickname,
-          mbti: profile.mbti_type,
-          zodiac: profile.zodiac_sign,
+          mbti,
+          zodiac,
           bondLevel: bond.bond_level,
           totalTurns: bond.total_turns,
           memories: memoriesPerAgent[agent.id] || [],
