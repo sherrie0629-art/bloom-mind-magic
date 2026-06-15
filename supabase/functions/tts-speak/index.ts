@@ -203,11 +203,11 @@ Deno.serve(async (req) => {
       const errText = await elResp.clone().text().catch(() => "");
       console.warn("[tts-speak] 402 paid_plan_required, falling back to premade voice:", errText.slice(0, 200));
       const premadeVoice: VoiceConfig = { ...agentVoices.en, voiceId: agentVoices.en.voiceId };
-      elResp = await callElevenLabs(apiKey, premadeVoice, text, "eleven_multilingual_v2", finalSpeed);
+      elResp = await callElevenLabs(apiKey, premadeVoice, speakText, "eleven_multilingual_v2", finalSpeed);
       // 若英文 voice 也是 library（402），再回落到 Sarah（明确 premade）
       if (!elResp.ok && elResp.status === 402) {
-        const safe: VoiceConfig = { voiceId: "EXAVITQu4vr4xnSDxMaL", stability: 0.4, similarityBoost: 0.75, style: 0.4, speed: finalSpeed };
-        elResp = await callElevenLabs(apiKey, safe, text, "eleven_multilingual_v2", finalSpeed);
+        const safe: VoiceConfig = { voiceId: "EXAVITQu4vr4xnSDxMaL", stability: 0.3, similarityBoost: 0.75, style: 0.6, speed: finalSpeed, speakerBoost: false };
+        elResp = await callElevenLabs(apiKey, safe, speakText, "eleven_multilingual_v2", finalSpeed);
       }
     }
 
