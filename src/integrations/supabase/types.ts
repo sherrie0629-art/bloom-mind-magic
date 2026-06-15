@@ -363,6 +363,33 @@ export type Database = {
         }
         Relationships: []
       }
+      soul_mirrors: {
+        Row: {
+          created_at: string
+          id: string
+          perspectives: Json
+          poster_url: string | null
+          user_id: string
+          user_snapshot: Json | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          perspectives: Json
+          poster_url?: string | null
+          user_id: string
+          user_snapshot?: Json | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          perspectives?: Json
+          poster_url?: string | null
+          user_id?: string
+          user_snapshot?: Json | null
+        }
+        Relationships: []
+      }
       story_vault: {
         Row: {
           agent_id: string | null
