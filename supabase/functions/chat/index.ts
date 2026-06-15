@@ -398,6 +398,75 @@ async function repairMarkerOnlyReply(params: {
   return `${fallbackRepairBody(agentId, isZh)}\n\n${markers}`.trim();
 }
 
+// 统计字符语言占比，用于判定回复是否违反 locale lock
+function languageStats(text: string): { zhRatio: number; enRatio: number; zhCount: number; enCount: number } {
+  const stripped = text.replace(/【[^】]*】/g, "").replace(/\[[^\]]*\]/g, "");
+  const zhMatches = stripped.match(/[\u4e00-\u9fa5]/g) || [];
+  const enMatches = stripped.match(/[A-Za-z]/g) || [];
+  const total = zhMatches.length + enMatches.length;
+  if (total === 0) return { zhRatio: 0, enRatio: 0, zhCount: 0, enCount: 0 };
+  return {
+    zhRatio: zhMatches.length / total,
+    enRatio: enMatches.length / total,
+    zhCount: zhMatches.length,
+    enCount: enMatches.length,
+  };
+}
+
+// 后置语言守门员：若回复语言与 locale 不符，发起一次翻译重写
+async function enforceReplyLanguage(params: {
+  apiKey: string;
+  model: string;
+  content: string;
+  isZh: boolean;
+}): Promise<{ content: string; rewritten: boolean }> {
+  const { apiKey, model, content, isZh } = params;
+  const body = cleanBodyForValidation(content);
+  if (!body) return { content, rewritten: false };
+
+  const stats = languageStats(body);
+  const violatesEn = !isZh && (stats.zhRatio > 0.08 || stats.zhCount >= 4);
+  const violatesZh = isZh && stats.enRatio > 0.6 && stats.enCount >= 20;
+  if (!violatesEn && !violatesZh) return { content, rewritten: false };
+
+  const markers = extractTrailingMarkers(content);
+  const targetLang = isZh ? "Simplified Chinese" : "natural English";
+  console.warn(`[chat] language drift detected (isZh=${isZh}, zhRatio=${stats.zhRatio.toFixed(2)}, enRatio=${stats.enRatio.toFixed(2)}), rewriting...`);
+
+  try {
+    const res = await fetch(AI_URL, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model,
+        max_tokens: 1024,
+        reasoning_effort: "none",
+        messages: [
+          {
+            role: "system",
+            content: `You are a translator. Rewrite the user's text entirely in ${targetLang}. Preserve tone, voice, line breaks, emoji, and punctuation. Do NOT add commentary, do NOT keep any ${isZh ? "English sentences" : "Chinese characters"} (proper names like Luna/Chloe/Jax/Zoe/MBTI may stay). Output ONLY the rewritten text.`,
+          },
+          { role: "user", content: body },
+        ],
+      }),
+    });
+    if (!res.ok) {
+      console.error("[chat] language rewrite failed:", res.status, await res.text());
+      return { content, rewritten: false };
+    }
+    const data = await res.json();
+    const rewritten = String(data.choices?.[0]?.message?.content || "").trim();
+    if (!rewritten) return { content, rewritten: false };
+    const combined = markers ? `${rewritten}\n\n${markers}` : rewritten;
+    return { content: combined, rewritten: true };
+  } catch (e) {
+    console.error("[chat] language rewrite error:", e);
+    return { content, rewritten: false };
+  }
+}
+
+
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
