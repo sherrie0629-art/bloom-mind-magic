@@ -1227,6 +1227,12 @@ const Chat = () => {
         title={t("chat.saysSuffix", { name: agent.name })}
         text={t("chat.via")}
       />
+
+      <SoulMirrorDialog
+        open={soulMirrorOpen}
+        userId={user?.id}
+        onClose={() => setSoulMirrorOpen(false)}
+      />
     </div>
 
     {/* Desktop right panel — Agent Profile */}
