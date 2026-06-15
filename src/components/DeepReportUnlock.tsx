@@ -27,7 +27,7 @@ export default function DeepReportUnlock({
 }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, promptLogin } = useAuth();
   const { plan, canDeepReport } = useSubscription(user?.id);
 
   const [deepReport, setDeepReport] = useState<string | null>(initialDeepReport || null);
@@ -37,6 +37,10 @@ export default function DeepReportUnlock({
   const isPlus = plan === "plus";
 
   const handleClick = async () => {
+    if (!user) {
+      promptLogin(t("auth.signInToUnlockDeep", { defaultValue: "登录后即可解锁这份深度报告 ✨" }));
+      return;
+    }
     if (!isPlus) {
       navigate("/pricing");
       return;
