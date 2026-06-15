@@ -171,6 +171,7 @@ Deno.serve(async (req) => {
     const lang = detectLang(text);
     const voice = agentVoices[lang];
     const modelId = pickModel(lang);
+    const speakText = humanizeForSpeech(text, agentId, lang);
 
     const apiKey = Deno.env.get("ELEVENLABS_API_KEY");
     if (!apiKey) {
@@ -185,14 +186,14 @@ Deno.serve(async (req) => {
       ? Number((voice.speed * userSpeed).toFixed(2))
       : voice.speed;
 
-    let elResp = await callElevenLabs(apiKey, voice, text, modelId, finalSpeed);
+    let elResp = await callElevenLabs(apiKey, voice, speakText, modelId, finalSpeed);
 
-    // 若 v3 不可用（账号未开通 / 模型不存在 / voice 不兼容），自动回落
-    if (!elResp.ok && lang === "zh" && modelId === "eleven_v3") {
+    // v3 / turbo_v2_5 不可用时回落 multilingual_v2（账号未开通 / voice 不兼容 / 模型缺失）
+    if (!elResp.ok && (modelId === "eleven_v3" || modelId === "eleven_turbo_v2_5")) {
       const errText = await elResp.clone().text().catch(() => "");
-      console.warn("[tts-speak] eleven_v3 failed, falling back to multilingual_v2:", elResp.status, errText.slice(0, 200));
-      if (elResp.status === 400 || elResp.status === 403 || elResp.status === 404 || elResp.status === 422) {
-        elResp = await callElevenLabs(apiKey, voice, text, "eleven_multilingual_v2", finalSpeed);
+      console.warn(`[tts-speak] ${modelId} failed, falling back to multilingual_v2:`, elResp.status, errText.slice(0, 200));
+      if ([400, 403, 404, 422].includes(elResp.status)) {
+        elResp = await callElevenLabs(apiKey, voice, speakText, "eleven_multilingual_v2", finalSpeed);
       }
     }
 
