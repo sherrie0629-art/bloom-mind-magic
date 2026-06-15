@@ -568,6 +568,7 @@ const Chat = () => {
       };
 
       try {
+        console.debug("[chat] sending locale", locale);
         await streamChat({
           messages: apiMessages,
           agentId,
