@@ -297,8 +297,8 @@ serve(async (req) => {
 
     const userSnapshot = {
       nickname,
-      mbti: profile.mbti_type || null,
-      zodiac: profile.zodiac_sign || null,
+      mbti,
+      zodiac,
       locale,
       generatedAt: new Date().toISOString(),
     };
