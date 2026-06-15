@@ -645,6 +645,18 @@ ${memoryContext.join("\n")}`;
       });
     }
 
+    const enforced = await enforceReplyLanguage({
+      apiKey: LOVABLE_API_KEY,
+      model: MODEL,
+      content: aiContent,
+      isZh,
+    });
+    if (enforced.rewritten) {
+      return new Response(makeSseResponse(enforced.content), {
+        headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
+      });
+    }
+
     return new Response(rawSse, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
