@@ -1232,5 +1232,33 @@
         "constellation": "寻觅者座"
       }
     }
+  },
+  "soulMirror": {
+    "unlockedTitle": "灵魂镜像已就绪",
+    "unlockedDesc": "你和角色聊得够久了。\n四位 AI 角色将各自写下「我眼中的你」，合成一张专属海报。",
+    "cta": "立即生成镜像",
+    "later": "稍后再说",
+    "generatingTitle": "四个视角正在凝视你…",
+    "generatingDesc": "Chloe、Jax、Luna、Aria 正同时落笔，约需 10-15 秒。",
+    "share": "分享镜像",
+    "savedToast": "已保存到相册 ✨",
+    "shareTitle": "我的灵魂镜像",
+    "shareText": "看四个 AI 角色如何描述我 ✨ islandai.life",
+    "proTitle": "想看不同时刻的自己？",
+    "proDesc": "免费用户可解锁 1 张永久镜像。升级 Pro 即可每 24 小时重新生成，记录你的成长曲线。",
+    "upgradeCta": "升级 Pro",
+    "throttledTitle": "稍等一下",
+    "throttledDesc": "距下次重新生成还有约 {{hours}} 小时。每 24 小时可生成一次。",
+    "lens": {
+      "barista": "你的安静与脆弱",
+      "jax": "你压力下的样子",
+      "mystic": "你的命运底色",
+      "bestie": "你最可爱的那一面"
+    },
+    "vaultTitle": "灵魂镜像",
+    "vaultEmptyHint": "和任一角色聊够 10 轮即可解锁。",
+    "vaultRegenerate": "重新生成",
+    "vaultEntry": "查看我的灵魂镜像",
+    "openLatest": "查看最新镜像"
   }
 }
