@@ -53,14 +53,15 @@ export default function SoulMirrorDialog({ open, userId, onClose, existingMirror
   const handleGenerate = useCallback(async () => {
     setPhase("generating");
     const res = await generate();
-    if (res.ok) {
+    if (res.ok === true) {
       setMirror(res.mirror);
       setPhase("result");
       return;
     }
-    if (res.reason === "requires_pro") {
+    const reason = res.reason;
+    if (reason === "requires_pro") {
       setPhase("pro_required");
-    } else if (res.reason === "throttled") {
+    } else if (reason === "throttled") {
       setHoursLeft(res.hoursLeft);
       setPhase("throttled");
     } else {
