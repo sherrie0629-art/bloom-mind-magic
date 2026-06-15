@@ -56,7 +56,9 @@ export default function SoulMirrorDialog({ open, userId, onClose, existingMirror
     if (res.ok) {
       setMirror(res.mirror);
       setPhase("result");
-    } else if (res.reason === "requires_pro") {
+      return;
+    }
+    if (res.reason === "requires_pro") {
       setPhase("pro_required");
     } else if (res.reason === "throttled") {
       setHoursLeft(res.hoursLeft);
