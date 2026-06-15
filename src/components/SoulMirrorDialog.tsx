@@ -53,20 +53,19 @@ export default function SoulMirrorDialog({ open, userId, onClose, existingMirror
   const handleGenerate = useCallback(async () => {
     setPhase("generating");
     const res = await generate();
-    if (res.ok === true) {
-      setMirror(res.mirror);
-      setPhase("result");
+    if (!res.ok) {
+      if (res.reason === "requires_pro") {
+        setPhase("pro_required");
+      } else if (res.reason === "throttled") {
+        setHoursLeft(res.hoursLeft);
+        setPhase("throttled");
+      } else {
+        setPhase("error");
+      }
       return;
     }
-    const reason = res.reason;
-    if (reason === "requires_pro") {
-      setPhase("pro_required");
-    } else if (reason === "throttled") {
-      setHoursLeft(res.hoursLeft);
-      setPhase("throttled");
-    } else {
-      setPhase("error");
-    }
+    setMirror(res.mirror);
+    setPhase("result");
   }, [generate]);
 
   // Render poster onto canvas once mirror appears
