@@ -26,7 +26,6 @@ const Vault = () => {
   const [mirrorOpen, setMirrorOpen] = useState(false);
   const { mirrors } = useSoulMirror(user?.id);
   const hasMirror = mirrors.length > 0;
-  const anyTurns = Object.values(bonds).reduce((s, b) => s + (b.turns || 0), 0);
   const mirrorUnlockedByTurns = Object.values(bonds).some((b) => (b.turns || 0) >= 10);
 
   const agents = RAW_AGENTS.map((a) => localizeAgent(a, t));
