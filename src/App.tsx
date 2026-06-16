@@ -91,40 +91,43 @@ const App = () => (
           <TTSProvider>
           <LocaleSync />
           <PaymentTestModeBanner />
-          <Suspense fallback={null}>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/chat" element={<Chat />} />
-              <Route path="/conversations" element={<ConversationHistory />} />
-              <Route path="/assessment" element={<Assessment />} />
-              <Route path="/assessment-reports" element={<AssessmentReports />} />
-              <Route path="/assessment-reports/:id" element={<AssessmentDetail />} />
-              <Route path="/assessment/mbti" element={<AssessmentFlow />} />
-              <Route path="/assessment/enneagram" element={<EnneagramFlow />} />
-              
-              <Route path="/assessment/zodiac" element={<ZodiacFlow />} />
-              <Route path="/assessment/emotion" element={<EmotionFlow />} />
-              <Route path="/assessment/compatibility" element={<CompatibilityFlow />} />
-              <Route path="/compatibility-reports" element={<CompatibilityReports />} />
-              <Route path="/compatibility-reports/:id" element={<CompatibilityDetail />} />
-              <Route path="/daily-tarot" element={<DailyTarot />} />
-              <Route path="/daily-whisper" element={<Navigate to="/daily-tarot" replace />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/archive" element={<AgentArchive />} />
-              <Route path="/vault" element={<Vault />} />
-              <Route path="/soul-map" element={<SoulMap />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/welcome" element={<Welcome />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/privacy" element={<PrivacyPolicy />} />
-              <Route path="/terms" element={<TermsOfService />} />
-              <Route path="/pricing" element={<Pricing />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-          <SiteFooter />
+          <div className="flex min-h-screen flex-col">
+            <Suspense fallback={<div className="flex-1" />}>
+              <div className="flex-1">
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/chat" element={<Chat />} />
+                  <Route path="/conversations" element={<ConversationHistory />} />
+                  <Route path="/assessment" element={<Assessment />} />
+                  <Route path="/assessment-reports" element={<AssessmentReports />} />
+                  <Route path="/assessment-reports/:id" element={<AssessmentDetail />} />
+                  <Route path="/assessment/mbti" element={<AssessmentFlow />} />
+                  <Route path="/assessment/enneagram" element={<EnneagramFlow />} />
+                  <Route path="/assessment/zodiac" element={<ZodiacFlow />} />
+                  <Route path="/assessment/emotion" element={<EmotionFlow />} />
+                  <Route path="/assessment/compatibility" element={<CompatibilityFlow />} />
+                  <Route path="/compatibility-reports" element={<CompatibilityReports />} />
+                  <Route path="/compatibility-reports/:id" element={<CompatibilityDetail />} />
+                  <Route path="/daily-tarot" element={<DailyTarot />} />
+                  <Route path="/daily-whisper" element={<Navigate to="/daily-tarot" replace />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/archive" element={<AgentArchive />} />
+                  <Route path="/vault" element={<Vault />} />
+                  <Route path="/soul-map" element={<SoulMap />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="/settings" element={<Settings />} />
+                  <Route path="/welcome" element={<Welcome />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/privacy" element={<PrivacyPolicy />} />
+                  <Route path="/terms" element={<TermsOfService />} />
+                  <Route path="/pricing" element={<Pricing />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
+            </Suspense>
+            <SiteFooter />
+          </div>
           </TTSProvider>
         </AuthProvider>
       </BrowserRouter>

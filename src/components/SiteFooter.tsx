@@ -8,7 +8,7 @@ const SiteFooter = () => {
   if (location.pathname.startsWith("/chat")) return null;
 
   return (
-    <footer className="w-full border-t border-border/40 bg-background/60 backdrop-blur-sm pb-20 md:pb-4 pt-4">
+    <footer className="w-full border-t border-border/40 bg-background/60 backdrop-blur-sm pb-20 md:pb-4 pt-4 md:pl-[220px]">
       <div className="mx-auto flex max-w-4xl flex-col items-center gap-2 px-6 text-center md:flex-row md:justify-between">
         <p className="text-[11px] text-muted-foreground/70">
           © {new Date().getFullYear()} Island AI · {t("footer.rights")}
