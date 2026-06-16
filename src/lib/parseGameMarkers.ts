@@ -18,7 +18,7 @@ export interface GameMarkers {
 const ENERGY_RE = /[【\[]⚡\s*Energy\s*[+＋]\s*(\d+)\s*[】\]]/i;
 const OPTIONS_RE = /[【\[]💫\s*Options\s*[】\]](.+)/i;
 const SHARD_RE = /[【\[]🔮\s*Truth\s*Shard\s*[】\]]\s*([^|｜]+)[|｜](.+)/i;
-const ATMOSPHERE_RE = /[【\[]🎭\s*Mood\s*[:：]\s*(\w+)\s*[】\]]/i;
+const ATMOSPHERE_RE = /[【\[]?\s*🎭?\s*Mood\s*[:：]\s*(\w+)\s*[】\]]?/i;
 
 const FALLBACK_OPTIONS_RE = /(?:Options|Choices)[：:]\s*(.+)/i;
 
