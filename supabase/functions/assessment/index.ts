@@ -26,7 +26,7 @@ async function checkAssessmentQuota(req: Request): Promise<Response | null> {
   });
 
   const { data: sub } = await authedClient.from("user_subscriptions").select("plan, expires_at").eq("user_id", userId).single();
-  const isPlus = sub?.plan === "plus" && sub?.expires_at && new Date(sub.expires_at) > new Date();
+  const isPlus = true; // payments removed — all users treated as plus
   const dailyLimit = isPlus ? PLUS_DAILY_ASSESS : FREE_DAILY_ASSESS;
 
   const today = new Date().toISOString().split("T")[0];
