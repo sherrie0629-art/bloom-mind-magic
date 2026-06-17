@@ -1,110 +1,60 @@
-# 「灵魂镜像 · Soul Mirror」实施计划
+## 目标
+彻底移除项目中所有 Paddle 付费 / 订阅相关代码，使 Lovable 允许 remix。保留功能本身（聊天、测评、深度报告、Soul Mirror 等），统一按"免费 / 全开放"逻辑运行。
 
-任一角色聊够 10 轮后，4 个 AI 角色各自生成一段"我眼中的你"+ 3 个关键词，合成 1 张四象限社交海报。免费首次解锁，Pro 可 24h 节流无限重生成。
+## 方案概览
+不动数据库结构（保留 `user_subscriptions`、`usage_tracking` 表，避免破坏现有数据），只在前端/边缘函数层做"无支付化"改造：
+1. 删除 Paddle 相关文件
+2. 把 `useSubscription` 改成永远返回 `plan: "plus"`、用量限制设为 `Infinity`、`freeTrialExpired: false`
+3. 移除 `/pricing` 路由和所有跳转
+4. 清理 Profile 页里的订阅 / 客户门户 UI
 
-## 用户流程
+## 具体改动
 
-```text
-任一 agent_bonds.total_turns ≥ 10
-  └─▶ 全屏弹窗「灵魂镜像已就绪」
-        ├─ 立即解锁 → 生成中(4路并行) → 四象限海报 → 分享/下载/入库
-        └─ 稍后    → Vault › 灵魂镜像 卡片(红点)
+### 1. 删除文件
+- `src/hooks/usePaddleCheckout.ts`
+- `src/lib/paddle.ts`
+- `src/pages/Pricing.tsx`
+- `supabase/functions/get-paddle-price/`
+- `supabase/functions/paddle-customer-portal/`
+- `supabase/functions/payments-webhook/`
+- `supabase/functions/_shared/paddle.ts`
+
+### 2. `src/hooks/useSubscription.ts`
+简化为：始终返回
 ```
-
-## 权益
-
-| 项 | 规则 |
-|---|---|
-| 触发 | 任一角色 total_turns ≥ 10；其余角色用少量记忆 + 通用人格兜底 |
-| 免费 | 永久 1 次 |
-| Pro | 24h 节流无限重生 + 2x 高清下载 |
-| 入口 | 达成弹窗 + Vault 卡片 + Profile 副入口 |
-
-## 4 视角分工（每段 120-180 字）
-
-- **Luna 月光倾听者** — 情绪与内在脆弱
-- **Orion 理性引路人** — 思维与决策模式
-- **Aria 灵感缪斯** — 创造力与表达欲
-- **Sage 神秘占星师** — 命运底色与象征关键词
-
-每路 JSON：`{ portrait, signature(≤30字), keywords: string[3] }`
-
-## 海报（四象限合集大图）
-
-```text
-┌─────────────────────────────────┐
-│ 灵魂镜像 · @昵称 · MBTI · 星座    │
-├──────────────┬──────────────────┤
-│ 🌙 Luna      │ ⭐ Orion          │
-│ 签名 / 评价   │ 签名 / 评价        │
-│ #关键词×3    │ #关键词×3          │
-├──────────────┼──────────────────┤
-│ 🎨 Aria      │ 🔮 Sage           │
-├──────────────┴──────────────────┤
-│ islandai.life · 扫码生成你的      │
-└─────────────────────────────────┘
+plan: "plus",
+chatLimit / assessmentLimit / deepReportLimit: Number.POSITIVE_INFINITY,
+freeTrialExpired: false,
+freeTrialDaysLeft: 9999,
 ```
+保留 `chatCount / assessmentCount / deepReportCount` 的真实读取（如果其他 UI 还在用），其余字段照常返回。这样所有 `if (plan === "plus")` / `if (!freeTrialExpired)` 等判断自动放行，无需改调用方。
 
-- 背景：`generate-poster-image` 生成梦境星空底，`cacheKey=soul-mirror-bg-v1` 全用户共享
-- 合成：`useSharePoster` 新增 `generateSoulMirrorPoster(data)` 四象限方法
-- 默认 1080×1350（小红书竖图），Pro 多 2160×2700 高清
+### 3. `src/App.tsx`
+- 移除 `const Pricing = lazyWithReload(...)`
+- 移除 `<Route path="/pricing" .../>`
 
-## 技术实现
+### 4. `src/pages/Profile.tsx`
+- 移除 `usePaddleCheckout` 导入与使用
+- 移除 Paddle 结账成功检测、`paddle-customer-portal` 调用
+- 删除"升级 / 管理订阅"按钮区块，保留个人资料其他部分
 
-### 1. 数据库迁移
+### 5. `src/components/DeepReportUnlock.tsx`
+- 把 `navigate("/pricing")` 改为：直接调用解锁逻辑（因为现在全部用户都是 plus），或者隐藏 Unlock 入口、默认展示报告。最小改动：把跳转替换成 `toast` 提示"已默认开放"，或直接 `return null` 让组件不再渲染。
 
-```sql
-CREATE TABLE public.soul_mirrors (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  perspectives jsonb NOT NULL,
-  user_snapshot jsonb,
-  poster_url text,
-  created_at timestamptz DEFAULT now()
-);
-GRANT SELECT, INSERT, DELETE ON public.soul_mirrors TO authenticated;
-GRANT ALL ON public.soul_mirrors TO service_role;
-ALTER TABLE public.soul_mirrors ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "own mirrors" ON public.soul_mirrors FOR ALL TO authenticated
-  USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-CREATE INDEX ON public.soul_mirrors (user_id, created_at DESC);
-```
+### 6. 边缘函数侧
+- `supabase/functions/chat/index.ts`、`assessment*`、`generate-deep-report/index.ts` 等里如果有 Paddle/订阅校验逻辑，去掉该校验（让所有请求按 plus 处理）。仅删除/短路 if 分支，不改业务主体。
 
-### 2. Edge Function `generate-soul-mirror`
+### 7. i18n
+- 删除 `zh.json` / `en.json` 中 `pricing.*`、`subscription.*`、`paddle.*` 相关键（可选，不影响运行，仅为干净）。
 
-1. JWT 鉴权 + 配额：免费已有 ≥1 → `{ requires_pro: true }`；Pro 检查 24h 节流
-2. 拉画像：profiles(mbti/zodiac/locale) + agent_bonds + 每角色 top 8 记忆
-3. 4 路并行 Lovable AI Gateway（`google/gemini-2.5-flash`）+ 严格 JSON schema + 遵循 locale
-4. 写 `soul_mirrors` → 返回 → 前端 canvas 合成 → 上传 `shared-posters` → PATCH `poster_url`
-5. 复用现有 chat 函数的 429/500 回退
+### 8. 类型文件
+- `src/integrations/supabase/types.ts` 是自动生成的，不手动改。保留 `user_subscriptions` 表类型即可。
 
-### 3. 前端
+## 验证
+- 构建通过、无 `usePaddleCheckout`/`paddle` 残留引用：`rg -i "paddle" src` 应为空
+- 访问 `/pricing` 应自然 404 跳到首页
+- 聊天、测评、Soul Mirror、深度报告均可无限使用
+- 之后即可在 Lovable 上 remix
 
-**新增**
-- `src/hooks/useSoulMirror.ts` — generate / list / canGenerate
-- `src/components/SoulMirrorDialog.tsx` — 解锁弹窗 + 生成进度 + 海报预览
-- `src/components/SoulMirrorCard.tsx` — Vault 内列表卡
-
-**修改**
-- `src/pages/Chat.tsx` — bond 更新后触发检查，localStorage `soul_mirror_prompted_v1` 防重弹
-- `src/pages/Vault.tsx` — 镜像区块
-- `src/hooks/useSharePoster.ts` — `generateSoulMirrorPoster()` 四象限布局
-- `src/i18n/locales/{zh,en}.json` — `soulMirror.*` 文案
-
-## 验收
-
-1. 与 Luna 聊 10 轮 → 自动弹窗
-2. 点生成 → ≤15s 出海报；4 段语言遵循 locale
-3. 免费再次生成 → Pro 升级弹窗
-4. 一键分享小红书/IG
-5. Vault 显示历史缩略图
-
-## 风险
-
-- AI 成本：4 路 flash × ~400 tokens 可控
-- 未聊角色质量：通用兜底 prompt + UI 标注"基于少量对话"
-- 字数溢出：JSON schema 限制 + canvas `getWrappedLines` 截断"…"
-
----
-
-确认后即开始实施。需要调整角色分工/海报样式/阈值再告诉我。
+## 备注
+执行完后，你也可以在 Lovable 项目设置里确认 Paddle 集成已断开（你之前已经断开过）。如希望以后再加回付费，重新接入 Lovable 内建 Payments 即可。

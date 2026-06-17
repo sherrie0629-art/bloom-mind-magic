@@ -68,20 +68,8 @@ serve(async (req) => {
       });
     }
 
-    // Check Plus subscription
-    const { data: sub } = await supabase
-      .from("user_subscriptions")
-      .select("plan, expires_at")
-      .eq("user_id", userId)
-      .single();
+    // Payments removed — every signed-in user can generate deep reports.
 
-    const isPlus = sub?.plan === "plus" && sub?.expires_at && new Date(sub.expires_at) > new Date();
-
-    if (!isPlus) {
-      return new Response(JSON.stringify({ error: "Plus membership required", needUpgrade: true }), {
-        status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     // Check daily deep report limit
     const today = new Date().toISOString().split("T")[0];

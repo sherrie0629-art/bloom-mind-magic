@@ -224,7 +224,7 @@ export default function SoulMirrorDialog({ open, userId, onClose, existingMirror
               <h2 className="font-display text-xl font-bold mb-2">{t("soulMirror.proTitle")}</h2>
               <p className="text-sm text-white/70 mb-6">{t("soulMirror.proDesc")}</p>
               <button
-                onClick={() => { onClose(); navigate("/pricing"); }}
+                onClick={onClose}
                 className="w-full rounded-2xl bg-gradient-to-r from-amber-400 to-pink-500 py-3 font-semibold text-white"
               >
                 {t("soulMirror.upgradeCta")}

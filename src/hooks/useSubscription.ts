@@ -1,6 +1,11 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { PLAN_LIMITS as LIMITS } from "@/lib/limits";
+
+// NOTE: Payments have been removed from this project (open / remix-friendly build).
+// Every signed-in user is treated as "plus" with unlimited usage.
+// `user_subscriptions` and `usage_tracking` tables still exist in the database,
+// but they are no longer used to gate features. We keep the public hook shape
+// so existing callers (Profile, DeepReportUnlock, etc.) don't need to change.
 
 interface SubscriptionState {
   plan: "free" | "plus";
@@ -17,201 +22,97 @@ interface SubscriptionState {
   isLoading: boolean;
 }
 
-const FREE_TRIAL_DAYS = 30;
+const INF = Number.POSITIVE_INFINITY;
 
-export function useSubscription(userId: string | undefined, createdAt?: string) {
+export function useSubscription(userId: string | undefined, _createdAt?: string) {
   const [state, setState] = useState<SubscriptionState>({
-    plan: "free",
+    plan: "plus",
     billingPeriod: "monthly",
     expiresAt: null,
     chatCount: 0,
     assessmentCount: 0,
     deepReportCount: 0,
-    chatLimit: LIMITS.free.chat,
-    assessmentLimit: LIMITS.free.assessment,
-    deepReportLimit: LIMITS.free.deepReport,
+    chatLimit: INF,
+    assessmentLimit: INF,
+    deepReportLimit: INF,
     freeTrialExpired: false,
-    freeTrialDaysLeft: FREE_TRIAL_DAYS,
-    isLoading: true,
+    freeTrialDaysLeft: 9999,
+    isLoading: false,
   });
 
   const load = useCallback(async () => {
-    if (!userId) {
-      setState((s) => ({ ...s, isLoading: false }));
-      return;
-    }
-
+    if (!userId) return;
     const today = new Date().toISOString().split("T")[0];
-
-    const [subRes, usageRes] = await Promise.all([
-      (supabase as any)
-        .from("user_subscriptions")
-        .select("plan, expires_at, billing_period")
-        .eq("user_id", userId)
-        .single(),
-      (supabase as any)
-        .from("usage_tracking")
-        .select("chat_count, assessment_count, deep_report_count")
-        .eq("user_id", userId)
-        .eq("track_date", today)
-        .single(),
-    ]);
-
-    const sub = subRes.data;
-    const usage = usageRes.data;
-    const now = new Date();
-    const isActive =
-      sub?.plan === "plus" && sub?.expires_at && new Date(sub.expires_at) > now;
-    const plan: "free" | "plus" = isActive ? "plus" : "free";
-    const limits = LIMITS[plan];
-
-    // Calculate free trial status
-    let freeTrialExpired = false;
-    let freeTrialDaysLeft = FREE_TRIAL_DAYS;
-    if (plan === "free" && createdAt) {
-      const daysSinceCreation = Math.floor(
-        (now.getTime() - new Date(createdAt).getTime()) / 86400000
-      );
-      freeTrialDaysLeft = Math.max(0, FREE_TRIAL_DAYS - daysSinceCreation);
-      freeTrialExpired = freeTrialDaysLeft <= 0;
-    }
-
-    setState({
-      plan,
-      billingPeriod: sub?.billing_period || "monthly",
-      expiresAt: sub?.expires_at || null,
+    const { data: usage } = await (supabase as any)
+      .from("usage_tracking")
+      .select("chat_count, assessment_count, deep_report_count")
+      .eq("user_id", userId)
+      .eq("track_date", today)
+      .single();
+    setState((s) => ({
+      ...s,
       chatCount: usage?.chat_count || 0,
       assessmentCount: usage?.assessment_count || 0,
       deepReportCount: usage?.deep_report_count || 0,
-      chatLimit: limits.chat,
-      assessmentLimit: limits.assessment,
-      deepReportLimit: limits.deepReport,
-      freeTrialExpired,
-      freeTrialDaysLeft,
-      isLoading: false,
-    });
-  }, [userId, createdAt]);
+    }));
+  }, [userId]);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  // Realtime: refresh when this user's subscription row changes (e.g. after webhook)
-  const loadRef = useRef(load);
-  useEffect(() => {
-    loadRef.current = load;
-  }, [load]);
-
-  useEffect(() => {
-    if (!userId) return;
-    const channel = supabase
-      .channel(`user_subscriptions:${userId}:${Math.random().toString(36).slice(2)}`)
-      .on(
-        "postgres_changes" as any,
-        {
-          event: "*",
-          schema: "public",
-          table: "user_subscriptions",
-          filter: `user_id=eq.${userId}`,
-        },
-        () => {
-          loadRef.current();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [userId]);
-
-  const incrementChat = useCallback(async () => {
-    if (!userId) return false;
-    const today = new Date().toISOString().split("T")[0];
-
-    const { data: existing } = await (supabase as any)
-      .from("usage_tracking")
-      .select("id, chat_count")
-      .eq("user_id", userId)
-      .eq("track_date", today)
-      .single();
-
-    if (existing) {
-      await (supabase as any)
+  const bumpUsage = useCallback(
+    async (column: "chat_count" | "assessment_count" | "deep_report_count") => {
+      if (!userId) return false;
+      const today = new Date().toISOString().split("T")[0];
+      const { data: existing } = await (supabase as any)
         .from("usage_tracking")
-        .update({ chat_count: existing.chat_count + 1 })
-        .eq("id", existing.id);
-      setState((s) => ({ ...s, chatCount: existing.chat_count + 1 }));
-    } else {
-      await (supabase as any)
-        .from("usage_tracking")
-        .insert({ user_id: userId, track_date: today, chat_count: 1, assessment_count: 0, deep_report_count: 0 });
-      setState((s) => ({ ...s, chatCount: 1 }));
-    }
-    return true;
-  }, [userId]);
+        .select(`id, ${column}`)
+        .eq("user_id", userId)
+        .eq("track_date", today)
+        .single();
 
-  const incrementAssessment = useCallback(async () => {
-    if (!userId) return false;
-    const today = new Date().toISOString().split("T")[0];
+      if (existing) {
+        const next = (existing[column] || 0) + 1;
+        await (supabase as any)
+          .from("usage_tracking")
+          .update({ [column]: next })
+          .eq("id", existing.id);
+        setState((s) => ({
+          ...s,
+          chatCount: column === "chat_count" ? next : s.chatCount,
+          assessmentCount: column === "assessment_count" ? next : s.assessmentCount,
+          deepReportCount: column === "deep_report_count" ? next : s.deepReportCount,
+        }));
+      } else {
+        await (supabase as any).from("usage_tracking").insert({
+          user_id: userId,
+          track_date: today,
+          chat_count: column === "chat_count" ? 1 : 0,
+          assessment_count: column === "assessment_count" ? 1 : 0,
+          deep_report_count: column === "deep_report_count" ? 1 : 0,
+        });
+        setState((s) => ({
+          ...s,
+          chatCount: column === "chat_count" ? 1 : s.chatCount,
+          assessmentCount: column === "assessment_count" ? 1 : s.assessmentCount,
+          deepReportCount: column === "deep_report_count" ? 1 : s.deepReportCount,
+        }));
+      }
+      return true;
+    },
+    [userId]
+  );
 
-    const { data: existing } = await (supabase as any)
-      .from("usage_tracking")
-      .select("id, assessment_count")
-      .eq("user_id", userId)
-      .eq("track_date", today)
-      .single();
-
-    if (existing) {
-      await (supabase as any)
-        .from("usage_tracking")
-        .update({ assessment_count: existing.assessment_count + 1 })
-        .eq("id", existing.id);
-      setState((s) => ({ ...s, assessmentCount: existing.assessment_count + 1 }));
-    } else {
-      await (supabase as any)
-        .from("usage_tracking")
-        .insert({ user_id: userId, track_date: today, chat_count: 0, assessment_count: 1, deep_report_count: 0 });
-      setState((s) => ({ ...s, assessmentCount: 1 }));
-    }
-    return true;
-  }, [userId]);
-
-  const incrementDeepReport = useCallback(async () => {
-    if (!userId) return false;
-    const today = new Date().toISOString().split("T")[0];
-
-    const { data: existing } = await (supabase as any)
-      .from("usage_tracking")
-      .select("id, deep_report_count")
-      .eq("user_id", userId)
-      .eq("track_date", today)
-      .single();
-
-    if (existing) {
-      await (supabase as any)
-        .from("usage_tracking")
-        .update({ deep_report_count: existing.deep_report_count + 1 })
-        .eq("id", existing.id);
-      setState((s) => ({ ...s, deepReportCount: existing.deep_report_count + 1 }));
-    } else {
-      await (supabase as any)
-        .from("usage_tracking")
-        .insert({ user_id: userId, track_date: today, chat_count: 0, assessment_count: 0, deep_report_count: 1 });
-      setState((s) => ({ ...s, deepReportCount: 1 }));
-    }
-    return true;
-  }, [userId]);
-
-  const canChat = !state.freeTrialExpired && state.chatCount < state.chatLimit;
-  const canAssess = !state.freeTrialExpired && state.assessmentCount < state.assessmentLimit;
-  const canDeepReport = state.plan === "plus" && state.deepReportCount < state.deepReportLimit;
+  const incrementChat = useCallback(() => bumpUsage("chat_count"), [bumpUsage]);
+  const incrementAssessment = useCallback(() => bumpUsage("assessment_count"), [bumpUsage]);
+  const incrementDeepReport = useCallback(() => bumpUsage("deep_report_count"), [bumpUsage]);
 
   return {
     ...state,
-    canChat,
-    canAssess,
-    canDeepReport,
+    canChat: true,
+    canAssess: true,
+    canDeepReport: true,
     incrementChat,
     incrementAssessment,
     incrementDeepReport,

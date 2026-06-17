@@ -195,7 +195,7 @@ serve(async (req) => {
       .select("plan, expires_at")
       .eq("user_id", userId)
       .maybeSingle();
-    const isPlus = sub?.plan === "plus" && sub?.expires_at && new Date(sub.expires_at as string) > new Date();
+    const isPlus = true; // payments removed — all users treated as plus
 
     const { data: existing } = await admin
       .from("soul_mirrors")
