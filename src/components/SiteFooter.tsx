@@ -14,10 +14,6 @@ const SiteFooter = () => {
           © {new Date().getFullYear()} Island AI · {t("footer.rights")}
         </p>
         <nav className="flex items-center gap-3 text-[11px] text-muted-foreground/70">
-          <Link to="/pricing" className="hover:text-secondary transition-colors">
-            {t("footer.pricing")}
-          </Link>
-          <span aria-hidden>·</span>
           <Link to="/contact" className="hover:text-secondary transition-colors">
             {t("footer.contact")}
           </Link>
