@@ -9,7 +9,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { TTSProvider } from "@/contexts/TTSContext";
 import Index from "./pages/Index.tsx";
 import SiteFooter from "./components/SiteFooter.tsx";
-import { PaymentTestModeBanner } from "./components/PaymentTestModeBanner.tsx";
 import LocaleSync from "./components/LocaleSync.tsx";
 
 // Retry dynamic import once, then force a hard reload if a stale route chunk cannot be fetched
@@ -75,7 +74,7 @@ const Welcome = lazyWithReload(() => import("./pages/Welcome.tsx"));
 const Contact = lazyWithReload(() => import("./pages/Contact.tsx"));
 const PrivacyPolicy = lazyWithReload(() => import("./pages/PrivacyPolicy.tsx"));
 const TermsOfService = lazyWithReload(() => import("./pages/TermsOfService.tsx"));
-const Pricing = lazyWithReload(() => import("./pages/Pricing.tsx"));
+
 const NotFound = lazyWithReload(() => import("./pages/NotFound.tsx"));
 
 const queryClient = new QueryClient();
@@ -90,7 +89,7 @@ const App = () => (
         <AuthProvider>
           <TTSProvider>
           <LocaleSync />
-          <PaymentTestModeBanner />
+          
           <div className="flex min-h-screen flex-col">
             <Suspense fallback={<div className="flex-1" />}>
               <div className="flex-1">
@@ -121,7 +120,7 @@ const App = () => (
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/privacy" element={<PrivacyPolicy />} />
                   <Route path="/terms" element={<TermsOfService />} />
-                  <Route path="/pricing" element={<Pricing />} />
+                  <Route path="/pricing" element={<Navigate to="/profile" replace />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </div>

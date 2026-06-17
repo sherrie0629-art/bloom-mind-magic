@@ -41,10 +41,6 @@ export default function DeepReportUnlock({
       promptLogin(t("auth.signInToUnlockDeep", { defaultValue: "登录后即可解锁这份深度报告 ✨" }));
       return;
     }
-    if (!isPlus) {
-      navigate("/pricing");
-      return;
-    }
     if (!canDeepReport) {
       toast.error(t("assessmentDetail.dailyDeepLimit"));
       return;
